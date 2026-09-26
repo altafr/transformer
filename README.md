@@ -1,6 +1,10 @@
 # Inside the Decoder
 
-An animated, interactive single-page website that walks through how a decoder-only transformer (GPT-style) predicts the next word:
+An animated, interactive single-page website with two tabs.
+
+**Deep learning basics** (for newcomers): a neural network as a machine full of tunable dials, one neuron you can tune by hand, a 13-dial network that learns live in the browser to tell whether a fruit is good to eat (training phase, with a step-by-step explanation of one gradient step), then the same network answering new fruits with its dials frozen (inference phase), and how this scales up to GPT. Open it directly with `index.html#basics`.
+
+**Transformer decoder**: walks through how a decoder-only transformer (GPT-style) predicts the next word:
 
 0. Training: where the embeddings and weight matrices come from (a real tiny model trains live in the browser)
 1. Tokenization

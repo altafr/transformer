@@ -34,6 +34,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:84px}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.02em}
@@ -256,6 +257,72 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .tri span.nw{background:var(--pos);opacity:1}
 .gen-status{font-size:14px;color:var(--muted);min-height:1.6em}
 
+/* ---------- tabs ---------- */
+.tabs{flex:none}
+.tabs .btn{font-size:13px;padding:6px 12px}
+/* ---------- basics tab ---------- */
+.bigpic{width:100%;height:auto;max-width:760px}
+.bigpic rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.bigpic .bp-box{fill:var(--accent-weak);stroke:var(--accent);stroke-width:1.4}
+.bigpic text{fill:var(--ink);font:500 14px var(--mono)}
+.bigpic .bp-cap{fill:var(--muted);font-size:11px;letter-spacing:.1em}
+.bigpic .bp-big{font:800 28px var(--display);fill:var(--pos)}
+.bigpic .bp-wire{stroke:var(--muted);stroke-width:1.5;fill:none;stroke-dasharray:5 4;animation:dash 1.2s linear infinite}
+.phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.phase{border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.phase h3{font-size:22px;display:flex;align-items:center;gap:10px}
+.phase .tag{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.phase.train{border-top:4px solid var(--pos)}
+.phase.infer{border-top:4px solid var(--accent)}
+.phase p{color:var(--muted);font-size:15px}
+.phase dl,.glossary{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 14px;margin:0;font-size:14px}
+.phase dt,.glossary dt{font-weight:600;color:var(--muted);font-size:13px}
+.phase dd,.glossary dd{margin:0}
+.glossary{max-width:760px}
+.glossary dt{color:var(--ink)}
+.neuron-grid{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr) 240px;gap:24px;align-items:start}
+#nSvg,#dlNet,#infNet{width:100%;height:auto;display:block}
+.dials{display:flex;flex-wrap:wrap;gap:10px}
+.dial{display:grid;justify-items:center;gap:2px;width:54px;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:10px;padding:4px 0;transition:background .3s}
+.dial svg{width:48px;height:48px;overflow:visible}
+.dial .trk{fill:var(--surface-2);stroke:var(--line);stroke-width:1}
+.dial .arc{fill:none;stroke-width:4;stroke-linecap:round}
+.dial .ptr{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round}
+.dial .dv{font:500 12px var(--mono);font-variant-numeric:tabular-nums}
+.dial .dl{font:500 10px var(--mono);color:var(--muted);text-align:center;line-height:1.2}
+.dial.moved{background:var(--accent-weak)}
+.dial .dd{font:600 10px var(--mono);color:var(--accent);min-height:12px}
+.dial-groups{display:grid;grid-template-columns:repeat(3,minmax(0,3fr)) minmax(0,4fr);gap:12px}
+.dgroup{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:6px;align-content:start}
+.dgroup h4{margin:0;font:600 13px var(--sans);display:flex;gap:8px;align-items:center}
+.dgroup h4 i{width:10px;height:10px;border-radius:50%}
+.dgroup .dials{gap:4px}
+.locked .dial{cursor:not-allowed;opacity:.8}
+.lab-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+#dlMap,#infMap{width:100%;aspect-ratio:1;max-width:460px;display:block;border-radius:12px;cursor:crosshair}
+#dlLoss{width:100%;height:110px;display:block}
+.dl-stats{display:flex;flex-wrap:wrap;gap:8px 22px;font:500 13px var(--mono);color:var(--muted)}
+.dl-stats b{color:var(--ink);font-weight:600}
+.legend2{display:flex;flex-wrap:wrap;gap:14px;font:500 12px var(--mono);color:var(--muted)}
+.legend2 i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.legend2 i.ring{background:transparent;box-shadow:inset 0 0 0 2px var(--ink)}
+.explain{margin:0;padding:14px 18px 14px 38px;background:var(--surface-2);border-radius:12px;display:grid;gap:6px;font-size:15px;min-height:60px}
+.explain li.on{color:var(--ink)}
+.explain li{color:var(--muted)}
+.explain li.cur{color:var(--ink);font-weight:500}
+.net .edge{fill:none;transition:stroke-width .4s,stroke .4s,opacity .3s}
+.net .edge.hl{stroke:var(--ink)!important;opacity:1!important}
+.net .edge.flow{stroke-dasharray:6 6;animation:dash .6s linear infinite}
+.net circle.node{stroke:var(--line);stroke-width:1.5;transition:fill .4s}
+.net circle.node.hl{stroke:var(--ink);stroke-width:2.5}
+.net text{font:500 12px var(--mono);fill:var(--ink)}
+.net .nl{font:600 13px var(--sans)}
+.net .cap{fill:var(--muted);font-size:11px}
+.verdict{font-family:var(--display);font-size:clamp(26px,3.4vw,38px);font-weight:800;line-height:1.1}
+.verdict small{display:block;font:500 14px var(--sans);color:var(--muted);margin-top:4px}
+.banner{padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--pos) 16%,var(--surface));border:1px solid var(--pos);display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:15px}
+@media (max-width:1000px){.neuron-grid{grid-template-columns:minmax(0,1fr)}.dial-groups{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-grid,.phases{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){.dial-groups{grid-template-columns:minmax(0,1fr)}}
 /* ---------- training + qkv ---------- */
 .tr-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
 #trMap{width:100%;height:340px;display:block;border-radius:12px;background:var(--surface-2)}
@@ -337,6 +404,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -347,7 +415,7 @@ body.present footer{display:none}
   <button class="btn primary" id="presentBtn" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Present</button>
 </header>
 
-<div class="shell">
+<div class="shell" id="tabDecoder">
   <nav class="rail" aria-label="Steps">
     <div class="cap">The journey of one prediction</div>
   </nav>
@@ -363,6 +431,7 @@ body.present footer{display:none}
         <div class="hero-cta">
           <button class="btn primary" type="button" id="heroPresent"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Start presentation</button>
           <a class="btn" href="#s1">Scroll through the steps</a>
+          <button class="btn" type="button" data-tabgo="basics">New to neural networks? Start with the basics</button>
         </div>
         <div class="hero-meta">
           <span>training + 9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
@@ -772,6 +841,200 @@ body.present footer{display:none}
       <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
     </footer>
+  </main>
+</div>
+
+<div class="shell" id="tabBasics" hidden>
+  <nav class="rail" aria-label="Deep learning basics">
+    <div class="cap">Deep learning from zero</div>
+  </nav>
+  <main>
+    <section id="b1" data-name="The big picture" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 1 of 5</div>
+        <h2>A neural network is a machine full of dials</h2>
+        <p class="lede">A neural network is a function: numbers go in, a number comes out. Inside are many small <strong>dials</strong> (called weights). How the dials are set decides what the network does. <strong>Deep learning</strong> means we do not set the dials by hand. We show the network examples with known answers, and a procedure turns every dial a little at a time until the answers come out right.</p>
+        <div class="key"><b>Our running example</b>Is a fruit good to eat? We describe each fruit with two numbers between 0 and 1: how <em>sweet</em> it is and how <em>soft</em> it is. Good fruit is sweet and a little soft, but not mushy. We never write that rule down. The network has to discover it from 60 example fruits.</div>
+      </div>
+      <div class="viz">
+        <svg class="bigpic" viewBox="0 0 720 200" role="img" aria-label="Inputs flow into a box of dials, which produces an answer">
+          <g class="bp-in"><rect x="10" y="50" width="150" height="100" rx="14"/><text x="85" y="88" text-anchor="middle">sweetness 0.8</text><text x="85" y="116" text-anchor="middle">softness 0.5</text><text class="bp-cap" x="85" y="170" text-anchor="middle">INPUT</text></g>
+          <path class="bp-wire" d="M160 100 H240"/><path class="bp-wire" d="M480 100 H560"/>
+          <rect class="bp-box" x="240" y="20" width="240" height="160" rx="18"/>
+          <text class="bp-cap" x="360" y="198" text-anchor="middle">NETWORK · 13 DIALS</text>
+          <g id="bpDials"></g>
+          <g class="bp-out"><rect x="560" y="50" width="150" height="100" rx="14"/><text x="635" y="92" text-anchor="middle">good to eat?</text><text class="bp-big" x="635" y="122" text-anchor="middle">93%</text><text class="bp-cap" x="635" y="170" text-anchor="middle">OUTPUT</text></g>
+        </svg>
+        <div class="phases">
+          <div class="phase train">
+            <h3><span class="tag">Phase 1</span>Training</h3>
+            <p>Learning the dial settings. Happens once, before anyone uses the model.</p>
+            <dl>
+              <dt>What goes in</dt><dd>Examples <em>with</em> the correct answer (fruit + “good” or “not good”)</dd>
+              <dt>What happens</dt><dd>Guess, measure the error, turn every dial slightly to reduce it. Repeat thousands of times.</dd>
+              <dt>Do the dials move?</dt><dd><strong>Yes</strong>, that is the whole point</dd>
+              <dt>At GPT scale</dt><dd>Weeks on thousands of GPUs</dd>
+            </dl>
+          </div>
+          <div class="phase infer">
+            <h3><span class="tag">Phase 2</span>Inference</h3>
+            <p>Using the finished network. Happens every time someone asks it something.</p>
+            <dl>
+              <dt>What goes in</dt><dd>A new fruit, <em>without</em> an answer</dd>
+              <dt>What happens</dt><dd>One pass through the network with the dials as they are. Out comes an answer.</dd>
+              <dt>Do the dials move?</dt><dd><strong>No</strong>, they are frozen and only read</dd>
+              <dt>At GPT scale</dt><dd>Fractions of a second per word</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Ask the room: how would you write a rule for “good fruit”? Then point out that for images, speech or language nobody can write the rules, which is why we learn them from examples.</li>
+        <li>The two phases are the most important idea on this page. ChatGPT was trained once; every reply you get is inference.</li>
+      </ul></details>
+    </section>
+
+    <section id="b2" data-name="One neuron" data-num="2">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 2 of 5</div>
+        <h2>One neuron: multiply, add, squash</h2>
+        <p class="lede">A neuron takes its inputs, multiplies each by a dial (its <strong>weight</strong>), adds them up with one more dial (the <strong>bias</strong>), and squashes the total into a number between 0 and 1 (the <strong>activation</strong>). A big weight means “this input matters a lot”; a negative weight means “this input counts against”. Turn the dials and watch the neuron respond.</p>
+        <div class="formula">output = σ( w₁ × sweetness + w₂ × softness + b ) &nbsp;&nbsp; σ(z) = 1 / (1 + e<sup>−z</sup>)</div>
+      </div>
+      <div class="viz" id="nv">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Try a preset</span><div class="seg" id="nPresets">
+            <button class="btn" type="button" data-p="sweet">Sweet detector</button>
+            <button class="btn" type="button" data-p="mushy">Mushy detector</button>
+            <button class="btn" type="button" data-p="zero">All dials at 0</button>
+          </div></div>
+          <button class="btn play" data-play="b2" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div class="neuron-grid">
+          <div style="display:grid;gap:14px;align-content:start">
+            <div class="slider"><label class="label" for="nX1">Sweetness</label><input type="range" id="nX1" min="0" max="1" step="0.01" value="0.8"><span class="mono" id="nX1v"></span></div>
+            <div class="slider"><label class="label" for="nX2">Softness</label><input type="range" id="nX2" min="0" max="1" step="0.01" value="0.5"><span class="mono" id="nX2v"></span></div>
+            <div class="dials" id="nDials"></div>
+            <p class="note">Drag a dial up or down (or focus it and use the arrow keys).</p>
+          </div>
+          <svg id="nSvg" viewBox="0 0 460 220" aria-label="A single neuron"></svg>
+          <div style="display:grid;gap:8px;align-content:start">
+            <span class="label">The squash (sigmoid)</span>
+            <svg id="nSig" viewBox="0 0 220 130" style="width:100%;max-width:240px"></svg>
+          </div>
+        </div>
+        <p class="calc" id="nCalc"></p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>“Sweet detector”: a big weight on sweetness and a negative bias means it only fires for sweet fruit.</li>
+        <li>One neuron can only draw one straight dividing line. “Sweet but not mushy” needs several neurons working together, which is the next step.</li>
+      </ul></details>
+    </section>
+
+    <section id="b3" data-name="Training" data-num="3">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 3 of 5 · training phase</div>
+        <h2>Training: let the examples turn the dials</h2>
+        <p class="lede">Our network has 3 hidden neurons (A, B, C) feeding one output neuron: <strong>13 dials</strong> in total. They start random, so its guesses are random. Training repeats one simple loop for every example fruit: <strong>guess</strong>, <strong>measure the error</strong>, work out which way each dial should turn to shrink that error (<strong>backpropagation</strong>), and <strong>turn every dial a little</strong> (gradient descent). The shaded map shows what the network currently believes about every possible fruit.</p>
+        <div class="formula">loss = −ln(probability given to the correct answer) &nbsp;&nbsp; dial ← dial − learning rate × (how much that dial increased the loss)</div>
+      </div>
+      <div class="viz" id="labv">
+        <div class="viz-bar">
+          <div class="left">
+            <button class="btn primary" id="dlTrain" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Train</button>
+            <button class="btn" id="dlStep" type="button">Explain one step</button>
+            <button class="btn" id="dlScramble" type="button">Scramble dials</button>
+          </div>
+          <div class="slider"><label class="label" for="dlLr">Learning rate</label><input type="range" id="dlLr" min="0.2" max="5" step="0.1" value="2"><span class="mono" id="dlLrv">2.0</span></div>
+        </div>
+        <div class="dl-stats" id="dlStats"></div>
+        <div class="lab-grid">
+          <div style="display:grid;gap:8px;min-width:0">
+            <div class="mhead"><span class="label">60 training fruits and the network’s current opinion</span></div>
+            <canvas id="dlMap" aria-label="Training fruits plotted by sweetness and softness, over the network's decision map"></canvas>
+            <div class="legend2"><span><i style="background:var(--pos)"></i>good to eat</span><span><i style="background:var(--neg)"></i>not good</span><span><i class="ring"></i>currently wrong</span></div>
+          </div>
+          <div style="display:grid;gap:12px;align-content:start;min-width:0">
+            <svg id="dlNet" viewBox="0 0 460 250" aria-label="Network diagram: 2 inputs, 3 hidden neurons, 1 output"></svg>
+            <div style="display:grid;gap:6px"><div class="mhead"><span class="label">Loss per pass</span><span class="dim mono" id="dlLossv"></span></div><canvas id="dlLoss"></canvas></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px"><span class="label">The 13 dials (you can turn them by hand while training is paused)</span><div class="dial-groups" id="dlDials"></div></div>
+        <ol class="explain" id="dlExplain"><li>Press <strong>Explain one step</strong> to walk through a single training step, or <strong>Train</strong> to run thousands of them.</li></ol>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>First, challenge someone to fix the map by turning dials by hand. With 13 dials it is already hard; GPT‑3 has 175 billion. That is why training is automatic.</li>
+        <li>Use “Explain one step” two or three times: each fruit nudges all 13 dials only slightly.</li>
+        <li>Then press Train. Each “pass” (epoch) shows the network all 60 fruits once. Watch the loss fall and the shaded region settle into “sweet, but not mushy”.</li>
+        <li>Too high a learning rate makes the dials overshoot; too low and training crawls. Try both.</li>
+      </ul></details>
+    </section>
+
+    <section id="b4" data-name="Inference" data-num="4">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 4 of 5 · inference phase</div>
+        <h2>Inference: freeze the dials, ask a new question</h2>
+        <p class="lede">Training is over, so the dials are <strong>locked</strong>. Now give the network a fruit it has never seen. The numbers flow forward once, from the inputs, through the hidden neurons, to the output, and out comes an answer. Nothing is learned here and no correct answer is needed. This is what happens every time you use an AI model.</p>
+      </div>
+      <div class="viz" id="infv">
+        <div class="banner" id="infBanner" hidden>These dials have not been trained yet, so the answers will be poor. <button class="btn" id="infQuick" type="button">Train instantly</button> or go back to step 3.</div>
+        <div class="viz-bar">
+          <div class="left" style="gap:18px">
+            <div class="slider"><label class="label" for="iX1">Sweetness</label><input type="range" id="iX1" min="0" max="1" step="0.01" value="0.7"><span class="mono" id="iX1v"></span></div>
+            <div class="slider"><label class="label" for="iX2">Softness</label><input type="range" id="iX2" min="0" max="1" step="0.01" value="0.55"><span class="mono" id="iX2v"></span></div>
+          </div>
+          <button class="btn primary play" data-play="b4" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Run inference</button>
+        </div>
+        <div class="lab-grid">
+          <div style="display:grid;gap:8px;min-width:0">
+            <span class="label">Click anywhere to test a new fruit (the star)</span>
+            <canvas id="infMap" aria-label="Decision map; click to choose a fruit"></canvas>
+          </div>
+          <div style="display:grid;gap:14px;align-content:start;min-width:0">
+            <svg id="infNet" viewBox="0 0 460 250" aria-label="Forward pass through the network"></svg>
+            <div class="verdict" id="infVerdict"></div>
+            <p class="calc" id="infCalc"></p>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px"><span class="label">Dials are frozen during inference (read only)</span><div class="dial-groups locked" id="infDials"></div></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Pick a fruit far from any training example. The network still answers, because it learned a pattern, not a list. That is called generalization.</li>
+        <li>Inference is one pass of multiply, add, squash. It is cheap compared with training, which is why a model trained once can serve millions of people.</li>
+      </ul></details>
+    </section>
+
+    <section id="b5" data-name="Scaling up to GPT" data-num="5">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 5 of 5</div>
+        <h2>From 13 dials to 175 billion</h2>
+        <p class="lede">Large language models are built from exactly these parts: neurons that multiply, add and squash, stacked in many layers. The task changes from “good fruit?” to “what is the next word?”, and the dial count grows enormously. Training is the same loop: guess the next word in real text, measure the error, turn every dial a little. Inference is the same forward pass, repeated once per generated word.</p>
+      </div>
+      <div class="viz">
+        <div class="scroll-x"><table class="stack-table">
+          <thead><tr><th>Network</th><th>Dials (weights)</th><th>Training examples</th><th>Task</th></tr></thead>
+          <tbody>
+            <tr class="me"><td>Our fruit network</td><td>13</td><td>60 fruits</td><td>good to eat?</td></tr>
+            <tr><td>GPT‑2 small (2019)</td><td>124 million</td><td>about 40 GB of web text</td><td>next word</td></tr>
+            <tr><td>GPT‑3 (2020)</td><td>175 billion</td><td>about 300 billion tokens</td><td>next word</td></tr>
+          </tbody>
+        </table></div>
+        <dl class="glossary">
+          <dt>Weight</dt><dd>A dial on one connection: how much one input counts.</dd>
+          <dt>Bias</dt><dd>A dial on a neuron: how easily it fires.</dd>
+          <dt>Activation</dt><dd>A neuron’s output after the squash, between 0 and 1 here.</dd>
+          <dt>Loss</dt><dd>One number that says how wrong the network is. Training tries to make it small.</dd>
+          <dt>Gradient</dt><dd>For each dial, which way and how strongly turning it would change the loss.</dd>
+          <dt>Backpropagation</dt><dd>The method that computes all the gradients at once, working backward from the output.</dd>
+          <dt>Epoch (pass)</dt><dd>Showing the network every training example once.</dd>
+          <dt>Inference</dt><dd>Using the trained network: one forward pass with frozen dials.</dd>
+        </dl>
+        <div><button class="btn primary" type="button" data-tabgo="decoder">Continue to the transformer decoder →</button></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>The decoder tab shows what those billions of dials are arranged into: embeddings, attention (Q, K, V) and MLPs. Each of those is made of the same multiply, add, squash.</li>
+      </ul></details>
+    </section>
   </main>
 </div>
 
@@ -1531,7 +1794,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -1559,7 +1822,7 @@ $('#acceptBtn').addEventListener('click',()=>{
 $('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.done||gen.pieces.length>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
 $('#genStep').addEventListener('click',()=>{gen.running=false;setPlayLabel();genStep()});
 $('#genReset').addEventListener('click',resetGen);
-addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(()=>{drawPE();trDraw(true)},100)});
+addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(()=>{drawPE();trDraw(true);dlRenderAll()},100)});
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(drawPE,50));
 new MutationObserver(()=>setTimeout(drawPE,50)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
@@ -1568,19 +1831,228 @@ const tip=$('#tip');
 document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.classList.remove('show');return}tip.textContent=t.dataset.tip;tip.classList.add('show')});
 document.addEventListener('pointermove',e=>{if(!tip.classList.contains('show'))return;const w=tip.offsetWidth;let x=e.clientX+14;if(x+w>innerWidth-8)x=e.clientX-w-14;tip.style.left=Math.max(8,x)+'px';tip.style.top=(e.clientY+16)+'px'});
 
+/* ================= DEEP LEARNING BASICS TAB ================= */
+const sigm=z=>1/(1+Math.exp(-z));
+const hexRGB=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16))};
+function makeDial(host,{label,get,set,max=10,locked=false,key}){
+  const el=document.createElement('div');el.className='dial';el.tabIndex=locked?-1:0;el.setAttribute('role','slider');
+  el.setAttribute('aria-label',label);el.setAttribute('aria-valuemin',-max);el.setAttribute('aria-valuemax',max);if(key!==undefined)el.dataset.k=key;
+  el.innerHTML=`<svg viewBox="0 0 48 48"><circle class="trk" cx="24" cy="24" r="19"/><path class="arc"/><line class="ptr" x1="24" y1="24"/></svg><span class="dv"></span><span class="dl">${label}</span><span class="dd"></span>`;
+  host.appendChild(el);
+  const d={el,max,upd(){const v=get(),a=Math.max(-1,Math.min(1,v/max))*135,r=19,rad=a*Math.PI/180;
+    const x=24+r*Math.sin(rad),y=24-r*Math.cos(rad);
+    el.querySelector('.arc').setAttribute('d',Math.abs(a)<.5?'':`M24 5 A19 19 0 0 ${a>0?1:0} ${x.toFixed(2)} ${y.toFixed(2)}`);
+    el.querySelector('.arc').style.stroke=`var(${v>=0?'--pos':'--neg'})`;
+    const p=el.querySelector('.ptr');p.setAttribute('x2',(24+14*Math.sin(rad)).toFixed(2));p.setAttribute('y2',(24-14*Math.cos(rad)).toFixed(2));
+    el.querySelector('.dv').textContent=(v>=0?'+':'')+v.toFixed(1);el.setAttribute('aria-valuenow',v.toFixed(2))}};
+  if(!locked){
+    let sy=0,sv=0,drag=false;
+    el.addEventListener('pointerdown',e=>{if(el.dataset.lock)return;drag=true;sy=e.clientY;sv=get();el.setPointerCapture(e.pointerId);e.preventDefault()});
+    el.addEventListener('pointermove',e=>{if(!drag)return;set(Math.max(-max,Math.min(max,sv+(sy-e.clientY)*max/90)))});
+    el.addEventListener('pointerup',()=>drag=false);el.addEventListener('pointercancel',()=>drag=false);
+    el.addEventListener('keydown',e=>{if(el.dataset.lock)return;const st=max/40;if(e.key==='ArrowUp'||e.key==='ArrowRight'){set(Math.min(max,get()+st));e.preventDefault()}else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){set(Math.max(-max,get()-st));e.preventDefault()}});
+  }
+  d.upd();return d;
+}
+
+/* ---- basics 1: dials decoration ---- */
+(function(){let s='';const r=mulberry32(3);for(let i=0;i<13;i++){const cx=275+(i%5)*43,cy=48+Math.floor(i/5)*46,a=(r()*2-1)*2.2;s+=`<g><circle cx="${cx}" cy="${cy}" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.2"/><line x1="${cx}" y1="${cy}" x2="${(cx+11*Math.sin(a)).toFixed(1)}" y2="${(cy-11*Math.cos(a)).toFixed(1)}" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 ${cx} ${cy};${(r()*80-40).toFixed(0)} ${cx} ${cy};0 ${cx} ${cy}" dur="${(3+r()*3).toFixed(1)}s" repeatCount="indefinite"/></line></g>`}$('#bpDials').innerHTML=s})();
+
+/* ---- basics 2: a single neuron ---- */
+const NEU={w1:6,w2:0,b:-3};
+const NPRE={sweet:{w1:6,w2:0,b:-3},mushy:{w1:0,w2:8,b:-6},zero:{w1:0,w2:0,b:0}};
+const nDials=[['w1','w₁ sweet'],['w2','w₂ soft'],['b','bias b']].map(([k,l])=>makeDial($('#nDials'),{label:l,get:()=>NEU[k],set:v=>{NEU[k]=v;renderNeuron()}}));
+function renderNeuron(flash){
+  const x1=+$('#nX1').value,x2=+$('#nX2').value,z=NEU.w1*x1+NEU.w2*x2+NEU.b,y=sigm(z);
+  $('#nX1v').textContent=x1.toFixed(2);$('#nX2v').textContent=x2.toFixed(2);nDials.forEach(d=>d.upd());
+  const ew=w=>(1+Math.min(Math.abs(w),10)*.7).toFixed(1),ec=w=>`var(${w>=0?'--pos':'--neg'})`;
+  $('#nSvg').innerHTML=`<g class="net">
+    <path class="edge${flash?' flow':''}" d="M92 60 C170 60 190 110 250 110" stroke="${ec(NEU.w1)}" stroke-width="${ew(NEU.w1)}"/>
+    <path class="edge${flash?' flow':''}" d="M92 160 C170 160 190 110 250 110" stroke="${ec(NEU.w2)}" stroke-width="${ew(NEU.w2)}"/>
+    <path class="edge" d="M330 110 H380" stroke="var(--muted)" stroke-width="2"/>
+    <circle class="node" cx="60" cy="60" r="30" fill="${attColor(x1,'--h3')}"/><text x="60" y="64" text-anchor="middle">${x1.toFixed(2)}</text><text class="cap" x="60" y="108" text-anchor="middle">sweetness</text>
+    <circle class="node" cx="60" cy="160" r="30" fill="${attColor(x2,'--h3')}"/><text x="60" y="164" text-anchor="middle">${x2.toFixed(2)}</text><text class="cap" x="60" y="208" text-anchor="middle">softness</text>
+    <text class="cap" x="165" y="52" text-anchor="middle">× ${NEU.w1.toFixed(1)}</text><text class="cap" x="165" y="182" text-anchor="middle">× ${NEU.w2.toFixed(1)}</text>
+    <circle class="node" cx="290" cy="110" r="40" fill="${attColor(y)}"/><text x="290" y="106" text-anchor="middle">Σ + b</text><text x="290" y="124" text-anchor="middle">σ</text><text class="cap" x="290" y="172" text-anchor="middle">neuron</text>
+    <text class="nl" x="420" y="106" text-anchor="middle" style="font-size:22px;fill:var(--accent)">${y.toFixed(2)}</text><text class="cap" x="420" y="128" text-anchor="middle">output</text></g>`;
+  const X=v=>12+(v+8)/16*196,Y=v=>112-v*96;
+  let p='';for(let s=0;s<=80;s++){const v=-8+s/5;p+=(s?'L':'M')+X(v).toFixed(1)+','+Y(sigm(v)).toFixed(1)}
+  const zc=Math.max(-8,Math.min(8,z));
+  $('#nSig').innerHTML=`<line x1="12" x2="208" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/><line x1="12" x2="208" y1="${Y(1)}" y2="${Y(1)}" stroke="var(--line)" stroke-dasharray="3 3"/><line x1="${X(0)}" x2="${X(0)}" y1="8" y2="${Y(0)}" stroke="var(--line)"/><path d="${p}" fill="none" stroke="var(--accent)" stroke-width="2.4"/><line x1="${X(zc)}" x2="${X(zc)}" y1="${Y(0)}" y2="${Y(sigm(zc))}" stroke="var(--pos)" stroke-dasharray="3 3"/><circle cx="${X(zc)}" cy="${Y(sigm(zc))}" r="5" fill="var(--pos)"/><text x="14" y="126" font-size="10" fill="var(--muted)" font-family="var(--mono)">z = −8</text><text x="206" y="126" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">+8</text><text x="${X(0)+4}" y="${Y(1)-3}" font-size="10" fill="var(--muted)" font-family="var(--mono)">1</text>`;
+  $('#nCalc').innerHTML=`z = <b>${NEU.w1.toFixed(1)}</b> × ${x1.toFixed(2)} + <b>${NEU.w2.toFixed(1)}</b> × ${x2.toFixed(2)} + (<b>${NEU.b.toFixed(1)}</b>) = ${z.toFixed(2)} &nbsp;→&nbsp; σ(${z.toFixed(2)}) = <b>${y.toFixed(2)}</b> &nbsp;<span class="muted">${y>.5?'the neuron fires':'the neuron stays quiet'}</span>`;
+}
+async function playNeuron(){renderNeuron(true);await sleep(1600);renderNeuron(false)}
+
+/* ---- basics 3/4: the 13-dial fruit network ---- */
+const DL={p:[],hist:[],epoch:0,running:false,frame:0,seed:1,MAX:300,CLAMP:20};
+DL.data=(()=>{const r=mulberry32(42),D=[];while(D.length<60){const s=r(),f=r();D.push([s,f,s>.5&&f>.3&&f<.75?1:0])}return D})();
+const PNAMES=['sweet → A','soft → A','bias A','sweet → B','soft → B','bias B','sweet → C','soft → C','bias C','A → out','B → out','C → out','bias out'];
+function dlFwd(p,x1,x2){const h=[0,1,2].map(j=>sigm(p[3*j]*x1+p[3*j+1]*x2+p[3*j+2]));return {h,y:sigm(p[9]*h[0]+p[10]*h[1]+p[11]*h[2]+p[12])}}
+function dlGrad(p,x1,x2,t){const {h,y}=dlFwd(p,x1,x2),dy=y-t,g=new Array(13);
+  for(let j=0;j<3;j++){const dz=dy*p[9+j]*h[j]*(1-h[j]);g[9+j]=dy*h[j];g[3*j]=dz*x1;g[3*j+1]=dz*x2;g[3*j+2]=dz}g[12]=dy;return {g,y,h}}
+const dlLoss=p=>DL.data.reduce((s,[a,b,t])=>{const y=dlFwd(p,a,b).y;return s-Math.log(Math.max(1e-9,t?y:1-y))},0)/DL.data.length;
+const dlAcc=p=>DL.data.filter(([a,b,t])=>(dlFwd(p,a,b).y>.5)===!!t).length;
+function dlScramble(){dlStop();const r=mulberry32(DL.seed++);DL.p=Array.from({length:13},()=>(r()*2-1)*1.5);DL.epoch=0;DL.hist=[dlLoss(DL.p)];DL.focus=null;
+  $('#dlExplain').innerHTML='<li>Dials scrambled to random values. The network is guessing. Press <strong>Explain one step</strong> or <strong>Train</strong>.</li>';dlRenderAll()}
+function dlApply(g,lr){for(let k=0;k<13;k++)DL.p[k]=Math.max(-DL.CLAMP,Math.min(DL.CLAMP,DL.p[k]-lr*g[k]))}
+function dlEpoch(lr){const r=mulberry32(DL.epoch*31+7),idx=DL.data.map((_,i)=>i);for(let i=idx.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  for(const i of idx){const [a,b,t]=DL.data[i];dlApply(dlGrad(DL.p,a,b,t).g,lr)}DL.epoch++;DL.hist.push(dlLoss(DL.p))}
+function dlStart(){if(DL.running)return;if(dlAcc(DL.p)===60&&DL.epoch>=DL.MAX)dlScramble();DL.running=true;dlBtn();$$('#dlDials .dial').forEach(d=>d.dataset.lock=1);requestAnimationFrame(dlLoop)}
+function dlStop(){DL.running=false;dlBtn();$$('#dlDials .dial').forEach(d=>delete d.dataset.lock)}
+function dlBtn(){$('#dlTrain').innerHTML=DL.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>'+(DL.epoch?'Keep training':'Train')}
+function dlLoop(){
+  if(!DL.running)return;DL.frame++;
+  if(RM||DL.frame%2===0){for(let i=0;i<(RM?40:1);i++)dlEpoch(+$('#dlLr').value)}
+  dlRenderAll();
+  const acc=dlAcc(DL.p);
+  if(DL.epoch>=DL.MAX||(acc>=59&&DL.hist[DL.hist.length-1]<.12)){dlStop();$('#dlExplain').innerHTML=`<li>Training finished after ${DL.epoch} passes: ${acc} of 60 fruits classified correctly. The dials are now set. Go to <strong>Inference</strong> to use them.</li>`;return}
+  requestAnimationFrame(dlLoop);
+}
+let dlDialObjs=[],infDialObjs=[];
+function buildDialGroups(host,locked){
+  const groups=[['Hidden neuron A','--h0',[0,1,2]],['Hidden neuron B','--h1',[3,4,5]],['Hidden neuron C','--h2',[6,7,8]],['Output neuron','--h3',[9,10,11,12]]];
+  host.innerHTML='';const out=[];
+  groups.forEach(([t,c,ks])=>{const g=document.createElement('div');g.className='dgroup';g.innerHTML=`<h4><i style="background:var(${c})"></i>${t}</h4><div class="dials"></div>`;host.appendChild(g);
+    ks.forEach(k=>out[k]=makeDial(g.querySelector('.dials'),{label:PNAMES[k].replace(/ → [ABC]$| → out$/,'').replace('bias [ABC]','bias').replace('bias out','bias'),key:k,max:DL.CLAMP,locked,get:()=>DL.p[k],set:v=>{DL.p[k]=v;DL.hist.push(dlLoss(DL.p));dlRenderAll()}}))});
+  host.addEventListener('pointerover',e=>{const d=e.target.closest('.dial');$$('.net .hl').forEach(x=>x.classList.remove('hl'));if(d)$$(`.net [data-k="${d.dataset.k}"]`).forEach(x=>x.classList.add('hl'))});
+  host.addEventListener('pointerleave',()=>$$('.net .hl').forEach(x=>x.classList.remove('hl')));
+  return out;
+}
+const NETPOS={in:[[60,80],[60,180]],hid:[[230,45],[230,125],[230,205]],out:[400,125]};
+function netSVG(svg,x1,x2,{flow=-1,showVals=true}={}){
+  const p=DL.p,{h,y}=dlFwd(p,x1,x2),ew=w=>(1+Math.min(Math.abs(w),DL.CLAMP)/DL.CLAMP*8).toFixed(1),ec=w=>`var(${w>=0?'--pos':'--neg'})`;
+  let s='<g class="net">';
+  for(let j=0;j<3;j++)for(let m=0;m<2;m++){const [ax,ay]=NETPOS.in[m],[bx,by]=NETPOS.hid[j],k=3*j+m;s+=`<path class="edge${flow===1?' flow':''}" data-k="${k}" d="M${ax+24},${ay} C${ax+90},${ay} ${bx-90},${by} ${bx-24},${by}" stroke="${ec(p[k])}" stroke-width="${ew(p[k])}" opacity=".85"/>`}
+  for(let j=0;j<3;j++){const [bx,by]=NETPOS.hid[j],[ox,oy]=NETPOS.out,k=9+j;s+=`<path class="edge${flow===2?' flow':''}" data-k="${k}" d="M${bx+24},${by} C${bx+80},${by} ${ox-80},${oy} ${ox-28},${oy}" stroke="${ec(p[k])}" stroke-width="${ew(p[k])}" opacity=".85"/>`}
+  const vis=l=>showVals&&flow<0||flow>=l;
+  NETPOS.in.forEach(([x,yy],m)=>{const v=m?x2:x1;s+=`<circle class="node" cx="${x}" cy="${yy}" r="24" fill="${attColor(v,'--h3')}"/><text x="${x}" y="${yy+4}" text-anchor="middle">${v.toFixed(2)}</text><text class="cap" x="${x}" y="${yy+40}" text-anchor="middle">${m?'softness':'sweetness'}</text>`});
+  NETPOS.hid.forEach(([x,yy],j)=>{s+=`<circle class="node" data-k="${3*j+2}" cx="${x}" cy="${yy}" r="24" fill="${vis(2)?attColor(h[j],`--h${j}`):'var(--surface)'}"/><text class="nl" x="${x-34}" y="${yy-16}" text-anchor="end" fill="var(--h${j})">${'ABC'[j]}</text><text x="${x}" y="${yy+4}" text-anchor="middle">${vis(2)?h[j].toFixed(2):'?'}</text>`});
+  const [ox,oy]=NETPOS.out;
+  s+=`<circle class="node" data-k="12" cx="${ox}" cy="${oy}" r="28" fill="${vis(3)?`color-mix(in oklab, var(${y>=.5?'--pos':'--neg'}) ${Math.round(Math.abs(y-.5)*200)}%, var(--cell))`:'var(--surface)'}"/><text x="${ox}" y="${oy+4}" text-anchor="middle">${vis(3)?(y*100).toFixed(0)+'%':'?'}</text><text class="cap" x="${ox}" y="${oy+46}" text-anchor="middle">good to eat?</text>`;
+  s+=`<text class="cap" x="60" y="20" text-anchor="middle">INPUTS</text><text class="cap" x="230" y="248" text-anchor="middle">HIDDEN</text><text class="cap" x="400" y="20" text-anchor="middle">OUTPUT</text></g>`;
+  svg.innerHTML=s;
+}
+function drawMap(cv,{star=null,ring=null,showData=true}={}){
+  if(!cv||!cv.clientWidth)return;
+  const W=cv.clientWidth,dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=W*dpr;
+  const g=cv.getContext('2d');g.scale(dpr,dpr);
+  const pos=hexRGB(cssVar('--pos')),neg=hexRGB(cssVar('--neg')),base=hexRGB(cssVar('--surface-2'));
+  const R=60,img=g.createImageData(R,R);
+  for(let yy=0;yy<R;yy++)for(let xx=0;xx<R;xx++){const x1=(xx+.5)/R,x2=1-(yy+.5)/R,y=dlFwd(DL.p,x1,x2).y,t=Math.min(1,Math.abs(y-.5)*2)*.55,c=y>=.5?pos:neg,o=(yy*R+xx)*4;
+    for(let ch=0;ch<3;ch++)img.data[o+ch]=Math.round(base[ch]+(c[ch]-base[ch])*t);img.data[o+3]=255}
+  const off=document.createElement('canvas');off.width=R;off.height=R;off.getContext('2d').putImageData(img,0,0);
+  g.imageSmoothingEnabled=true;g.drawImage(off,0,0,W,W);
+  // decision line
+  g.strokeStyle=cssVar('--ink');g.globalAlpha=.25;g.strokeRect(.5,.5,W-1,W-1);g.globalAlpha=1;
+  const X=v=>v*W,Y=v=>(1-v)*W;
+  if(showData)DL.data.forEach(([a,b,t],i)=>{const wrong=(dlFwd(DL.p,a,b).y>.5)!==!!t;g.beginPath();g.arc(X(a),Y(b),6,0,7);g.fillStyle=cssVar(t?'--pos':'--neg');g.fill();g.lineWidth=wrong?2.5:1.5;g.strokeStyle=wrong?cssVar('--ink'):cssVar('--surface');g.stroke();if(ring===i){g.beginPath();g.arc(X(a),Y(b),12,0,7);g.lineWidth=3;g.strokeStyle=cssVar('--accent');g.stroke()}});
+  if(star){const [a,b]=star,cx=X(a),cy=Y(b);g.beginPath();for(let k=0;k<10;k++){const r=k%2?5:12,an=k*Math.PI/5-Math.PI/2;g.lineTo(cx+r*Math.cos(an),cy+r*Math.sin(an))}g.closePath();g.fillStyle=cssVar('--accent');g.fill();g.lineWidth=2;g.strokeStyle=cssVar('--surface');g.stroke()}
+  g.fillStyle=cssVar('--muted');g.font=`11px ${cssVar('--mono')}`;g.fillText('sweeter →',W-70,W-8);g.save();g.translate(12,70);g.rotate(-Math.PI/2);g.fillText('softer →',0,0);g.restore();
+}
+function dlLossChart(){
+  const cv=$('#dlLoss');if(!cv.clientWidth)return;const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);
+  const top=Math.max(1,...DL.hist.slice(0,5))*1.05,n=Math.max(DL.hist.length-1,60),Xc=i=>30+i/n*(w-36),Yc=v=>6+(1-v/top)*(h-20);
+  g.strokeStyle=cssVar('--line');g.fillStyle=cssVar('--muted');g.font=`10px ${cssVar('--mono')}`;
+  [0,top/2,top].forEach(v=>{g.beginPath();g.moveTo(30,Yc(v));g.lineTo(w-4,Yc(v));g.stroke();g.fillText(v.toFixed(1),2,Yc(v)+3)});
+  g.strokeStyle=cssVar('--accent');g.lineWidth=2;g.beginPath();DL.hist.forEach((v,i)=>i?g.lineTo(Xc(i),Yc(v)):g.moveTo(Xc(i),Yc(v)));g.stroke();
+  $('#dlLossv').textContent=`now ${DL.hist[DL.hist.length-1].toFixed(3)}`;
+}
+function dlRenderAll(){
+  const acc=dlAcc(DL.p),L=dlLoss(DL.p);
+  $('#dlStats').innerHTML=`<span>pass <b>${DL.epoch}</b></span><span>loss <b>${L.toFixed(3)}</b></span><span>correct <b>${acc} of 60</b></span><span>${DL.running?'training…':acc===60?'all correct':''}</span>`;
+  dlDialObjs.forEach(d=>d.upd());infDialObjs.forEach(d=>d.upd());
+  const f=DL.focus;netSVG($('#dlNet'),f?DL.data[f][0]:.7,f?DL.data[f][1]:.55,{showVals:!!f});
+  drawMap($('#dlMap'),{ring:f});dlLossChart();renderInference();
+}
+let dlStepRun=0;
+async function dlExplainStep(){
+  if(DL.running)dlStop();
+  const run=++dlStepRun,i=Math.floor(Math.random()*60),[a,b,t]=DL.data[i],lr=+$('#dlLr').value;
+  DL.focus=i;dlRenderAll();
+  const {g,y}=dlGrad(DL.p,a,b,t),loss=-Math.log(Math.max(1e-9,t?y:1-y));
+  const lines=[
+    `<b>Pick a training fruit</b> (circled): sweetness ${a.toFixed(2)}, softness ${b.toFixed(2)}. The correct answer is <b>${t?'good to eat (1)':'not good (0)'}</b>.`,
+    `<b>Guess:</b> numbers flow forward through the network. It says <b>${(y*100).toFixed(1)}%</b> good to eat.`,
+    `<b>Measure the error:</b> guess − answer = ${(y-t).toFixed(2)}. Loss = −ln(${(t?y:1-y).toFixed(3)}) = <b>${loss.toFixed(2)}</b>${loss<.1?' (already nearly right)':''}.`,
+    `<b>Backpropagation</b> works backward from the error and finds, for each of the 13 dials, which way turning it would reduce the loss.`,
+    `<b>Turn every dial a little</b> (learning rate ${lr.toFixed(1)} × gradient). Highlighted dials moved the most.`];
+  const ol=$('#dlExplain');ol.innerHTML=lines.map(l=>`<li>${l}</li>`).join('');
+  const lis=[...ol.children];
+  for(let k=0;k<lis.length;k++){if(run!==dlStepRun)return;lis.forEach((li,m)=>{li.classList.toggle('cur',m===k);li.classList.toggle('on',m<k)});
+    if(k===1){netSVG($('#dlNet'),a,b,{flow:1});await sleep(700);netSVG($('#dlNet'),a,b,{flow:2});await sleep(700);netSVG($('#dlNet'),a,b,{flow:3})}
+    else await sleep(1100)}
+  const before=DL.p.slice();dlApply(g,lr);DL.hist.push(dlLoss(DL.p));
+  const deltas=DL.p.map((v,k)=>v-before[k]),order=deltas.map((d,k)=>[Math.abs(d),k]).sort((x,y)=>y[0]-x[0]).slice(0,4).map(o=>o[1]);
+  $$('#dlDials .dial').forEach(el=>{const k=+el.dataset.k,d=deltas[k];el.classList.toggle('moved',order.includes(k));el.querySelector('.dd').textContent=Math.abs(d)>=.005?(d>0?'↻ +':'↺ ')+d.toFixed(2):''});
+  lis[4].innerHTML+=` New guess for this fruit: <b>${(dlFwd(DL.p,a,b).y*100).toFixed(1)}%</b>.`;
+  dlRenderAll();
+  setTimeout(()=>{$$('#dlDials .dial').forEach(el=>{el.classList.remove('moved');el.querySelector('.dd').textContent=''})},4000);
+}
+
+/* ---- inference ---- */
+const INF={x1:.7,x2:.55};
+function renderInference(flow=-1){
+  if(!$('#infNet'))return;
+  const {h,y}=dlFwd(DL.p,INF.x1,INF.x2),p=DL.p;
+  $('#iX1v').textContent=INF.x1.toFixed(2);$('#iX2v').textContent=INF.x2.toFixed(2);
+  netSVG($('#infNet'),INF.x1,INF.x2,{flow});
+  drawMap($('#infMap'),{star:[INF.x1,INF.x2],showData:false});
+  const done=flow<0||flow>=3;
+  $('#infVerdict').innerHTML=done?`<span style="color:var(${y>=.5?'--pos':'--neg'})">${y>=.5?'Good to eat':'Not good'}</span><small>${(y*100).toFixed(1)}% sure it is good to eat · one forward pass, no dials changed</small>`:'<span class="muted">Thinking…</span>';
+  $('#infCalc').innerHTML=`A = σ(${p[0].toFixed(1)}×${INF.x1.toFixed(2)} + ${p[1].toFixed(1)}×${INF.x2.toFixed(2)} + ${p[2].toFixed(1)}) = <b>${h[0].toFixed(2)}</b><br>B = σ(${p[3].toFixed(1)}×${INF.x1.toFixed(2)} + ${p[4].toFixed(1)}×${INF.x2.toFixed(2)} + ${p[5].toFixed(1)}) = <b>${h[1].toFixed(2)}</b><br>C = σ(${p[6].toFixed(1)}×${INF.x1.toFixed(2)} + ${p[7].toFixed(1)}×${INF.x2.toFixed(2)} + ${p[8].toFixed(1)}) = <b>${h[2].toFixed(2)}</b><br>out = σ(${p[9].toFixed(1)}×A + ${p[10].toFixed(1)}×B + ${p[11].toFixed(1)}×C + ${p[12].toFixed(1)}) = <b>${y.toFixed(3)}</b>`;
+  $('#infBanner').hidden=dlAcc(DL.p)>=55;
+}
+let infRun=0;
+async function playInference(){const run=++infRun;for(let f=0;f<=3;f++){if(run!==infRun)return;renderInference(f);await sleep(650)}renderInference(-1)}
+function dlQuickTrain(){dlStop();let n=0;while(n<DL.MAX&&!(dlAcc(DL.p)>=59&&DL.hist[DL.hist.length-1]<.12)){dlEpoch(2);n++}dlRenderAll();toast(`Trained ${n} passes instantly: ${dlAcc(DL.p)} of 60 correct.`)}
+
+function initBasics(){
+  const r0=mulberry32(DL.seed++);DL.p=Array.from({length:13},()=>(r0()*2-1)*1.5);
+  dlDialObjs=buildDialGroups($('#dlDials'),false);infDialObjs=buildDialGroups($('#infDials'),true);
+  dlScramble();renderNeuron();
+  $('#nX1').addEventListener('input',()=>renderNeuron());$('#nX2').addEventListener('input',()=>renderNeuron());
+  $('#nPresets').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;Object.assign(NEU,NPRE[b.dataset.p]);playNeuron()});
+  $('#dlTrain').addEventListener('click',()=>DL.running?dlStop():dlStart());
+  $('#dlStep').addEventListener('click',dlExplainStep);
+  $('#dlScramble').addEventListener('click',dlScramble);
+  $('#dlLr').addEventListener('input',e=>$('#dlLrv').textContent=(+e.target.value).toFixed(1));
+  $('#iX1').addEventListener('input',e=>{INF.x1=+e.target.value;renderInference()});
+  $('#iX2').addEventListener('input',e=>{INF.x2=+e.target.value;renderInference()});
+  $('#infMap').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();INF.x1=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));INF.x2=Math.max(0,Math.min(1,1-(e.clientY-r.top)/r.height));$('#iX1').value=INF.x1;$('#iX2').value=INF.x2;playInference()});
+  $('#infQuick').addEventListener('click',dlQuickTrain);
+}
+
 /* ================= navigation: rail, jump, diagram ================= */
-const SECS=$$('main>section');
-const rail=$('.rail'),jump=$('#jump');
-SECS.forEach((s,i)=>{
-  const a=document.createElement('a');a.href='#'+s.id;a.dataset.s=s.id;a.innerHTML=`<b>${s.dataset.num}</b><span>${s.dataset.name}</span>`;rail.appendChild(a);
-  const o=document.createElement('option');o.value=s.id;o.textContent=(i?s.dataset.num+'. ':'')+s.dataset.name;jump.appendChild(o);
+let TAB='decoder';
+const TABS={decoder:$('#tabDecoder'),basics:$('#tabBasics')};
+const ALLSECS=$$('main>section');
+let SECS=$$('#tabDecoder main>section');
+const jump=$('#jump');
+Object.values(TABS).forEach(shell=>{
+  const rail=shell.querySelector('.rail');
+  shell.querySelectorAll('main>section').forEach(s=>{const a=document.createElement('a');a.href='#'+s.id;a.dataset.s=s.id;a.innerHTML=`<b>${s.dataset.num}</b><span>${s.dataset.name}</span>`;rail.appendChild(a)});
 });
+function buildJump(){jump.innerHTML='';SECS.forEach((s,i)=>{const o=document.createElement('option');o.value=s.id;o.textContent=(s.dataset.num!=='·'?s.dataset.num+'. ':'')+s.dataset.name;jump.appendChild(o)})}
+buildJump();
+function setTab(t,{scroll=true}={}){
+  if(!TABS[t])return;
+  TAB=t;Object.entries(TABS).forEach(([k,el])=>el.hidden=k!==t);
+  $$('.tabs .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));
+  $('.prompt-wrap').hidden=$('#engineBadge').hidden=t!=='decoder';
+  SECS=$$(`#${TABS[t].id} main>section`);buildJump();
+  try{history.replaceState(null,'','#'+(t==='basics'?'basics':'decoder'))}catch(e){}
+  if(document.body.classList.contains('present'))goSlide(0);else if(scroll)window.scrollTo({top:0});
+  markActive(SECS[0].id);
+  setTimeout(()=>{if(t==='basics')dlRenderAll();else{drawPE();trDraw(true)}},30);
+}
+$$('.tabs .btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tabgo]');if(b)setTab(b.dataset.tabgo)});
 jump.addEventListener('change',()=>{if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===jump.value));else $('#'+jump.value).scrollIntoView({behavior:RM?'auto':'smooth'})});
 $$('.arch .box').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.go;if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===id));else $('#'+id).scrollIntoView({behavior:RM?'auto':'smooth'})}));
 function markActive(id){
   $$('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.s===id));
   $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id||b.dataset.also===id));
-  jump.value=id;
+  if(SECS.some(s=>s.id===id))jump.value=id;
 }
 const played=new Set();
 const io=new IntersectionObserver(ents=>{
@@ -1591,7 +2063,7 @@ const io=new IntersectionObserver(ents=>{
     if(!played.has(id)&&PLAY[id]&&id!=='s9'){played.add(id);PLAY[id]()}
   });
 },{rootMargin:'-35% 0px -55% 0px'});
-SECS.forEach(s=>io.observe(s));
+ALLSECS.forEach(s=>io.observe(s));
 
 /* ================= present mode ================= */
 let cur=0;
@@ -1599,13 +2071,14 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
   window.scrollTo({top:0});
   if(s.id==='s2')setTimeout(drawPE,30);
   if(s.id==='s0')setTimeout(()=>trDraw(true),30);
+  if(/^b/.test(s.id))setTimeout(dlRenderAll,30);
   if(PLAY[s.id]&&s.id!=='s9')setTimeout(()=>PLAY[s.id](),350);
 }
 function enterPresent(){
@@ -1652,6 +2125,8 @@ async function initEngine(){
 }
 renderAll();
 markActive('intro');
+initBasics();
+if(location.hash==='#basics')setTab('basics',{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>
