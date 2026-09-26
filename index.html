@@ -233,7 +233,7 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .cand.win .bar{background:var(--on-strong)}
 .cand.win .rank{color:var(--on-strong)}
 .cand.out{opacity:.45}
-.sentence{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:600;line-height:1.3}
+.sentence{white-space:pre-wrap;font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:600;line-height:1.3}
 .sentence .new{color:var(--accent);background:var(--accent-weak);border-radius:8px;padding:0 6px;animation:pop .5s cubic-bezier(.2,.8,.2,1)}
 .sentence .ghost{color:var(--muted);border:1.5px dashed var(--line);border-radius:8px;padding:0 10px}
 @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
@@ -256,6 +256,18 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .tri span.nw{background:var(--pos);opacity:1}
 .gen-status{font-size:14px;color:var(--muted);min-height:1.6em}
 
+/* ---------- engine ---------- */
+.engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.engine[data-state="live"] i{background:#22A06B;box-shadow:0 0 0 3px color-mix(in srgb,#22A06B 25%,transparent)}
+.engine[data-state="wait"] i{background:var(--pos);animation:blink 1s steps(2) infinite}
+.engine[data-state="off"] i{background:var(--h1)}
+.loading{font-family:var(--mono);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;padding:8px 0}
+.loading::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sgrid.compact .sc{height:24px;min-width:24px;font-size:0}
+.pipe span.wait{background:var(--accent-weak);border-color:var(--accent);color:var(--ink);animation:blink 1s steps(2) infinite}
+.gen-text{white-space:pre-wrap}
 /* ---------- misc ---------- */
 #tip{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:var(--bg);font:500 12px var(--mono);padding:5px 8px;border-radius:6px;white-space:nowrap;opacity:0;transition:opacity .12s}
 #tip.show{opacity:1}
@@ -308,9 +320,10 @@ body.present footer{display:none}
   <div class="brand">Inside the <span>Decoder</span></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
-    <input id="prompt" type="text" value="The cat sat on the" maxlength="90" autocomplete="off" spellcheck="false">
-    <span class="trunc" id="truncNote" hidden>first 12 tokens</span>
+    <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
+    <span class="trunc" id="truncNote" hidden></span>
   </div>
+  <span class="engine" id="engineBadge" data-state="wait"><i></i><span>Connecting to a model…</span></span>
   <select id="jump" aria-label="Jump to step"></select>
   <button class="btn primary" id="presentBtn" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Present</button>
 </header>
@@ -373,6 +386,7 @@ body.present footer{display:none}
         <div class="rawline" id="rawText"></div>
         <div class="flow-arrow">split into tokens, look up each token’s ID</div>
         <div class="chips" id="tokChips"></div>
+        <p class="note" id="tokNote"></p>
         <div class="flow-arrow">each ID selects a row of the embedding table</div>
         <div class="mblock">
           <div class="mhead"><span class="label">Token embeddings E</span><span class="dim" id="embDim"></span></div>
@@ -382,7 +396,8 @@ body.present footer{display:none}
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Real tokenizers (BPE) learn common chunks from data, so “unbelievable” might become “un” + “believ” + “able”. Try typing a long, rare word in the input box.</li>
-        <li>The vocabulary is fixed before training: GPT‑2 has 50,257 tokens. This demo has a 40‑word toy vocabulary.</li>
+        <li>The vocabulary is fixed before training: GPT‑2 has 50,257 tokens.</li>
+        <li id="tokEngineNote"></li>
         <li>The embedding numbers start random and are learned during training, so similar words end up with similar vectors.</li>
       </ul></details>
     </section>
@@ -550,14 +565,14 @@ body.present footer{display:none}
           <button class="btn play" data-play="s7" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
         </div>
         <div class="mblock">
-          <div class="mhead"><span class="label" id="finalLbl">Final vector of the last token</span><span class="dim">× W<sub>U</sub> (16 × 40) → 40 logits</span></div>
+          <div class="mhead"><span class="label" id="finalLbl">Final vector of the last token</span><span class="dim">× W<sub>U</sub> → one score for every token in the vocabulary</span></div>
           <div class="strip" id="finalVec"></div>
         </div>
         <div class="two">
-          <div style="display:grid;gap:10px"><span class="label">Logits (top 10 of 40)</span><div class="hbars" id="logitBars"></div></div>
+          <div style="display:grid;gap:10px"><span class="label">Scores from the model (log-probabilities, top 10)</span><div class="hbars" id="logitBars"></div></div>
           <div style="display:grid;gap:10px"><span class="label">Probabilities after softmax</span><div class="hbars" id="probBars"></div><span class="note" id="probSum"></span></div>
         </div>
-        <p class="note">Steps 1 to 6 are computed live in your browser with small random weights. An untrained model like that would predict noise, so the logits here come from a small hand-built table that imitates a trained model’s preferences for this toy vocabulary.</p>
+        <p class="note" id="engineNote7"></p>
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Drag temperature toward 0.1: the top word takes nearly all the probability. Drag toward 2: the distribution flattens and unlikely words gain a chance.</li>
@@ -621,13 +636,15 @@ body.present footer{display:none}
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Real systems cache each layer’s keys and values (the KV cache), so each new step only computes attention for the newest token instead of redoing the whole prompt.</li>
-        <li>A small repetition penalty is on in this demo, so greedy decoding does not repeat “The cat sat on the mat” forever.</li>
+        <li>Each turn of the loop sends the full text so far to the model and gets back a fresh probability distribution for the next token. Nothing is scripted.</li>
+        <li>Greedy decoding can get stuck repeating itself; switching to sampling in step 8 usually fixes that.</li>
         <li>Chat models work the same way: your message is the prompt, and the reply is generated one token at a time.</li>
       </ul></details>
     </section>
 
     <footer>
-      <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights. Head patterns in steps 3 and 5 get a small nudge so they resemble patterns seen in trained models. The next-word probabilities come from a hand-built table, because a model with random weights would not produce sensible words.</p>
+      <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block on your exact text in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights, so you can see every intermediate number. Head patterns in steps 3 and 5 get a small nudge so they resemble patterns seen in trained models.</p>
+      <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
     </footer>
   </main>
@@ -683,7 +700,7 @@ const cssVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).t
 const VOCAB=['the','a','cat','dog','sat','on','mat','and','purred','softly','.',',','it','was','slept','sofa','window','floor','rug','by','down','quietly','happily','watched','birds','sun','warm','in','then','her','his','garden','ran','to','very','morning','while','looked','at','quiet'];
 const PUNCT=new Set(['.',',','!','?',';',':']);
 const SUFFIX=['ing','tion','ness','ed','er','ly','est','s'];
-const MAXT=12;
+const MAXT=48;
 function tokenize(text){
   const parts=text.match(/[A-Za-z']+|[0-9]+|[^\sA-Za-z0-9]/g)||[];
   const out=[];
@@ -748,15 +765,6 @@ function lmLogits(keys){
     return {w,l};
   });
 }
-const probsAt=(logits,T)=>{const p=softmax(logits.map(o=>o.l/T));return logits.map((o,i)=>({...o,p:p[i]}))};
-function choose(dist,mode){
-  const sorted=[...dist].sort((a,b)=>b.p-a.p);
-  if(mode==='greedy')return sorted[0];
-  const top=sorted.slice(0,5);const s=top.reduce((a,b)=>a+b.p,0);
-  let r=Math.random()*s;for(const c of top){r-=c.p;if(r<=0)return c}
-  return top[0];
-}
-
 /* ================= the tiny decoder ================= */
 const D=16,NH=4,DK=4,FF=64;
 const Wq=randMat(D,D,0.38,11), Wk=randMat(D,D,0.38,12), Wv=randMat(D,D,0.38,13), Wo=randMat(D,D,0.32,14);
@@ -773,10 +781,10 @@ const pe=(pos,i)=>{const e=(i-(i%2))/D;const a=pos/Math.pow(10000,e);return i%2?
 
 const S={toks:[],T:1,mode:'greedy',head:0,stage:3,q:0,sel:0};
 function compute(){
-  const text=$('#prompt').value;
-  let toks=tokenize(text);
-  if(!toks.length) toks=tokenize('The');
-  $('#truncNote').hidden=toks.length<=MAXT;
+  const text=currentText();
+  let toks=tokensFor(text);
+  if(!toks.length) return false;
+  const tn=$('#truncNote');tn.hidden=toks.length<=MAXT;tn.textContent=`steps 1–6 show the first ${MAXT} of ${toks.length} tokens`;
   toks=toks.slice(0,MAXT);
   const N=toks.length;
   const labels=toks.map(t=>t.text);
@@ -799,11 +807,11 @@ function compute(){
   const F=matmul(Hact,W2);
   const R2=addM(X1,F), X2=R2.map(layerNorm);
   const keys=toks.map(t=>t.key);
-  const logits=lmLogits(keys);
-  Object.assign(S,{toks,N,labels,E,PE,X0,heads,concat,A,R1,X1,Hpre,Hact,F,R2,X2,keys,logits});
+  Object.assign(S,{toks,N,labels,E,PE,X0,heads,concat,A,R1,X1,Hpre,Hact,F,R2,X2,keys});
   S.q=Math.min(S.q,N-1); if(S.q<0||S._lastN!==N) S.q=N-1;
   S.sel=Math.min(S.sel,N-1); if(S._lastN!==N) S.sel=N-1;
   S._lastN=N;
+  return true;
 }
 
 /* ================= shared renderers ================= */
@@ -819,7 +827,9 @@ function tokPicker(el,onPick){
 
 /* ================= STEP 1 ================= */
 function render1(){
-  $('#rawText').textContent=$('#prompt').value.trim()||'The';
+  $('#rawText').textContent=currentText();
+  $('#tokNote').textContent=ENGINE.kind==='gpt2'?'These are GPT‑2’s real tokens and IDs. Most words carry their leading space.':'Splitting here uses a simple stand-in tokenizer (words, punctuation, pieces of rare words); IDs are illustrative. When GPT‑2 runs in your browser, this shows its real tokens and IDs.';
+  $('#tokEngineNote').textContent=$('#tokNote').textContent;
   $('#tokChips').innerHTML=S.toks.map(t=>`<div class="chip a${t.sub?' sub':''}"><span class="t">${esc(t.text)}</span><span class="id">#${t.id}</span></div>`).join('');
   $('#embMat').innerHTML=matHTML(S.E,S.labels,{big:true});
   $('#embDim').textContent=`${S.N} tokens × ${D} numbers`;
@@ -858,7 +868,8 @@ function drawPE(){
     for(let p=0;p<N&&p<=upTo;p++){g.fillStyle=col;g.beginPath();g.arc(X(p),Y(f(p*freq)),4,0,7);g.fill()}
   });
   g.textAlign='center';g.fillStyle=ink;
-  for(let p=0;p<N;p++){const t=S.labels[p];g.fillText(t.length>6?t.slice(0,5)+'…':t,X(p),T+ph+16);g.fillStyle=muted;g.fillText('pos '+p,X(p),T+ph+30);g.fillStyle=ink}
+  const every=Math.ceil(N/14);
+  for(let p=0;p<N;p++){if(p%every)continue;const t=S.labels[p].trim();g.fillText(t.length>6?t.slice(0,5)+'…':t,X(p),T+ph+16);g.fillStyle=muted;g.fillText('pos '+p,X(p),T+ph+30);g.fillStyle=ink}
   const wl=2*Math.PI/freq;
   $('#peDimLbl').innerHTML=`<span style="color:var(--accent)">● sin dim ${2*k}</span> &nbsp;<span style="color:var(--h1)">● cos dim ${2*k+1}</span> &nbsp;· wavelength ≈ ${wl<100?wl.toFixed(1):Math.round(wl).toLocaleString()} positions`;
 }
@@ -892,7 +903,8 @@ function render3(){
   const qmx=Math.max(maxAbs(h.q),maxAbs(h.k));
   $('#qkMats').innerHTML=`<div class="mblock"><div class="mhead"><span class="label">Queries Q</span></div>${matHTML(h.q,S.labels,{mx:qmx,big:true})}</div><div class="mblock"><div class="mhead"><span class="label">Keys K</span></div>${matHTML(h.k,S.labels,{mx:qmx,big:true})}</div>`;
   const N=S.N,g=$('#scoreGrid');
-  g.style.gridTemplateColumns=`64px repeat(${N}, minmax(40px, 52px))`;
+  g.classList.toggle('compact',N>10);
+  g.style.gridTemplateColumns=N>10?`64px repeat(${N}, 24px)`:`64px repeat(${N}, minmax(40px, 52px))`;
   let html='<span></span>'+S.labels.map(l=>`<span class="hd" title="${esc(l)}">${esc(l)}</span>`).join('');
   for(let i=0;i<N;i++){html+=`<span class="rh${i===S.q?' q':''}" data-q="${i}">${esc(S.labels[i])}</span>`;for(let j=0;j<N;j++)html+=`<span class="sc" data-i="${i}" data-j="${j}"></span>`}
   g.innerHTML=html;
@@ -1039,31 +1051,136 @@ async function play6(){
   await stagger(rows,200);
 }
 
+/* ================= the live model ================= */
+const EOT='<|endoftext|>';
+const ENGINE={kind:'pending',why:''};
+const predCache=new Map();
+const PERMANENT=new Set(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed']);
+function setBadge(state,label){const b=$('#engineBadge');b.dataset.state=state;b.lastElementChild.textContent=label;b.title=label}
+const engineName=()=>({claude:'Claude',gpt2:'GPT‑2',offline:'the offline word table',pending:'the model'})[ENGINE.kind];
+const ENGINE_NOTES={
+  claude:'Live: these scores come from Claude, called with your exact text. Claude does not expose raw logits, so it reports an estimated probability for each candidate token, and the scores shown are the natural log of those estimates. Temperature reshapes the candidates shown; the rest of the vocabulary keeps its share.',
+  gpt2:'Live: these are the real output logits of GPT‑2 (distilgpt2) running in your browser on your exact text. Probabilities are the true softmax over all 50,257 tokens. Temperature reshapes the top 20; the rest of the vocabulary keeps its share.',
+  offline:'No language model could be reached from this page, so predictions come from a tiny built-in word table and will not fit most sentences. Open the page inside Claude, or on the web with an internet connection, to use a real model.',
+  pending:'Connecting to a language model…'
+};
+const currentText=()=>$('#prompt').value.replace(/\s+$/,'');
+const tail=t=>t.length>40?'…'+t.slice(-39):t;
+const showTok=t=>t===EOT?'⟨end of text⟩':t.replace(/^ /,'␣').replace(/\n/g,'↵');
+function tokensFor(text){
+  if(ENGINE.kind==='gpt2'&&ENGINE.tok){
+    const ids=ENGINE.tok.encode(text);
+    return ids.map((id,i)=>{const t=ENGINE.tok.decode([id]);return {text:t,key:t.trim().toLowerCase()||t,id,sub:i>0&&!/^\s/.test(t)&&/^[a-z]/i.test(t)}});
+  }
+  return tokenize(text);
+}
+function offlinePredict(text){
+  const keys=tokenize(text).map(t=>t.key);
+  const lg=lmLogits(keys),p=softmax(lg.map(o=>o.l)),prev=keys[keys.length-1];
+  return lg.map((o,i)=>({tok:PUNCT.has(o.w)?o.w:' '+displayWord(o.w,prev),l:o.l,p:p[i]})).sort((a,b)=>b.l-a.l).slice(0,12);
+}
+async function claudePredict(text){
+  const prompt=`You are acting as the output layer of a GPT-style base language model, not a chat assistant. Predict the very next token that directly continues the text below, exactly as written.
+
+Reply with only JSON in this shape: {"candidates":[{"token":" mat","p":0.32},{"token":" floor","p":0.14}]}
+Rules:
+- Give 8 candidates, most likely first, with calibrated probabilities between 0 and 1, as a real language model would assign them. They do not need to sum to 1.
+- A token is a short piece of text: usually one word including its leading space (" mat"), a punctuation mark ("." or ","), or the rest of a word if the text stops mid-word (then no leading space).
+- Continue the text. Never answer it or comment on it. If the text is a question, predict how the text itself continues.
+- Use "${EOT}" as a candidate only if the text is clearly finished.
+
+The text is between the markers; spacing matters:
+<<<
+${text}
+>>>`;
+  const r=await ENGINE.sample.json(prompt,{modelTier:'quick'});
+  const arr=Array.isArray(r)?r:r&&r.candidates;
+  if(!Array.isArray(arr))throw {code:'invalid_json',message:'The model reply had no candidates.'};
+  const seen=new Set(),out=[];
+  for(const c of arr){const t=c&&typeof c.token==='string'?c.token:'';const p=Number(c&&c.p);if(!t||seen.has(t)||!(p>0))continue;seen.add(t);out.push({tok:t,p:Math.min(p,1)})}
+  if(!out.length)throw {code:'invalid_json',message:'The model reply had no usable candidates.'};
+  const s=out.reduce((a,b)=>a+b.p,0);if(s>1)out.forEach(o=>o.p/=s);
+  out.forEach(o=>o.l=Math.log(o.p));
+  return out.sort((a,b)=>b.p-a.p);
+}
+async function gpt2Predict(text){
+  const enc=ENGINE.tok(text);
+  const {logits}=await ENGINE.model(enc);
+  const [,L,V]=logits.dims,d=logits.data,off=(L-1)*V;
+  let mx=-Infinity;for(let i=0;i<V;i++)if(d[off+i]>mx)mx=d[off+i];
+  let z=0;for(let i=0;i<V;i++)z+=Math.exp(d[off+i]-mx);
+  const top=[];
+  for(let i=0;i<V;i++){const v=d[off+i];if(top.length<20||v>top[top.length-1].l){top.push({id:i,l:v});top.sort((a,b)=>b.l-a.l);if(top.length>20)top.pop()}}
+  return top.map(o=>({tok:o.id===50256?EOT:ENGINE.tok.decode([o.id]),id:o.id,l:o.l,p:Math.exp(o.l-mx)/z}));
+}
+function predict(text){
+  const key=ENGINE.kind+'|'+text;
+  if(predCache.has(key))return predCache.get(key);
+  let pr=ENGINE.kind==='claude'?claudePredict(text):ENGINE.kind==='gpt2'?gpt2Predict(text):Promise.resolve(offlinePredict(text));
+  pr=pr.catch(e=>{predCache.delete(key);throw e});
+  predCache.set(key,pr);return pr;
+}
+async function predictSafe(text){
+  try{return await predict(text)}
+  catch(e){
+    if(ENGINE.kind==='claude'&&PERMANENT.has(e&&e.code)){goOffline(`Claude is not available to this page (${e.code})`);return predict(text)}
+    throw e;
+  }
+}
+// temperature over the candidates we have; tokens outside them keep their total share
+function withTemp(cands,T){
+  const mass=cands.reduce((a,c)=>a+c.p,0),m=Math.max(...cands.map(c=>c.l));
+  const w=cands.map(c=>Math.exp((c.l-m)/T)),s=w.reduce((a,b)=>a+b,0);
+  return cands.map((c,i)=>({...c,pt:T===1?c.p:w[i]/s*mass}));
+}
+function pickFrom(cands,mode){
+  const d=withTemp(cands,S.T).sort((a,b)=>b.pt-a.pt);
+  if(mode==='greedy')return d[0];
+  const top=d.slice(0,5),s=top.reduce((a,b)=>a+b.pt,0);let r=Math.random()*s;
+  for(const c of top){r-=c.pt;if(r<=0)return c}
+  return top[0];
+}
+const errMsg=e=>e&&e.code==='rate_limited'?'The model is busy right now (rate limited). Wait a moment, then try again.':`The model call did not work (${(e&&e.code)||'error'}). ${(e&&e.message)||''}`;
+function goOffline(why){ENGINE.kind='offline';ENGINE.why=why;setBadge('off','Offline word table (no model reachable)')}
+let predSeq=0,predTimer;
+function schedulePrediction(ms=800){clearTimeout(predTimer);predTimer=setTimeout(refreshPrediction,ms)}
+async function refreshPrediction(){
+  const text=currentText();if(!text)return;
+  const seq=++predSeq;S.cands=null;S.predErr=null;render7();render8();
+  if(ENGINE.kind==='pending')return;
+  try{const c=await predictSafe(text);if(seq!==predSeq)return;S.cands=c}
+  catch(e){if(seq!==predSeq)return;S.predErr=e}
+  render7();render8();
+}
+
 /* ================= STEP 7 ================= */
 function render7(){
   const last=S.N-1,v=S.X2[last];
   $('#finalLbl').textContent=`Final vector of the last token, “${S.labels[last]}”`;
   $('#finalVec').innerHTML=v.map((x,j)=>`<i class="c" style="width:22px;height:22px;background:${divColor(x,maxAbs([v]))}" data-tip="dim ${j}: ${x.toFixed(3)}"></i>`).join('');
-  const dist=probsAt(S.logits,S.T);
-  const byLogit=[...dist].sort((a,b)=>b.l-a.l).slice(0,10);
-  const lmx=Math.max(...byLogit.map(o=>Math.abs(o.l)),1),neg=Math.min(0,...byLogit.map(o=>o.l));
-  const zero=(-neg)/(lmx-neg)*100;
-  $('#logitBars').innerHTML=byLogit.map((o,i)=>{const w=Math.abs(o.l)/(lmx-neg)*100;return `<div class="hb${i===0?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:${o.l>=0?zero:zero-w}%;width:${w}%;background:var(${o.l>=0?'--pos':'--neg'})"></span>${neg<0?`<span class="axis0" style="left:${zero}%"></span>`:''}</span><span class="v">${o.l.toFixed(2)}</span></div>`}).join('');
-  const byP=[...dist].sort((a,b)=>b.p-a.p).slice(0,10);
-  $('#probBars').innerHTML=byP.map((o,i)=>`<div class="hb${i===0?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:0;width:${(o.p*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.p*100).toFixed(1)}%</span></div>`).join('');
-  const top10=byP.reduce((a,b)=>a+b.p,0);
-  $('#probSum').textContent=`These 10 hold ${(top10*100).toFixed(1)}% of the probability; the other 30 words share the remaining ${((1-top10)*100).toFixed(1)}%. Total = 100%.`;
   $('#tempLbl').textContent=`T = ${S.T.toFixed(2)}`;
+  $('#engineNote7').textContent=ENGINE_NOTES[ENGINE.kind]+(ENGINE.why?` (${ENGINE.why}.)`:'');
+  if(!S.cands){
+    $('#logitBars').innerHTML=S.predErr?`<p class="note">${esc(errMsg(S.predErr))}</p><div><button class="btn retry" type="button">Try again</button></div>`:`<div class="loading">Asking ${esc(engineName())} what comes after “${esc(tail(currentText()))}”…</div>`;
+    $('#probBars').innerHTML='';$('#probSum').textContent='';return;
+  }
+  const d=withTemp(S.cands,S.T);
+  const byL=[...d].sort((a,b)=>b.l-a.l).slice(0,10);
+  const lo=Math.min(0,...byL.map(o=>o.l)),hi=Math.max(0,...byL.map(o=>o.l)),span=(hi-lo)||1,zero=(-lo)/span*100;
+  $('#logitBars').innerHTML=byL.map((o,i)=>{const w=Math.abs(o.l)/span*100;return `<div class="hb${i===0?' top':''}"><span class="w" title="${esc(o.tok)}">${esc(showTok(o.tok))}</span><span class="track"><span class="fill" style="left:${o.l>=0?zero:zero-w}%;width:${w}%;background:var(${o.l>=0?'--pos':'--neg'})"></span><span class="axis0" style="left:${zero}%"></span></span><span class="v">${o.l.toFixed(2)}</span></div>`}).join('');
+  const byP=[...d].sort((a,b)=>b.pt-a.pt).slice(0,10);
+  $('#probBars').innerHTML=byP.map((o,i)=>`<div class="hb${i===0?' top':''}"><span class="w" title="${esc(o.tok)}">${esc(showTok(o.tok))}</span><span class="track"><span class="fill" style="left:0;width:${(o.pt*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.pt*100).toFixed(1)}%</span></div>`).join('');
+  const shown=byP.reduce((a,b)=>a+b.pt,0);
+  $('#probSum').textContent=`These ${byP.length} tokens hold ${(shown*100).toFixed(1)}% of the probability. Every other token in the vocabulary shares the remaining ${Math.max(0,(1-shown)*100).toFixed(1)}%. ␣ marks a leading space.`;
 }
 async function play7(){
-  const fills=$$('#logitBars .fill, #probBars .fill');
-  const saved=fills.map(f=>f.style.width);
-  fills.forEach(f=>f.style.width='0%');
   await stagger($$('#finalVec .c'),30);
-  void document.body.offsetWidth;
+  const fills=$$('#logitBars .fill, #probBars .fill');if(!fills.length)return;
+  const saved=fills.map(f=>f.style.width);
+  fills.forEach(f=>f.style.width='0%');void document.body.offsetWidth;
+  const n=$$('#logitBars .fill').length;
   $$('#logitBars .fill').forEach((f,i)=>setTimeout(()=>f.style.width=saved[i],RM?0:i*60));
   await sleep(900);
-  const n=$$('#logitBars .fill').length;
   $$('#probBars .fill').forEach((f,i)=>setTimeout(()=>f.style.width=saved[n+i],RM?0:i*60));
 }
 
@@ -1071,74 +1188,80 @@ async function play7(){
 let pickState=null;
 function render8(){
   pickState=null;$('#acceptBtn').disabled=true;
-  const dist=probsAt(S.logits,S.T).sort((a,b)=>b.p-a.p).slice(0,6);
-  $('#candList').innerHTML=dist.map((o,i)=>`<div class="cand${S.mode==='sample'&&i>=5?' out':''}" data-w="${esc(o.w)}"><span class="rank">${i+1}</span><span>${esc(o.w)}</span><span class="bar" style="width:${Math.max(2,o.p/dist[0].p*100)}%"></span><span class="p">${(o.p*100).toFixed(1)}%</span></div>`).join('');
-  $('#s8Sentence').innerHTML=`${esc(joinWords(S.toks.map(t=>t.text)))} <span class="ghost">?</span>`;
   $$('#modeSeg .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
-  $('#s8Note').textContent=S.mode==='greedy'?`Greedy always picks rank 1. Temperature (T = ${S.T.toFixed(2)}) changes the percentages but not the order.`:`Sampling draws from the top 5 in proportion to their probability (T = ${S.T.toFixed(2)}). Rank 6 and below are never picked.`;
-  const hw=probsAt(S.logits,S.T).sort((a,b)=>b.p-a.p)[0];
-  $('#heroOut').textContent=`“${hw.w}”  ${(hw.p*100).toFixed(0)}%`;
+  const text=currentText();
+  $('#s8Sentence').innerHTML=`${esc(text)} <span class="ghost">?</span>`;
+  $('#pickBtn').disabled=!S.cands;
+  if(!S.cands){
+    $('#candList').innerHTML=S.predErr?`<p class="note">${esc(errMsg(S.predErr))}</p><div><button class="btn retry" type="button">Try again</button></div>`:`<div class="loading">Waiting for ${esc(engineName())}…</div>`;
+    $('#heroOut').textContent='…';return;
+  }
+  const d=withTemp(S.cands,S.T).sort((a,b)=>b.pt-a.pt).slice(0,6);
+  $('#candList').innerHTML=d.map((o,i)=>`<div class="cand${S.mode==='sample'&&i>=5?' out':''}" data-i="${i}"><span class="rank">${i+1}</span><span title="${esc(o.tok)}">${esc(showTok(o.tok))}</span><span class="bar" style="width:${Math.max(2,o.pt/d[0].pt*100)}%"></span><span class="p">${(o.pt*100).toFixed(1)}%</span></div>`).join('');
+  S.shown8=d;
+  $('#s8Note').textContent=(S.mode==='greedy'?`Greedy always picks rank 1. Temperature (T = ${S.T.toFixed(2)}) changes the percentages but not the order.`:`Sampling draws from the top 5 in proportion to their probability (T = ${S.T.toFixed(2)}). Rank 6 and below are never picked.`)+` Candidates come from ${engineName()}.`;
+  $('#heroOut').textContent=`“${showTok(d[0].tok)}”  ${(d[0].pt*100).toFixed(0)}%`;
 }
 async function play8(){
+  if(!S.cands){await refreshPrediction();if(!S.cands)return}
   const cands=$$('#candList .cand');
   cands.forEach(c=>c.classList.remove('hot','win'));
-  const dist=probsAt(S.logits,S.T);
-  const pick=choose(dist,S.mode);
+  const pick=pickFrom(S.cands,S.mode);
   const pool=S.mode==='greedy'?cands.slice(0,3):cands.slice(0,5);
   const hops=RM?0:10;
   for(let h=0;h<hops;h++){const c=pool[h%pool.length];c.classList.add('hot');await sleep(70+h*18);c.classList.remove('hot')}
-  const win=cands.find(c=>c.dataset.w===pick.w);if(win)win.classList.add('win');
-  const prev=S.keys[S.keys.length-1];
-  const word=displayWord(pick.w,prev);
-  $('#s8Sentence').innerHTML=`${esc(joinWords(S.toks.map(t=>t.text)))}${PUNCT.has(word)?'':' '}<span class="new">${esc(word)}</span>`;
-  pickState=word;$('#acceptBtn').disabled=false;
+  const idx=(S.shown8||[]).findIndex(o=>o.tok===pick.tok);if(idx>=0&&cands[idx])cands[idx].classList.add('win');
+  $('#s8Sentence').innerHTML=`${esc(currentText())}<span class="new">${esc(pick.tok===EOT?' ⟨end of text⟩':pick.tok)}</span>`;
+  pickState=pick.tok===EOT?null:pick.tok;$('#acceptBtn').disabled=!pickState;
 }
 
 /* ================= STEP 9 ================= */
 const PIPE=['Tokenize','Positions','Masked attention','Add & Norm','Heads','MLP','Softmax','Pick','Append'];
-const MAXGEN=16;
-const gen={keys:[],words:[],newCount:0,running:false,busy:false,run:0};
+const MAXGEN=20;
+const gen={text:'',prompt:'',pieces:[],running:false,busy:false,run:0,done:false};
 function resetGen(){
-  gen.run++;gen.running=false;gen.busy=false;
-  gen.keys=S.keys.slice();gen.promptWords=S.toks.map(t=>t.text);gen.words=[];gen.newCount=0;gen.lastNew=-1;
+  gen.run++;gen.running=false;gen.busy=false;gen.done=false;
+  gen.prompt=gen.text=currentText();gen.pieces=[];
   $('#loopPipe').innerHTML=PIPE.map((p,i)=>`<span data-i="${i}">${i+1} · ${p}</span>`).join('');
-  $('#genTop').innerHTML='';$('#genStatus').textContent=`Press Generate to run the loop from “${joinWords(gen.promptWords)}”.`;
+  $('#genTop').innerHTML='';
+  $('#genStatus').textContent=`Press Generate to continue your text with ${engineName()}, one token per loop.`;
   setPlayLabel();renderGenText();renderTri();
 }
 function renderGenText(){
-  const all=[...gen.promptWords,...gen.words];
-  let html='';
-  all.forEach((w,i)=>{
-    const isP=i<gen.promptWords.length,sp=i===0||PUNCT.has(w)||w.startsWith('##')?'':' ';
-    const txt=w.startsWith('##')?w.slice(2):w;
-    html+=sp+`<span class="${isP?'pr':'g'}${i===gen.promptWords.length+gen.lastNew?' new':''}">${esc(txt)}</span>`;
-  });
-  $('#genText').innerHTML=html+'<span class="caret"></span>';
+  $('#genText').innerHTML=`<span class="pr">${esc(gen.prompt)}</span>`+gen.pieces.map((p,i)=>`<span class="g${i===gen.pieces.length-1?' new':''}">${esc(p)}</span>`).join('')+'<span class="caret"></span>';
 }
 function renderTri(){
-  const all=gen.promptWords.length+gen.words.length,n=Math.min(all,24),el=$('#genTri');
+  const n=Math.min(tokensFor(gen.text).length,24),el=$('#genTri');
   el.style.gridTemplateColumns=`repeat(${n},1fr)`;el.style.maxWidth=Math.min(240,n*20)+'px';
-  let s='';for(let i=0;i<n;i++)for(let j=0;j<n;j++)s+=`<span class="${j<=i?(i===n-1&&gen.words.length?'nw':'on'):''}"></span>`;
+  let s='';for(let i=0;i<n;i++)for(let j=0;j<n;j++)s+=`<span class="${j<=i?(i===n-1&&gen.pieces.length?'nw':'on'):''}"></span>`;
   el.innerHTML=s;
 }
 function setPlayLabel(){$('#genPlay').innerHTML=gen.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Generate'}
 async function genStep(){
   if(gen.busy)return false;
-  if(gen.newCount>=MAXGEN){$('#genStatus').textContent=`Stopped after ${MAXGEN} new tokens. Real models stop at an end-of-text token or a length limit.`;return false}
+  if(gen.done)return false;
+  if(gen.pieces.length>=MAXGEN){$('#genStatus').textContent=`Stopped after ${MAXGEN} new tokens. Real systems stop at an end-of-text token or a length limit.`;return false}
+  if(ENGINE.kind==='pending'){$('#genStatus').textContent='Still connecting to a model. Try again in a moment.';return false}
   gen.busy=true;const run=gen.run;
   const speed=+$('#genSpeed').value,pipes=$$('#loopPipe span');
-  pipes.forEach(p=>p.classList.remove('lit','done'));
-  for(let k=0;k<pipes.length-1;k++){if(run!==gen.run)return false;pipes[k].classList.add('lit');await sleep(speed/9);pipes[k].classList.remove('lit');pipes[k].classList.add('done')}
+  pipes.forEach(p=>p.classList.remove('lit','done','wait'));
+  for(let k=0;k<6;k++){if(run!==gen.run)return false;pipes[k].classList.add('lit');await sleep(speed/9);pipes[k].classList.remove('lit');pipes[k].classList.add('done')}
+  pipes[6].classList.add('wait');
+  const ctxTokens=tokensFor(gen.text).length;
+  $('#genStatus').textContent=`Sending ${ctxTokens} tokens to ${engineName()}…`;
+  let cands;
+  try{cands=await predictSafe(gen.text)}
+  catch(e){if(run!==gen.run)return false;pipes[6].classList.remove('wait');$('#genStatus').textContent=errMsg(e);gen.busy=false;return false}
   if(run!==gen.run)return false;
-  const dist=probsAt(lmLogits(gen.keys),S.T);
-  const pick=choose(dist,S.mode);
-  const prev=gen.keys[gen.keys.length-1];
-  gen.keys.push(pick.w);gen.words.push(displayWord(pick.w,prev));gen.lastNew=gen.newCount;gen.newCount++;
-  pipes[8].classList.add('lit');
-  renderGenText();renderTri();
-  const top=[...dist].sort((a,b)=>b.p-a.p).slice(0,4);
-  $('#genTop').innerHTML=top.map(o=>`<div class="hb${o.w===pick.w?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:0;width:${(o.p*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.p*100).toFixed(1)}%</span></div>`).join('');
-  $('#genStatus').textContent=`Step ${gen.newCount}: context was ${gen.keys.length-1} tokens → picked “${pick.w}” (${(pick.p*100).toFixed(1)}%, ${S.mode==='greedy'?'greedy':'sampled'}).`;
+  pipes[6].classList.remove('wait');pipes[6].classList.add('done');pipes[7].classList.add('lit');
+  const pick=pickFrom(cands,S.mode);
+  const top=withTemp(cands,S.T).sort((a,b)=>b.pt-a.pt).slice(0,4);
+  $('#genTop').innerHTML=top.map(o=>`<div class="hb${o.tok===pick.tok?' top':''}"><span class="w" title="${esc(o.tok)}">${esc(showTok(o.tok))}</span><span class="track"><span class="fill" style="left:0;width:${(o.pt*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.pt*100).toFixed(1)}%</span></div>`).join('');
+  await sleep(speed/9);pipes[7].classList.remove('lit');pipes[7].classList.add('done');
+  if(pick.tok===EOT){gen.done=true;gen.busy=false;$('#genStatus').textContent='The model predicted end-of-text, so generation stops here.';return false}
+  gen.text+=pick.tok;gen.pieces.push(pick.tok);
+  pipes[8].classList.add('lit');renderGenText();renderTri();
+  $('#genStatus').textContent=`Loop ${gen.pieces.length}: sent ${ctxTokens} tokens → ${engineName()} → picked “${showTok(pick.tok)}” (${(pick.pt*100).toFixed(1)}%, ${S.mode==='greedy'?'greedy':'sampled'}).`;
   await sleep(speed/9);pipes[8].classList.remove('lit');pipes[8].classList.add('done');
   gen.busy=false;return true;
 }
@@ -1148,18 +1271,20 @@ async function genLoop(){
 }
 
 /* ================= render all ================= */
-function renderAll(){
-  compute();
-  const p=joinWords(S.toks.map(t=>t.text));
+function renderAll(predDelay=800){
+  if(!compute()){toast('Type some text to start.');return}
+  const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
   render1();render2();render3();render4();render5();render6();render7();render8();resetGen();
+  schedulePrediction(predDelay);
 }
 const PLAY={s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
-$('#prompt').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(renderAll,250)});
+$('#prompt').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(()=>renderAll(),250)});
+document.addEventListener('click',e=>{if(e.target.closest('.retry'))refreshPrediction()});
 $$('.play').forEach(b=>b.addEventListener('click',()=>PLAY[b.dataset.play]()));
 $('#headTabs').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;S.head=+b.dataset.h;render3()});
 $('#stageBar').addEventListener('click',e=>{const b=e.target.closest('[data-stage]');if(!b)return;play3Run++;S.stage=+b.dataset.stage;applyStage(true)});
@@ -1171,10 +1296,10 @@ $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]
 $('#pickBtn').addEventListener('click',play8);
 $('#acceptBtn').addEventListener('click',()=>{
   if(!pickState)return;const inp=$('#prompt');
-  inp.value=inp.value.replace(/\s+$/,'')+(PUNCT.has(pickState)?'':' ')+pickState;
-  const w=pickState;renderAll();toast(`Added “${w}”. Every step now uses the longer input.`);
+  inp.value=currentText()+pickState;
+  const w=pickState;renderAll(0);toast(`Added “${showTok(w)}”. Every step now uses the longer input.`);
 });
-$('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.newCount>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
+$('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.done||gen.pieces.length>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
 $('#genStep').addEventListener('click',()=>{gen.running=false;setPlayLabel();genStep()});
 $('#genReset').addEventListener('click',resetGen);
 addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(drawPE,100)});
@@ -1251,8 +1376,25 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='p'||e.key==='P'){PLAY[SECS[cur].id]?.()}
 });
 
+async function initEngine(){
+  setBadge('wait','Connecting to a model…');
+  if(window.claude&&typeof window.claude.use==='function'){
+    try{const smp=await window.claude.use('sample');if(smp){ENGINE.kind='claude';ENGINE.sample=smp;setBadge('live','Live model: Claude');return}}catch(e){}
+  }
+  try{
+    setBadge('wait','Loading GPT‑2…');
+    const tf=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.1');
+    const prog={};
+    const cb=d=>{if(d&&d.status==='progress'&&d.file){prog[d.file]=d.progress||0;const v=Object.values(prog);setBadge('wait',`Downloading GPT‑2 · ${Math.round(v.reduce((a,b)=>a+b,0)/v.length)}%`)}};
+    const tok=await tf.AutoTokenizer.from_pretrained('Xenova/distilgpt2',{progress_callback:cb});
+    const model=await tf.AutoModelForCausalLM.from_pretrained('Xenova/distilgpt2',{dtype:'q8',progress_callback:cb});
+    Object.assign(ENGINE,{kind:'gpt2',tok,model});setBadge('live','Live model: GPT‑2 in your browser');return;
+  }catch(e){console.warn('GPT-2 unavailable',e)}
+  goOffline('no model was reachable');
+}
 renderAll();
 markActive('intro');
+initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>
 </body>
