@@ -152,7 +152,7 @@ button.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--acc
 .c{width:15px;height:15px;border-radius:3px;display:inline-block;flex:none}
 .mat.lg .c{width:18px;height:18px}
 .mblock{min-width:0}
-#peTrio .mblock,#concatViz .mblock{flex:none}
+#peTrio .mblock,#concatViz .mblock,#qkvAll .mblock{flex:none}
 .op{font-family:var(--display);font-size:32px;font-weight:600;color:var(--muted);align-self:center;padding-top:20px}
 .strip{display:flex;gap:2px}
 .legend{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
@@ -256,6 +256,25 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .tri span.nw{background:var(--pos);opacity:1}
 .gen-status{font-size:14px;color:var(--muted);min-height:1.6em}
 
+/* ---------- training + qkv ---------- */
+.tr-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+#trMap{width:100%;height:340px;display:block;border-radius:12px;background:var(--surface-2)}
+#trLoss{width:100%;height:120px;display:block}
+.corpus{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.corpus .me{color:var(--accent);font-weight:600}
+.mm-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:start}
+.mm{display:grid;grid-template-columns:auto auto;gap:6px 10px;align-items:start;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.mm .col{display:grid;gap:2px}
+.mm .wg{display:grid;grid-template-columns:repeat(16,16px);gap:2px}
+.mm .orow{display:grid;grid-template-columns:repeat(16,16px);gap:2px}
+.mm .c{width:16px;height:16px;transition:box-shadow .15s,opacity .3s}
+.mm .wg .c.hl{box-shadow:0 0 0 2px var(--ink)}
+.mm .orow .c.hl{box-shadow:0 0 0 2px var(--accent)}
+.mm .orow .c{position:relative}
+.mm .cap2{font-size:11px;color:var(--muted)}
+.calc{font-family:var(--mono);font-size:13px;line-height:1.7;background:var(--surface-2);border-radius:10px;padding:12px 14px;min-height:5.2em;word-break:break-word}
+.calc b{color:var(--accent)}
+@media (max-width:1000px){.tr-grid,.mm-wrap{grid-template-columns:minmax(0,1fr)}}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -336,7 +355,7 @@ body.present footer{display:none}
   <main id="main">
 
     <!-- ============ HERO ============ -->
-    <section class="hero" id="intro" data-name="Overview">
+    <section class="hero" id="intro" data-name="Overview" data-num="·">
       <div>
         <div class="eyebrow">A decoder-only transformer, taken apart</div>
         <h1 style="margin-top:16px">How a model writes <em>the next word</em></h1>
@@ -346,10 +365,10 @@ body.present footer{display:none}
           <a class="btn" href="#s1">Scroll through the steps</a>
         </div>
         <div class="hero-meta">
-          <span>9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
+          <span>training + 9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
         </div>
       </div>
-      <svg class="arch" viewBox="0 0 340 640" role="img" aria-label="Decoder architecture diagram. Click a block to jump to its step.">
+      <svg class="arch" viewBox="0 0 340 630" role="img" aria-label="Decoder architecture diagram. Click a block to jump to its step.">
         <path class="wire" d="M165 58 V78 M165 118 V146 M165 206 V226 M165 262 V286 M165 342 V366 M165 402 V446 M165 486 V510"/>
         <path class="res" d="M36 132 H26 V244 H40 M36 272 H26 V384 H40"/>
         <text class="cap" x="12" y="192" transform="rotate(-90 12 192)">residual</text>
@@ -361,25 +380,89 @@ body.present footer{display:none}
 
         <g class="box" data-go="s1"><rect x="40" y="14" width="250" height="44" rx="10"/><text class="num" x="54" y="32">1</text><text x="70" y="32">Tokenize</text><text class="io" id="heroIn" x="70" y="49">The cat sat on the</text></g>
         <g class="box" data-go="s2"><rect x="40" y="78" width="250" height="40" rx="10"/><text class="num" x="54" y="102">2</text><text x="70" y="103">Embed + positional encoding</text></g>
-        <g class="box" data-go="s3"><rect x="40" y="146" width="250" height="60" rx="10"/><text class="num" x="54" y="172">3</text><text x="70" y="172">Masked multi-head</text><text x="70" y="190">attention</text></g>
+        <g class="box" data-go="s3a" data-also="s3"><rect x="40" y="146" width="250" height="60" rx="10"/><text class="num" x="54" y="172">3</text><text x="70" y="172">Masked multi-head</text><text x="70" y="190">attention</text></g>
         <g class="box" data-go="s5"><rect x="226" y="154" width="54" height="44" rx="6"/><rect x="232" y="160" width="42" height="32" rx="4"/><text class="num" x="238" y="180">5 · ×4</text></g>
         <g class="box" data-go="s4"><rect x="40" y="226" width="250" height="36" rx="10"/><text class="num" x="54" y="248">4</text><text x="70" y="249">Add &amp; Norm</text></g>
         <g class="box" data-go="s6"><rect x="40" y="286" width="250" height="56" rx="10"/><text class="num" x="54" y="310">6</text><text x="70" y="310">MLP (feed-forward)</text><text class="cap" x="70" y="328">16 → 64 → 16</text></g>
         <g class="box" data-go="s4"><rect x="40" y="366" width="250" height="36" rx="10"/><text class="num" x="54" y="388">4</text><text x="70" y="389">Add &amp; Norm</text></g>
         <g class="box" data-go="s7"><rect x="40" y="446" width="250" height="40" rx="10"/><text class="num" x="54" y="470">7</text><text x="70" y="471">Linear + softmax</text></g>
         <g class="box" data-go="s8"><rect x="40" y="510" width="250" height="44" rx="10"/><text class="num" x="54" y="528">8</text><text x="70" y="528">Next token</text><text class="io" id="heroOut" x="70" y="545">“mat”</text></g>
-        <text class="cap" x="40" y="590">Papers draw this bottom-up.</text>
-        <text class="cap" x="40" y="606">Here it reads top to bottom.</text>
+        <g class="box" data-go="s0"><rect x="40" y="580" width="250" height="40" rx="10" style="stroke-dasharray:4 3"/><text class="num" x="54" y="604">0</text><text x="70" y="605">Training: where the weights come from</text></g>
       </svg>
     </section>
 
+    <!-- ============ 0 TRAINING ============ -->
+    <section id="s0" data-name="Training" data-num="0">
+      <div class="sec-head">
+        <div class="eyebrow">Step 0 · before the journey</div>
+        <h2>Where the numbers come from: training</h2>
+        <p class="lede">Every matrix in the steps ahead (the embedding table, W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, the MLP weights, the output layer) <strong>starts as random numbers</strong>. Training is what turns them into a language model. The model reads a huge amount of text and, at every position, guesses the next token. Each guess is scored, and <strong>backpropagation</strong> works out, for every single number in the model, which direction would have made the right answer a little more likely. Every number takes a tiny step in that direction. Repeat this billions of times.</p>
+        <div class="formula">loss = −log p(actual next token) &nbsp;&nbsp; every weight w ← w − η · ∂loss/∂w</div>
+        <div class="key"><b>Key idea</b>Nobody designs the embeddings or W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> by hand. They are whatever numbers made next-token prediction work best on the training text. When you use the model (steps 1 to 9), they are frozen and only read.</div>
+      </div>
+      <div class="viz" id="v0">
+        <div class="viz-bar">
+          <div class="left">
+            <button class="btn primary" id="trPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Train</button>
+            <button class="btn" id="trReset" type="button">Restart from random</button>
+          </div>
+          <div class="slider"><label class="label" for="trLr">Learning rate η</label><input type="range" id="trLr" min="0.01" max="0.5" step="0.01" value="0.05"><span class="mono" id="trLrLbl" style="font-size:13px">0.05</span></div>
+        </div>
+        <div class="pipe" id="trPipe">
+          <span>1 · Read text</span><span>2 · Predict each next token</span><span>3 · Score it (loss)</span><span>4 · Backpropagate gradients</span><span>5 · Nudge every weight</span><span>↻ repeat</span>
+        </div>
+        <p class="note" id="trIntro"></p>
+        <div class="tr-grid">
+          <div style="display:grid;gap:8px;min-width:0">
+            <div class="mhead"><span class="label">Word embeddings (2 numbers each, drawn as x and y)</span><span class="dim" id="trEpoch"></span></div>
+            <canvas id="trMap" aria-label="Scatter plot of learned word embeddings"></canvas>
+          </div>
+          <div style="display:grid;gap:14px;align-content:start;min-width:0">
+            <div style="display:grid;gap:6px">
+              <div class="mhead"><span class="label">Loss (lower is better)</span><span class="dim mono" id="trLossLbl"></span></div>
+              <canvas id="trLoss" aria-label="Training loss over time"></canvas>
+            </div>
+            <div style="display:grid;gap:6px">
+              <span class="label" id="trPredLbl"></span>
+              <div class="hbars" id="trPred"></div>
+            </div>
+            <p class="gen-status mono" id="trTick" style="font-size:12px"></p>
+          </div>
+        </div>
+        <div style="display:grid;gap:8px">
+          <span class="label">Training text (your sentence is highlighted)</span>
+          <div class="corpus" id="trCorpus"></div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <span class="label">At full scale: where GPT‑2 small’s 124 million learned numbers live</span>
+          <div class="scroll-x"><table class="stack-table">
+            <thead><tr><th>Weights</th><th>Shape</th><th>Numbers</th><th>Used in step</th></tr></thead>
+            <tbody>
+              <tr><td>Token embedding table</td><td>50,257 × 768</td><td>38.6 M</td><td>1 (and 7, shared)</td></tr>
+              <tr><td>Position embeddings</td><td>1,024 × 768</td><td>0.8 M</td><td>2</td></tr>
+              <tr><td>W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, W<sub>O</sub> × 12 layers</td><td>4 × 768 × 768</td><td>28.3 M</td><td>3a, 3b, 5</td></tr>
+              <tr><td>MLP W₁, W₂ × 12 layers</td><td>2 × 768 × 3,072</td><td>56.6 M</td><td>6</td></tr>
+              <tr><td>Biases and LayerNorm γ, β</td><td>small vectors</td><td>0.1 M</td><td>4, 6</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">GPT‑2 reuses the embedding table as the output layer in step 7. GPT‑3 was trained on about 300 billion tokens; every one of them produced a gradient like the tiny ones above.</p>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Press Train. The dots start in a random clump. Words that are followed by similar words (cat and dog, mat and rug) drift together, because giving them similar vectors is the easiest way to predict what comes next.</li>
+        <li>This demo is a real training run in your browser: a tiny model with 2 numbers per word, trained by gradient descent on the sentences shown, including yours. Real models do the same with thousands of numbers per token and a full transformer in between.</li>
+        <li>The loss starts at about ln(vocabulary size), which is what pure guessing scores. It can’t reach zero, because the same word can be followed by different words.</li>
+        <li>W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are trained exactly the same way: the gradient flows back through attention into them. Nobody tells a head to “look at the previous word”; it ends up doing so because that lowers the loss.</li>
+      </ul></details>
+    </section>
+
     <!-- ============ 1 TOKENIZATION ============ -->
-    <section id="s1" data-name="Tokenization">
+    <section id="s1" data-name="Tokenization" data-num="1">
       <div class="sec-head">
         <div class="eyebrow">Step 1 of 9</div>
         <h2>Tokenization: text becomes numbers</h2>
         <p class="lede">A neural network cannot read letters. The tokenizer cuts the text into <strong>tokens</strong> (whole words, pieces of words, or punctuation) and swaps each one for its ID in a fixed vocabulary. Each ID then picks out one row of the <strong>embedding table</strong>: a learned list of numbers that stands for that token’s meaning.</p>
-        <div class="key"><b>Key idea</b>From here on, every token is a vector. This demo uses 16 numbers per token; GPT‑2 small uses 768.</div>
+        <div class="key"><b>Key idea</b>From here on, every token is a vector. This demo uses 16 numbers per token; GPT‑2 small uses 768. The table itself was learned in step 0: training kept adjusting each row until the vectors were useful for predicting the next word.</div>
       </div>
       <div class="viz" id="v1">
         <div class="viz-bar"><span class="label">Raw text</span><button class="btn play" data-play="s1" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button></div>
@@ -403,7 +486,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 2 POSITIONAL ENCODING ============ -->
-    <section id="s2" data-name="Positional encoding">
+    <section id="s2" data-name="Positional encoding" data-num="2">
       <div class="sec-head">
         <div class="eyebrow">Step 2 of 9</div>
         <h2>Positional encoding: where is each word?</h2>
@@ -425,10 +508,51 @@ body.present footer{display:none}
       </ul></details>
     </section>
 
-    <!-- ============ 3 MASKED ATTENTION ============ -->
-    <section id="s3" data-name="Masked attention">
+    <!-- ============ 3a Q K V ============ -->
+    <section id="s3a" data-name="Q, K, V" data-num="3a">
       <div class="sec-head">
-        <div class="eyebrow">Step 3 of 9</div>
+        <div class="eyebrow">Step 3a of 9</div>
+        <h2>Where Q, K and V come from</h2>
+        <p class="lede">Queries, keys and values are not extra inputs. Each one is the token’s vector <strong>x</strong> (from step 2) multiplied by a learned weight matrix. The same three matrices W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are applied to every token at every position; only x changes. Each output number is a weighted sum of all 16 input numbers, with the weights taken from one column of W.</p>
+        <div class="formula">q = x · W<sub>Q</sub> &nbsp;&nbsp; k = x · W<sub>K</sub> &nbsp;&nbsp; v = x · W<sub>V</sub> &nbsp;&nbsp; (x is 1 × 16, each W is 16 × 16, learned in step 0)</div>
+        <div class="key"><b>Analogy</b>Think of a library. The <em>query</em> is what you are looking for, each book’s <em>key</em> is the label on its spine, and its <em>value</em> is what is written inside. W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are three different learned ways of reading the same token.</div>
+      </div>
+      <div class="viz" id="v3a">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Token</span><div class="tokpick" id="qkvTok"></div></div>
+          <div class="left">
+            <div class="seg" id="qkvSeg">
+              <button class="btn" type="button" data-w="Q" aria-pressed="true">W<sub>Q</sub> → query</button>
+              <button class="btn" type="button" data-w="K" aria-pressed="false">W<sub>K</sub> → key</button>
+              <button class="btn" type="button" data-w="V" aria-pressed="false">W<sub>V</sub> → value</button>
+            </div>
+            <button class="btn play" data-play="s3a" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+          </div>
+        </div>
+        <div class="mm-wrap">
+          <div class="scroll-x"><div class="mm" id="qkvMM"></div></div>
+          <div style="display:grid;gap:10px;align-content:start;min-width:0">
+            <span class="label">How one output number is made</span>
+            <p class="calc" id="qkvCalc"></p>
+            <p class="note">Hover any column of W, or any output cell, to see its sum. The colored underline shows which head uses each output number: head 1 takes numbers 0–3, head 2 takes 4–7, and so on.</p>
+          </div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <span class="label">Done for every token at once (one matrix multiply each)</span>
+          <div class="scroll-x"><div class="row" id="qkvAll" style="flex-wrap:nowrap"></div></div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Point at one output cell: it is just x₀·W₀ⱼ + x₁·W₁ⱼ + … + x₁₅·W₁₅ⱼ. Sixteen multiplies and a sum.</li>
+        <li>Why three different matrices? Because what a word is looking for (query) differs from how it should be found (key) and from what it should pass on (value). Training discovers useful versions of all three.</li>
+        <li>In this demo W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> are fixed random numbers. In GPT‑2 small each is 768 × 768 = 589,824 learned numbers, in each of 12 layers.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 3 MASKED ATTENTION ============ -->
+    <section id="s3" data-name="Masked attention" data-num="3b">
+      <div class="sec-head">
+        <div class="eyebrow">Step 3b of 9</div>
         <h2>Masked self-attention: each word looks back</h2>
         <p class="lede">Every token asks a question (its <strong>query</strong>), advertises what it contains (its <strong>key</strong>), and carries information to share (its <strong>value</strong>). A query is compared with every key; the best matches get the most weight. The <strong>mask</strong> hides future tokens, because when the model writes text, the future does not exist yet.</p>
         <div class="formula">Attention(Q, K, V) = softmax( Q·Kᵀ / √d<sub>k</sub> + mask ) · V</div>
@@ -467,7 +591,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 4 ADD & NORM ============ -->
-    <section id="s4" data-name="Add & Norm">
+    <section id="s4" data-name="Add & Norm" data-num="4">
       <div class="sec-head">
         <div class="eyebrow">Step 4 of 9</div>
         <h2>Add &amp; Norm: keep the original, keep it steady</h2>
@@ -489,7 +613,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 5 MULTI HEADS ============ -->
-    <section id="s5" data-name="Multiple heads">
+    <section id="s5" data-name="Multiple heads" data-num="5">
       <div class="sec-head">
         <div class="eyebrow">Step 5 of 9</div>
         <h2>Multi-head: many ways of looking, in parallel</h2>
@@ -509,7 +633,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 6 MLP ============ -->
-    <section id="s6" data-name="MLP">
+    <section id="s6" data-name="MLP" data-num="6">
       <div class="sec-head">
         <div class="eyebrow">Step 6 of 9</div>
         <h2>The MLP: each word thinks on its own</h2>
@@ -552,7 +676,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 7 SOFTMAX ============ -->
-    <section id="s7" data-name="Final softmax">
+    <section id="s7" data-name="Final softmax" data-num="7">
       <div class="sec-head">
         <div class="eyebrow">Step 7 of 9</div>
         <h2>Linear + softmax: a score for every word</h2>
@@ -582,7 +706,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 8 NEXT WORD ============ -->
-    <section id="s8" data-name="Next word">
+    <section id="s8" data-name="Next word" data-num="8">
       <div class="sec-head">
         <div class="eyebrow">Step 8 of 9</div>
         <h2>Next-word prediction: pick one token</h2>
@@ -610,7 +734,7 @@ body.present footer{display:none}
     </section>
 
     <!-- ============ 9 LOOP ============ -->
-    <section id="s9" data-name="Generation loop">
+    <section id="s9" data-name="Generation loop" data-num="9">
       <div class="sec-head">
         <div class="eyebrow">Step 9 of 9</div>
         <h2>The loop: append, repeat, write</h2>
@@ -644,6 +768,7 @@ body.present footer{display:none}
 
     <footer>
       <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block on your exact text in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights, so you can see every intermediate number. Head patterns in steps 3 and 5 get a small nudge so they resemble patterns seen in trained models.</p>
+      <p><strong>The training demo.</strong> Step 0 really trains a tiny model in your browser by gradient descent: 2 numbers per word, a next-word output layer, and the sentences shown plus yours. Real models train a full transformer the same way.</p>
       <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
     </footer>
@@ -807,7 +932,7 @@ function compute(){
   const F=matmul(Hact,W2);
   const R2=addM(X1,F), X2=R2.map(layerNorm);
   const keys=toks.map(t=>t.key);
-  Object.assign(S,{toks,N,labels,E,PE,X0,heads,concat,A,R1,X1,Hpre,Hact,F,R2,X2,keys});
+  Object.assign(S,{toks,N,labels,E,PE,X0,Q,K,V,heads,concat,A,R1,X1,Hpre,Hact,F,R2,X2,keys});
   S.q=Math.min(S.q,N-1); if(S.q<0||S._lastN!==N) S.q=N-1;
   S.sel=Math.min(S.sel,N-1); if(S._lastN!==N) S.sel=N-1;
   S._lastN=N;
@@ -888,6 +1013,132 @@ async function play2(){
   await new Promise(res=>{const f=t=>{peProg=dur?Math.min(1,(t-start)/dur):1;drawPE();peProg<1?requestAnimationFrame(f):res()};requestAnimationFrame(f)});
   await stagger(pe,90);
   await stagger(outRows,90);
+}
+
+/* ================= STEP 0: a real tiny training run ================= */
+const BASE_CORPUS=['the cat sat on the mat .','the dog sat on the rug .','the cat slept on the sofa .','the dog slept on the floor .','a cat purred on the mat .','a dog barked in the garden .','the bird sang in the tree .','the bird flew over the garden .','my cat chased the bird .','my dog chased the cat .','the sun was warm .','the rug was soft .','the cat ate the fish .','the dog ate the bone .'];
+const trWords=s=>s.toLowerCase().match(/[a-z0-9']+|[.,!?;:]/g)||[];
+const TR={running:false,epoch:0,loss:[],seed:7,frame:0,MAX:400};
+function trBuild(){
+  const user=trWords(currentText());
+  const sents=[...BASE_CORPUS.map(trWords),user];
+  const words=[],idx={};
+  sents.flat().forEach(w=>{if(!(w in idx)){idx[w]=words.length;words.push(w)}});
+  const pairs=[];
+  sents.forEach((s,si)=>{const rep=si===sents.length-1?3:1;for(let r=0;r<rep;r++)for(let t=0;t<s.length-1;t++)pairs.push([idx[s[t]],idx[s[t+1]]])});
+  Object.assign(TR,{user,words,idx,pairs,V:words.length,userSet:new Set(user),ctx:user.length?idx[user[user.length-1]]:0});
+  $('#trCorpus').innerHTML=BASE_CORPUS.map(s=>`<span>${esc(s)}</span>`).join('')+(user.length?`<span class="me">${esc(user.join(' '))}</span>`:'');
+  $('#trIntro').textContent=`A real model training in your browser: ${TR.V} words, 2 numbers per word, trained on the ${sents.length} sentences below. Your sentence is repeated 3× so the model learns it well.`;
+}
+function trReset(){
+  trStop();trBuild();
+  const r=mulberry32(TR.seed++),V=TR.V;
+  TR.E=Array.from({length:V},()=>[randn(r)*.12,randn(r)*.12]);
+  TR.U=[Array.from({length:V},()=>randn(r)*.12),Array.from({length:V},()=>randn(r)*.12)];
+  TR.b=new Array(V).fill(0);TR.epoch=0;TR.loss=[trLossNow()];TR.bounds=null;
+  trDraw(true);
+}
+function trProbs(x){const h=TR.E[x];const z=TR.b.map((bk,k)=>h[0]*TR.U[0][k]+h[1]*TR.U[1][k]+bk);return softmax(z)}
+function trLossNow(){let L=0;for(const [x,y] of TR.pairs)L-=Math.log(trProbs(x)[y]+1e-12);return L/TR.pairs.length}
+function trEpoch(lr){
+  const P=TR.pairs,r=mulberry32(TR.epoch*977+TR.seed);
+  for(let i=P.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[P[i],P[j]]=[P[j],P[i]]}
+  let L=0;const V=TR.V,U=TR.U,b=TR.b;
+  for(const [x,y] of P){
+    const h=TR.E[x],p=trProbs(x);L-=Math.log(p[y]+1e-12);p[y]-=1;
+    let g0=0,g1=0;
+    for(let k=0;k<V;k++){g0+=U[0][k]*p[k];g1+=U[1][k]*p[k];U[0][k]-=lr*h[0]*p[k];U[1][k]-=lr*h[1]*p[k];b[k]-=lr*p[k]}
+    h[0]-=lr*g0;h[1]-=lr*g1;
+  }
+  TR.epoch++;return L/P.length;
+}
+function trStart(){if(TR.running)return;if(TR.epoch>=TR.MAX)trReset();TR.running=true;trBtn();requestAnimationFrame(trLoop)}
+function trStop(){TR.running=false;trBtn();$$('#trPipe span').forEach(s=>s.classList.remove('lit'))}
+function trBtn(){$('#trPlay').innerHTML=TR.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>'+(TR.epoch?'Keep training':'Train')}
+function trLoop(){
+  if(!TR.running)return;
+  const lr=+$('#trLr').value;
+  if(RM||TR.frame%2===0)for(let i=0;i<(RM?20:1);i++)TR.loss.push(trEpoch(lr));
+  TR.frame++;
+  const pipes=$$('#trPipe span');pipes.forEach((s,i)=>s.classList.toggle('lit',i===Math.floor(TR.frame/4)%5));
+  trDraw(TR.frame%5===0);
+  if(TR.epoch>=TR.MAX){trStop();$('#trTick').textContent=`Finished ${TR.MAX} passes over the text. Press Restart to watch it learn again from random numbers.`;return}
+  requestAnimationFrame(trLoop);
+}
+function trDraw(full){
+  const cv=$('#trMap');if(!cv||!cv.clientWidth||!TR.E)return;
+  const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;
+  const g=cv.getContext('2d');g.scale(dpr,dpr);
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  TR.E.forEach(([a,c])=>{x0=Math.min(x0,a);x1=Math.max(x1,a);y0=Math.min(y0,c);y1=Math.max(y1,c)});
+  const pad=.15*Math.max(x1-x0,y1-y0,.2),tgt=[x0-pad,x1+pad,y0-pad,y1+pad];
+  TR.bounds=TR.bounds?TR.bounds.map((v,i)=>v+(tgt[i]-v)*.15):tgt;
+  const [bx0,bx1,by0,by1]=TR.bounds,X=v=>28+(v-bx0)/(bx1-bx0)*(w-70),Y=v=>h-18-(v-by0)/(by1-by0)*(h-36);
+  const muted=cssVar('--muted'),acc=cssVar('--accent'),ink=cssVar('--ink'),line=cssVar('--line');
+  g.strokeStyle=line;g.lineWidth=1;g.beginPath();g.moveTo(X(0),10);g.lineTo(X(0),h-10);g.moveTo(10,Y(0));g.lineTo(w-10,Y(0));g.stroke();
+  g.font=`12px ${cssVar('--mono')}`;
+  const placed=[];
+  TR.words.map((wd,i)=>({wd,i,me:TR.userSet.has(wd)})).sort((a,b)=>b.me-a.me).forEach(({wd,i,me})=>{
+    const [a,c]=TR.E[i],px=X(a),py=Y(c);g.fillStyle=me?acc:muted;g.beginPath();g.arc(px,py,me?4.5:3.2,0,7);g.fill();
+    const tw=g.measureText(wd).width;let ly=py+4;
+    for(let k=0;k<6&&placed.some(r=>px+6<r.x+r.w&&px+6+tw>r.x&&Math.abs(ly-r.y)<12);k++)ly+=(k%2?-1:1)*12*(k+1);
+    placed.push({x:px+6,y:ly,w:tw});
+    if(Math.abs(ly-py-4)>1){g.strokeStyle=line;g.beginPath();g.moveTo(px+3,py);g.lineTo(px+6,ly-4);g.stroke()}
+    g.fillStyle=me?ink:muted;g.fillText(wd,px+6,ly)});
+  $('#trEpoch').textContent=`pass ${TR.epoch} of ${TR.MAX}`;
+  // loss chart
+  const lc=$('#trLoss'),lw=lc.clientWidth,lh=lc.clientHeight;lc.width=lw*dpr;lc.height=lh*dpr;const q=lc.getContext('2d');q.scale(dpr,dpr);
+  const top=Math.log(TR.V)*1.08,Ly=v=>6+(1-v/top)*(lh-22),Lx=i=>34+i/TR.MAX*(lw-40);
+  q.font=`10px ${cssVar('--mono')}`;q.fillStyle=muted;q.strokeStyle=line;
+  [0,Math.log(TR.V)].forEach(v=>{q.beginPath();q.setLineDash(v?[4,4]:[]);q.moveTo(34,Ly(v));q.lineTo(lw-6,Ly(v));q.stroke();q.fillText(v.toFixed(1),4,Ly(v)+3)});
+  q.setLineDash([]);q.fillText('random guessing = ln '+TR.V,lw-150,Ly(Math.log(TR.V))-5);
+  q.strokeStyle=acc;q.lineWidth=2;q.beginPath();TR.loss.forEach((v,i)=>i?q.lineTo(Lx(i),Ly(v)):q.moveTo(Lx(i),Ly(v)));q.stroke();
+  const cur=TR.loss[TR.loss.length-1];$('#trLossLbl').textContent=`now ${cur.toFixed(2)}`;
+  if(!full)return;
+  // prediction for the last word of the user's sentence
+  const ctx=TR.words[TR.ctx],p=trProbs(TR.ctx),top5=p.map((v,k)=>({w:TR.words[k],v})).sort((a,b)=>b.v-a.v).slice(0,5);
+  $('#trPredLbl').textContent=`What the tiny model predicts after “${ctx}”`;
+  $('#trPred').innerHTML=top5.map((o,i)=>`<div class="hb${i===0?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:0;width:${(o.v*100).toFixed(1)}%;background:var(--accent);transition:none"></span></span><span class="v">${(o.v*100).toFixed(1)}%</span></div>`).join('');
+  const up=TR.pairs.filter(([x])=>TR.userSet.has(TR.words[x]));const [x,y]=(up.length?up:TR.pairs)[TR.frame%(up.length||TR.pairs.length)];
+  const py=trProbs(x)[y];
+  $('#trTick').textContent=`Example: after “${TR.words[x]}” the real next word is “${TR.words[y]}”. The model gives it ${(py*100).toFixed(1)}%, so loss = −ln ${py.toFixed(3)} = ${(-Math.log(py)).toFixed(2)}. Backprop now nudges the numbers of “${TR.words[x]}” and the output weights to raise that ${(py*100).toFixed(0)}%.`;
+}
+
+/* ================= STEP 3a: Q, K, V projections ================= */
+const WMAT={Q:()=>Wq,K:()=>Wk,V:()=>Wv};
+S.qkv='Q';
+function renderQKV(){
+  tokPicker($('#qkvTok'),()=>{render4();render6();renderQKV();playQKV()});
+  $$('#qkvSeg .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===S.qkv));
+  const i=S.sel,x=S.X0[i],W=WMAT[S.qkv](),out=matmul([x],W)[0];
+  const mxx=maxAbs([x]),mxw=maxAbs(W),mxo=maxAbs([out]),nm=S.qkv.toLowerCase();
+  S.qkvOut=out;
+  $('#qkvMM').innerHTML=
+    `<span class="cap2">x (“${esc(S.labels[i].trim())}”)</span><span class="cap2">W<sub>${S.qkv}</sub> (16 × 16), rows = input dims, columns = output dims</span>`+
+    `<div class="col">${x.map((v,k)=>`<i class="c" style="background:${divColor(v,mxx)}" data-tip="x[${k}] = ${v.toFixed(3)}"></i>`).join('')}</div>`+
+    `<div class="wg">${W.map((r,k)=>r.map((v,j)=>`<i class="c" data-j="${j}" style="background:${divColor(v,mxw)}" data-tip="W[${k}][${j}] = ${v.toFixed(3)}"></i>`).join('')).join('')}</div>`+
+    `<span class="cap2" style="text-align:right">= ${nm}</span>`+
+    `<div class="orow">${out.map((v,j)=>`<i class="c a" data-j="${j}" style="background:${divColor(v,mxo)};box-shadow:inset 0 -3px var(--h${Math.floor(j/4)})" data-tip="${nm}[${j}] = ${v.toFixed(3)}"></i>`).join('')}</div>`;
+  qkvCalc(0,false);
+  const mx=Math.max(maxAbs(S.Q),maxAbs(S.K),maxAbs(S.V));
+  $('#qkvAll').innerHTML=`<div class="mblock"><div class="mhead"><span class="label">X (from step 2)</span></div>${matHTML(S.X0,S.labels)}</div><span class="op">→</span>`+
+    ['Q','K','V'].map(n=>`<div class="mblock"><div class="mhead"><span class="label">${n} = X · W<sub>${n}</sub></span></div>${matHTML(S[n],S.labels,{mx,groups:true})}</div>`).join('');
+}
+function qkvCalc(j,hl=true){
+  const i=S.sel,x=S.X0[i],W=WMAT[S.qkv](),nm=S.qkv.toLowerCase();
+  $$('#qkvMM .c.hl').forEach(c=>c.classList.remove('hl'));
+  if(hl)$$(`#qkvMM [data-j="${j}"]`).forEach(c=>c.classList.add('hl'));
+  const terms=x.map((v,k)=>({k,v,w:W[k][j],t:v*W[k][j]})).sort((a,b)=>Math.abs(b.t)-Math.abs(a.t));
+  const sum=terms.reduce((a,b)=>a+b.t,0);
+  $('#qkvCalc').innerHTML=`<b>${nm}[${j}]</b> = x₀·W₀,${j} + x₁·W₁,${j} + … + x₁₅·W₁₅,${j}<br>`+
+    `biggest terms: ${terms.slice(0,3).map(o=>`${o.v.toFixed(2)}×${o.w.toFixed(2)}`).join(' + ')} + (13 more)<br>= <b>${sum.toFixed(3)}</b> &nbsp;<span class="muted">→ used by head ${Math.floor(j/4)+1}</span>`;
+}
+let qkvRun=0;
+async function playQKV(){
+  const run=++qkvRun,cells=$$('#qkvMM .orow .c');
+  cells.forEach(c=>c.classList.add('pre'));
+  for(let j=0;j<16;j++){if(run!==qkvRun)return;qkvCalc(j);cells[j].classList.remove('pre');await sleep(260)}
+  await stagger($$('#qkvAll .mrow'),40);
 }
 
 /* ================= STEP 3 ================= */
@@ -976,7 +1227,7 @@ function barRow(label,sub,v,mx,op=''){
   return `<div class="barrow a"><div class="bl">${op?`<span class="muted mono">${op}</span> `:''}${label}<small>${sub}</small></div>${barsSVG(v,mx)}<div class="stats">mean ${fmt(mean(v))}<br>std&nbsp; ${std(v).toFixed(2)}</div></div>`;
 }
 function render4(){
-  tokPicker($('#s4Tok'),()=>{render4();render6();play4()});
+  tokPicker($('#s4Tok'),()=>{render4();render6();renderQKV();play4()});
   const i=S.sel,mx=Math.max(...[S.X0[i],S.A[i],S.R1[i],S.X1[i]].flat().map(Math.abs));
   $('#s4Bars').innerHTML=
     barRow('Input x','embedding + position',S.X0[i],mx)+
@@ -1012,7 +1263,7 @@ async function play5(){
 
 /* ================= STEP 6 ================= */
 function render6(){
-  tokPicker($('#s6Tok'),()=>{render4();render6();play6()});
+  tokPicker($('#s6Tok'),()=>{render4();render6();renderQKV();play6()});
   const i=S.sel,x=S.X1[i],hA=S.Hact[i],out=S.F[i];
   const inX=k=>100+k*(480/15),hX=m=>18+m*(644/63),yI=34,yH=135,yO=236;
   const mxIn=maxAbs([x]),mxOut=maxAbs([out]),mxH=Math.max(1e-6,...hA);
@@ -1276,10 +1527,11 @@ function renderAll(predDelay=800){
   const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
-  render1();render2();render3();render4();render5();render6();render7();render8();resetGen();
+  render1();render2();renderQKV();render3();render4();render5();render6();render7();render8();resetGen();
+  if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -1291,6 +1543,11 @@ $('#stageBar').addEventListener('click',e=>{const b=e.target.closest('[data-stag
 $('#scoreGrid').addEventListener('click',e=>{const c=e.target.closest('[data-i],[data-q]');if(!c)return;S.q=+(c.dataset.q??c.dataset.i);applyStage(false)});
 $('#arcSvg').addEventListener('click',e=>{const g=e.target.closest('[data-q]');if(!g)return;S.q=+g.dataset.q;applyStage(false)});
 $('#peDim').addEventListener('input',()=>{peProg=1;drawPE()});
+$('#qkvSeg').addEventListener('click',e=>{const b=e.target.closest('[data-w]');if(!b)return;S.qkv=b.dataset.w;renderQKV();playQKV()});
+$('#qkvMM').addEventListener('pointerover',e=>{const c=e.target.closest('[data-j]');if(c){qkvRun++;$$('#qkvMM .orow .c').forEach(x=>x.classList.remove('pre'));qkvCalc(+c.dataset.j)}});
+$('#trPlay').addEventListener('click',()=>TR.running?trStop():trStart());
+$('#trReset').addEventListener('click',()=>{trReset()});
+$('#trLr').addEventListener('input',e=>{$('#trLrLbl').textContent=(+e.target.value).toFixed(2)});
 $('#temp').addEventListener('input',e=>{S.T=+e.target.value;render7();render8()});
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.mode=b.dataset.mode;render8()});
 $('#pickBtn').addEventListener('click',play8);
@@ -1302,7 +1559,7 @@ $('#acceptBtn').addEventListener('click',()=>{
 $('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.done||gen.pieces.length>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
 $('#genStep').addEventListener('click',()=>{gen.running=false;setPlayLabel();genStep()});
 $('#genReset').addEventListener('click',resetGen);
-addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(drawPE,100)});
+addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(()=>{drawPE();trDraw(true)},100)});
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(drawPE,50));
 new MutationObserver(()=>setTimeout(drawPE,50)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
@@ -1315,14 +1572,14 @@ document.addEventListener('pointermove',e=>{if(!tip.classList.contains('show'))r
 const SECS=$$('main>section');
 const rail=$('.rail'),jump=$('#jump');
 SECS.forEach((s,i)=>{
-  const a=document.createElement('a');a.href='#'+s.id;a.dataset.s=s.id;a.innerHTML=`<b>${i?i:'·'}</b><span>${s.dataset.name}</span>`;rail.appendChild(a);
-  const o=document.createElement('option');o.value=s.id;o.textContent=(i?i+'. ':'')+s.dataset.name;jump.appendChild(o);
+  const a=document.createElement('a');a.href='#'+s.id;a.dataset.s=s.id;a.innerHTML=`<b>${s.dataset.num}</b><span>${s.dataset.name}</span>`;rail.appendChild(a);
+  const o=document.createElement('option');o.value=s.id;o.textContent=(i?s.dataset.num+'. ':'')+s.dataset.name;jump.appendChild(o);
 });
 jump.addEventListener('change',()=>{if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===jump.value));else $('#'+jump.value).scrollIntoView({behavior:RM?'auto':'smooth'})});
 $$('.arch .box').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.go;if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===id));else $('#'+id).scrollIntoView({behavior:RM?'auto':'smooth'})}));
 function markActive(id){
   $$('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.s===id));
-  $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id||b.dataset.also===id));
   jump.value=id;
 }
 const played=new Set();
@@ -1342,12 +1599,13 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=cur?`Step ${cur} of 9 · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
   window.scrollTo({top:0});
   if(s.id==='s2')setTimeout(drawPE,30);
+  if(s.id==='s0')setTimeout(()=>trDraw(true),30);
   if(PLAY[s.id]&&s.id!=='s9')setTimeout(()=>PLAY[s.id](),350);
 }
 function enterPresent(){

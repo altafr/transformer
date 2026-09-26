@@ -2,9 +2,11 @@
 
 An animated, interactive single-page website that walks through how a decoder-only transformer (GPT-style) predicts the next word:
 
+0. Training: where the embeddings and weight matrices come from (a real tiny model trains live in the browser)
 1. Tokenization
 2. Positional encoding
-3. Masked multi-head attention
+3a. Where Q, K and V come from (x · W_Q, x · W_K, x · W_V, computed live)
+3b. Masked multi-head attention
 4. Add & Norm
 5. Multiple heads
 6. MLP (feed-forward)
