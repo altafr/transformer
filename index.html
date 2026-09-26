@@ -323,6 +323,58 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .banner{padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--pos) 16%,var(--surface));border:1px solid var(--pos);display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:15px}
 @media (max-width:1000px){.neuron-grid{grid-template-columns:minmax(0,1fr)}.dial-groups{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-grid,.phases{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:520px){.dial-groups{grid-template-columns:minmax(0,1fr)}}
+/* ---------- architectures + overview ---------- */
+.archpick{display:flex;flex-wrap:wrap;gap:8px}
+.archpick .btn{font-size:13px}
+.archs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.arch-card{border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px;align-content:start;transition:opacity .3s,border-color .3s,box-shadow .3s,transform .3s}
+.arch-card svg{width:100%;max-width:170px;height:auto}
+.arch-card h3{font-size:18px}
+.arch-card p{font-size:14px;color:var(--muted);margin:0}
+.arch-card p b{color:var(--ink);font-weight:600}
+.arch-card .eg{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.archs.picking .arch-card{opacity:.4}
+.archs.picking .arch-card.pick{opacity:1;border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-3px)}
+.ai path,.ai line{stroke:var(--muted);stroke-width:1.4;fill:none}
+.ai circle{fill:var(--accent-weak);stroke:var(--accent);stroke-width:1.4}
+.ai rect{fill:var(--accent-weak);stroke:var(--accent);stroke-width:1.2}
+.ai rect.win{fill:color-mix(in srgb,var(--pos) 35%,transparent);stroke:var(--pos);animation:slidewin 4s steps(1) infinite}
+.ai rect.noise{fill:var(--surface-2);stroke-dasharray:2 2}
+.ai .flowline{stroke:var(--accent)}
+@keyframes slidewin{0%{transform:translate(0,0)}25%{transform:translate(30px,0)}50%{transform:translate(30px,30px)}75%{transform:translate(0,30px)}}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.facts div{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:4px;align-content:start}
+.facts b{font:600 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.facts span{font-size:15px}
+.ov-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start}
+#ovDiagram{width:100%;min-width:520px;height:auto;display:block}
+#ovDiagram .ob rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:fill .2s,stroke .2s}
+#ovDiagram .ob{cursor:pointer}
+#ovDiagram .ob:hover rect{stroke:var(--accent)}
+#ovDiagram .ob.on rect{fill:var(--accent-weak);stroke:var(--accent);stroke-width:1.8}
+#ovDiagram .ob.x rect{fill:color-mix(in srgb,var(--pos) 14%,var(--surface));stroke:var(--pos)}
+#ovDiagram .ob.x.on rect{fill:color-mix(in srgb,var(--pos) 30%,var(--surface))}
+#ovDiagram text{font:500 13px var(--sans);fill:var(--ink)}
+#ovDiagram .cap{font:500 11px var(--mono);fill:var(--muted);letter-spacing:.06em}
+#ovDiagram .w{stroke:var(--muted);stroke-width:1.3;fill:none}
+#ovDiagram .fr{fill:none;stroke-width:1.2;stroke-dasharray:5 4}
+#ovDiagram .cross{stroke:var(--pos);stroke-width:2;fill:none;stroke-dasharray:6 4;animation:dash 1.2s linear infinite}
+#ovDiagram .io{font:500 13px var(--mono);fill:var(--accent)}
+.ov-info{border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start;position:sticky;top:90px}
+.ov-info h3{font-size:22px}
+.ov-info p{font-size:15px;margin:0}
+.ov-info .where{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#trxSvg{width:100%;min-width:620px;height:auto;display:block}
+#trxSvg text{font:500 15px var(--mono)}
+.fams{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.fam{border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:6px;align-content:start}
+.fam h3{font-size:20px}
+.fam p{margin:0;font-size:14px;color:var(--muted)}
+.fam p b{color:var(--ink)}
+.fam .eg{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.fam.hl{border-color:var(--accent);background:var(--accent-weak)}
+@media (max-width:1000px){.archs,.facts,.fams{grid-template-columns:repeat(2,minmax(0,1fr))}.ov-grid{grid-template-columns:minmax(0,1fr)}.ov-info{position:static}}
+@media (max-width:560px){.archs,.facts,.fams{grid-template-columns:minmax(0,1fr)}}
 /* ---------- training + qkv ---------- */
 .tr-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
 #trMap{width:100%;height:340px;display:block;border-radius:12px;background:var(--surface-2)}
@@ -404,7 +456,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -414,6 +466,101 @@ body.present footer{display:none}
   <select id="jump" aria-label="Jump to step"></select>
   <button class="btn primary" id="presentBtn" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Present</button>
 </header>
+
+<div class="shell" id="tabOverview" hidden>
+  <nav class="rail" aria-label="Transformer overview">
+    <div class="cap">The transformer, high level</div>
+  </nav>
+  <main>
+    <section id="o1" data-name="The 2017 paper" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Overview 1 of 4</div>
+        <h2>Attention Is All You Need</h2>
+        <p class="lede">In 2017 a team at Google (Vaswani and seven co-authors) published a new architecture for <strong>machine translation</strong>. Earlier translation systems read a sentence one word at a time with recurrent networks. The <strong>transformer</strong> dropped recurrence and relied on <strong>attention</strong> alone, letting every word look at every other word at once. That made it both more accurate and much faster to train on GPUs.</p>
+        <div class="hero-cta" style="margin-top:4px"><a class="btn primary" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Read the paper on arXiv ↗</a></div>
+      </div>
+      <div class="viz">
+        <div class="facts">
+          <div><b>Task</b><span>Translate English to German and English to French</span></div>
+          <div><b>Training data</b><span>WMT 2014: about 4.5 million English–German and 36 million English–French sentence pairs</span></div>
+          <div><b>Size</b><span>6 encoder layers and 6 decoder layers, 8 attention heads, 512 numbers per token (base model)</span></div>
+          <div><b>Training time</b><span>3.5 days on 8 GPUs for the big model</span></div>
+          <div><b>Result</b><span>New best translation scores: 28.4 BLEU (English–German) and 41.8 BLEU (English–French)</span></div>
+          <div><b>Legacy</b><span>The basis of BERT, GPT, T5, Claude, Gemini and most modern AI models</span></div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>BLEU is a standard score that compares machine translations with human ones; higher is better.</li>
+        <li>The key word in the title is “all”: no recurrence and no convolution, just attention plus small MLPs.</li>
+      </ul></details>
+    </section>
+
+    <section id="o2" data-name="Encoder and decoder" data-num="2">
+      <div class="sec-head">
+        <div class="eyebrow">Overview 2 of 4</div>
+        <h2>Two halves: an encoder that reads, a decoder that writes</h2>
+        <p class="lede">The original transformer has two stacks. The <strong>encoder</strong> reads the whole source sentence at once and turns each word into a vector that captures its meaning in context. The <strong>decoder</strong> writes the translation one word at a time. At every step it looks back at what it has already written (<strong>masked self-attention</strong>) and across at the encoder’s output (<strong>cross-attention</strong>) to decide the next word. Click any block to see what it does.</p>
+      </div>
+      <div class="viz">
+        <div class="ov-grid">
+          <div class="scroll-x"><svg id="ovDiagram" viewBox="0 0 700 640" role="img" aria-label="Transformer encoder-decoder architecture. Click a block for details."></svg></div>
+          <div class="ov-info" id="ovInfo"></div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>This is drawn like Figure 1 of the paper: data flows upward. Encoder on the left, decoder on the right.</li>
+        <li>The decoder has one extra layer per block compared with the encoder: cross-attention, the bridge between the two languages.</li>
+      </ul></details>
+    </section>
+
+    <section id="o3" data-name="Translation example" data-num="3">
+      <div class="sec-head">
+        <div class="eyebrow">Overview 3 of 4</div>
+        <h2>Translation, one word at a time</h2>
+        <p class="lede">Watch the transformer translate an English sentence into French. The encoder processes all the English words <strong>in parallel</strong>. Then the decoder starts from a start token and writes one French word per step. At each step, cross-attention shows which English words the decoder is focusing on. When it writes the end token, the translation is finished.</p>
+      </div>
+      <div class="viz">
+        <div class="viz-bar">
+          <div class="left">
+            <button class="btn primary" id="trxPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Translate</button>
+            <button class="btn" id="trxStep" type="button">One step</button>
+            <button class="btn" id="trxReset" type="button">Reset</button>
+          </div>
+          <div class="seg" id="trxPick">
+            <button class="btn" type="button" data-x="0" aria-pressed="true">The cat sat on the mat.</button>
+            <button class="btn" type="button" data-x="1" aria-pressed="false">I love learning new things.</button>
+          </div>
+        </div>
+        <div class="scroll-x"><svg id="trxSvg" viewBox="0 0 760 300" aria-label="Encoder words above, decoder output below, with cross-attention lines"></svg></div>
+        <p class="stage-note" id="trxNote"></p>
+        <p class="note">Attention weights here are illustrative, drawn to show the kind of word alignment trained translation models learn.</p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Point out “sat” becoming two French words, “était assis”: attention lets the decoder look at the same English word twice.</li>
+        <li>Word order can differ between languages; cross-attention can look anywhere in the source, so it handles reordering naturally.</li>
+      </ul></details>
+    </section>
+
+    <section id="o4" data-name="From translator to chatbot" data-num="4">
+      <div class="sec-head">
+        <div class="eyebrow">Overview 4 of 4</div>
+        <h2>One paper, three families of models</h2>
+        <p class="lede">Researchers soon found that each half is powerful on its own. Keep only the encoder and you get models that <strong>understand</strong> text. Keep only the decoder and you get models that <strong>generate</strong> text. Chat models like GPT and Claude are <strong>decoder-only</strong>: there is no separate source sentence, so there is no encoder and no cross-attention. Your prompt plays the role of “what has been written so far”, and the decoder keeps predicting the next word.</p>
+      </div>
+      <div class="viz">
+        <div class="fams">
+          <div class="fam"><h3>Encoder-only</h3><p>Reads text and produces an understanding of it.</p><p><b>Used for:</b> search, classification, sentiment</p><p class="eg">BERT (2018)</p></div>
+          <div class="fam"><h3>Encoder–decoder</h3><p>Reads one sequence, writes another.</p><p><b>Used for:</b> translation, summarising, speech-to-text</p><p class="eg">Original transformer (2017) · T5 (2019) · Whisper (2022)</p></div>
+          <div class="fam hl"><h3>Decoder-only</h3><p>Continues text one token at a time.</p><p><b>Used for:</b> chat, writing, coding</p><p class="eg">GPT (2018 onward) · Claude · Llama</p></div>
+        </div>
+        <div><button class="btn primary" type="button" data-tabgo="decoder">Go inside the decoder, step by step →</button></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>The next tab takes the right-hand stack of the diagram, removes cross-attention, and follows your own sentence through every step.</li>
+      </ul></details>
+    </section>
+  </main>
+</div>
 
 <div class="shell" id="tabDecoder">
   <nav class="rail" aria-label="Steps">
@@ -432,6 +579,7 @@ body.present footer{display:none}
           <button class="btn primary" type="button" id="heroPresent"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Start presentation</button>
           <a class="btn" href="#s1">Scroll through the steps</a>
           <button class="btn" type="button" data-tabgo="basics">New to neural networks? Start with the basics</button>
+          <button class="btn" type="button" data-tabgo="overview">See the full transformer first</button>
         </div>
         <div class="hero-meta">
           <span>training + 9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
@@ -851,7 +999,7 @@ body.present footer{display:none}
   <main>
     <section id="b1" data-name="The big picture" data-num="1">
       <div class="sec-head">
-        <div class="eyebrow">Basics 1 of 5</div>
+        <div class="eyebrow">Basics 1 of 6</div>
         <h2>A neural network is a machine full of dials</h2>
         <p class="lede">A neural network is a function: numbers go in, a number comes out. Inside are many small <strong>dials</strong> (called weights). How the dials are set decides what the network does. <strong>Deep learning</strong> means we do not set the dials by hand. We show the network examples with known answers, and a procedure turns every dial a little at a time until the answers come out right.</p>
         <div class="key"><b>Our running example</b>Is a fruit good to eat? We describe each fruit with two numbers between 0 and 1: how <em>sweet</em> it is and how <em>soft</em> it is. Good fruit is sweet and a little soft, but not mushy. We never write that rule down. The network has to discover it from 60 example fruits.</div>
@@ -896,7 +1044,7 @@ body.present footer{display:none}
 
     <section id="b2" data-name="One neuron" data-num="2">
       <div class="sec-head">
-        <div class="eyebrow">Basics 2 of 5</div>
+        <div class="eyebrow">Basics 2 of 6</div>
         <h2>One neuron: multiply, add, squash</h2>
         <p class="lede">A neuron takes its inputs, multiplies each by a dial (its <strong>weight</strong>), adds them up with one more dial (the <strong>bias</strong>), and squashes the total into a number between 0 and 1 (the <strong>activation</strong>). A big weight means “this input matters a lot”; a negative weight means “this input counts against”. Turn the dials and watch the neuron respond.</p>
         <div class="formula">output = σ( w₁ × sweetness + w₂ × softness + b ) &nbsp;&nbsp; σ(z) = 1 / (1 + e<sup>−z</sup>)</div>
@@ -933,7 +1081,7 @@ body.present footer{display:none}
 
     <section id="b3" data-name="Training" data-num="3">
       <div class="sec-head">
-        <div class="eyebrow">Basics 3 of 5 · training phase</div>
+        <div class="eyebrow">Basics 3 of 6 · training phase</div>
         <h2>Training: let the examples turn the dials</h2>
         <p class="lede">Our network has 3 hidden neurons (A, B, C) feeding one output neuron: <strong>13 dials</strong> in total. They start random, so its guesses are random. Training repeats one simple loop for every example fruit: <strong>guess</strong>, <strong>measure the error</strong>, work out which way each dial should turn to shrink that error (<strong>backpropagation</strong>), and <strong>turn every dial a little</strong> (gradient descent). The shaded map shows what the network currently believes about every possible fruit.</p>
         <div class="formula">loss = −ln(probability given to the correct answer) &nbsp;&nbsp; dial ← dial − learning rate × (how much that dial increased the loss)</div>
@@ -972,7 +1120,7 @@ body.present footer{display:none}
 
     <section id="b4" data-name="Inference" data-num="4">
       <div class="sec-head">
-        <div class="eyebrow">Basics 4 of 5 · inference phase</div>
+        <div class="eyebrow">Basics 4 of 6 · inference phase</div>
         <h2>Inference: freeze the dials, ask a new question</h2>
         <p class="lede">Training is over, so the dials are <strong>locked</strong>. Now give the network a fruit it has never seen. The numbers flow forward once, from the inputs, through the hidden neurons, to the output, and out comes an answer. Nothing is learned here and no correct answer is needed. This is what happens every time you use an AI model.</p>
       </div>
@@ -1006,7 +1154,7 @@ body.present footer{display:none}
 
     <section id="b5" data-name="Scaling up to GPT" data-num="5">
       <div class="sec-head">
-        <div class="eyebrow">Basics 5 of 5</div>
+        <div class="eyebrow">Basics 5 of 6</div>
         <h2>From 13 dials to 175 billion</h2>
         <p class="lede">Large language models are built from exactly these parts: neurons that multiply, add and squash, stacked in many layers. The task changes from “good fruit?” to “what is the next word?”, and the dial count grows enormously. Training is the same loop: guess the next word in real text, measure the error, turn every dial a little. Inference is the same forward pass, repeated once per generated word.</p>
       </div>
@@ -1029,12 +1177,85 @@ body.present footer{display:none}
           <dt>Epoch (pass)</dt><dd>Showing the network every training example once.</dd>
           <dt>Inference</dt><dd>Using the trained network: one forward pass with frozen dials.</dd>
         </dl>
-        <div><button class="btn primary" type="button" data-tabgo="decoder">Continue to the transformer decoder →</button></div>
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>The decoder tab shows what those billions of dials are arranged into: embeddings, attention (Q, K, V) and MLPs. Each of those is made of the same multiply, add, squash.</li>
       </ul></details>
     </section>
+
+    <section id="b6" data-name="Network architectures" data-num="6">
+      <div class="sec-head">
+        <div class="eyebrow">Basics 6 of 6</div>
+        <h2>The shape of the network is a design choice</h2>
+        <p class="lede">Every network on this page uses the same parts: dials, weighted sums, squashes, and training by gradient descent. What changes is <strong>how the neurons are wired together</strong>, which is called the <strong>architecture</strong>. There is no single correct shape. Researchers design an architecture to match the structure of what the network has to learn, test it, and keep what works. New architectures are an active area of research, and many modern systems combine several.</p>
+        <div class="key"><b>Key idea</b>An architecture is a built-in assumption about the data. If nearby pixels matter, use filters that look at small neighbourhoods. If order matters, read one step at a time. If any word can relate to any other word, let every word look at every other word. Choosing that assumption well often matters as much as having more data.</div>
+      </div>
+      <div class="viz">
+        <div style="display:grid;gap:10px">
+          <span class="label">What are you trying to learn? Pick one</span>
+          <div class="archpick" id="archPick">
+            <button class="btn" type="button" data-a="mlp">Rows of numbers (prices, sensor readings)</button>
+            <button class="btn" type="button" data-a="cnn">Photos and medical scans</button>
+            <button class="btn" type="button" data-a="rnn">Speech and time series</button>
+            <button class="btn" type="button" data-a="tf">Text, code, translation</button>
+            <button class="btn" type="button" data-a="diff">Generating new images</button>
+            <button class="btn" type="button" data-a="gnn">Molecules and road networks</button>
+          </div>
+          <p class="stage-note" id="archWhy">Each card shows what the architecture assumes about its data. Pick a kind of data to see which design fits it.</p>
+        </div>
+        <div class="archs" id="archCards">
+          <article class="arch-card" data-a="mlp">
+            <svg viewBox="0 0 140 70"><g class="ai"><path d="M20 15L70 10M20 15L70 35M20 15L70 60M20 55L70 10M20 55L70 35M20 55L70 60M70 10L120 35M70 35L120 35M70 60L120 35"/><circle cx="20" cy="15" r="6"/><circle cx="20" cy="55" r="6"/><circle cx="70" cy="10" r="6"/><circle cx="70" cy="35" r="6"/><circle cx="70" cy="60" r="6"/><circle cx="120" cy="35" r="6"/></g></svg>
+            <h3>Feed-forward network (MLP)</h3>
+            <p><b>Assumes:</b> nothing about order or position; every input connects to every neuron.</p>
+            <p><b>Good for:</b> tabular data, and as a building block inside bigger models.</p>
+            <p class="eg">Our fruit network · the MLP inside every transformer layer</p>
+          </article>
+          <article class="arch-card" data-a="cnn">
+            <svg viewBox="0 0 140 70"><g class="ai"><rect x="10" y="5" width="60" height="60" fill="none"/><path d="M25 5V65M40 5V65M55 5V65M10 20H70M10 35H70M10 50H70" style="stroke-width:.6"/><rect class="win" x="10" y="5" width="30" height="30"/><path d="M76 35H96"/><rect x="100" y="20" width="30" height="30" fill="none"/></g></svg>
+            <h3>Convolutional network (CNN)</h3>
+            <p><b>Assumes:</b> nearby pixels belong together, and a pattern means the same thing anywhere in the image. Small filters slide across it.</p>
+            <p><b>Good for:</b> images, video, medical scans.</p>
+            <p class="eg">LeNet read handwritten zip codes (1989) · AlexNet won ImageNet (2012)</p>
+          </article>
+          <article class="arch-card" data-a="rnn">
+            <svg viewBox="0 0 140 70"><g class="ai"><rect x="8" y="22" width="26" height="26" rx="5"/><rect x="57" y="22" width="26" height="26" rx="5"/><rect x="106" y="22" width="26" height="26" rx="5"/><path d="M34 35H57M83 35H106"/><path class="flowline" d="M21 62V48M70 62V48M119 62V48"/></g></svg>
+            <h3>Recurrent network (RNN, LSTM)</h3>
+            <p><b>Assumes:</b> data arrives in order. It reads one step at a time and carries a memory forward.</p>
+            <p><b>Good for:</b> speech, sensor streams, and text before 2017.</p>
+            <p class="eg">LSTM (1997) · powered Google Translate’s 2016 neural system</p>
+          </article>
+          <article class="arch-card" data-a="tf">
+            <svg viewBox="0 0 140 70"><g class="ai"><path d="M15 50Q42 10 70 50M15 50Q70 -10 125 50M42 50Q70 20 97 50M70 50Q97 15 125 50M42 50Q83 0 125 50M15 50Q56 20 97 50"/><circle cx="15" cy="52" r="6"/><circle cx="42" cy="52" r="6"/><circle cx="70" cy="52" r="6"/><circle cx="97" cy="52" r="6"/><circle cx="125" cy="52" r="6"/></g></svg>
+            <h3>Transformer</h3>
+            <p><b>Assumes:</b> any token may relate to any other, however far apart. Attention lets every token look at every other token, all in parallel.</p>
+            <p><b>Good for:</b> language, code, translation, and now images and audio too.</p>
+            <p class="eg">“Attention Is All You Need” (2017) · GPT, Claude, Gemini</p>
+          </article>
+          <article class="arch-card" data-a="diff">
+            <svg viewBox="0 0 140 70"><g class="ai"><rect x="8" y="12" width="46" height="46" rx="4" class="noise"/><path d="M60 35H80"/><rect x="86" y="12" width="46" height="46" rx="4"/><circle cx="109" cy="30" r="8"/><path d="M92 54L104 40L114 48L126 36" /></g></svg>
+            <h3>Diffusion model</h3>
+            <p><b>Assumes:</b> an image can be made by starting from pure noise and removing a little noise at a time. A network (often a U-Net) learns each clean-up step.</p>
+            <p><b>Good for:</b> generating images, audio and video.</p>
+            <p class="eg">DDPM (2020) · Stable Diffusion (2022)</p>
+          </article>
+          <article class="arch-card" data-a="gnn">
+            <svg viewBox="0 0 140 70"><g class="ai"><path d="M20 20L60 12L100 30L125 58M60 12L55 55L100 30M20 20L55 55"/><circle cx="20" cy="20" r="7"/><circle cx="60" cy="12" r="7"/><circle cx="100" cy="30" r="7"/><circle cx="55" cy="55" r="7"/><circle cx="125" cy="58" r="7"/></g></svg>
+            <h3>Graph neural network (GNN)</h3>
+            <p><b>Assumes:</b> the data is a set of things with connections between them. Each node updates itself from its neighbours.</p>
+            <p><b>Good for:</b> molecules, social networks, road traffic.</p>
+            <p class="eg">Google Maps arrival-time predictions (DeepMind, 2020)</p>
+          </article>
+        </div>
+        <p class="note">These families also mix. Vision Transformers (2020) apply attention to patches of an image, and diffusion models often contain attention layers. The next tab looks closely at the architecture behind today’s language models.</p>
+        <div><button class="btn primary" type="button" data-tabgo="overview">Continue to the transformer overview →</button></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Ask the audience which card our fruit network belongs to (the MLP). Then ask why an MLP would struggle with photos: it would need a separate dial for every pixel position and would not know that a cat in the corner is still a cat.</li>
+        <li>The point to land: architectures are invented, tested and improved by researchers. The transformer is one very successful design from 2017, not the final answer.</li>
+      </ul></details>
+    </section>
+
   </main>
 </div>
 
@@ -1794,7 +2015,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -2022,9 +2243,121 @@ function initBasics(){
   $('#infQuick').addEventListener('click',dlQuickTrain);
 }
 
+/* ================= ARCHITECTURE PICKER (basics 6) ================= */
+const ARCH_WHY={
+  mlp:'Rows of numbers have no natural order or neighbourhood, so a plain feed-forward network, where every input connects to every neuron, is the natural fit. Tree-based methods are strong competitors here too.',
+  cnn:'In a photo, nearby pixels form edges and shapes, and a cat is a cat wherever it appears. Convolutional filters build exactly that assumption in, so they need far fewer dials than an MLP.',
+  rnn:'Speech and sensor streams arrive in order. Recurrent networks read one step at a time and carry a memory forward. Transformers now handle many of these tasks too.',
+  tf:'In language, a word can depend on another word far away (“The keys that I left on the table <em>are</em>…”). Attention lets every token look at every other token directly, and it trains in parallel on GPUs.',
+  diff:'Generating an image in one shot is hard. Diffusion models learn many small steps that turn noise into a picture, which trains more stably than earlier approaches.',
+  gnn:'A molecule is atoms plus bonds; a road map is junctions plus roads. Graph networks pass messages along the connections, so the architecture mirrors the structure of the data.'
+};
+$('#archPick').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  $$('#archPick .btn').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#archCards').classList.add('picking');$$('#archCards .arch-card').forEach(c=>c.classList.toggle('pick',c.dataset.a===a));
+  $('#archWhy').innerHTML=ARCH_WHY[a];
+});
+
+/* ================= TRANSFORMER OVERVIEW TAB ================= */
+const OV_BLOCKS=[
+  // [key, x, y, w, h, label, cls]
+  ['enc_emb',40,545,260,40,'Input embedding + positional encoding',''],
+  ['enc_attn',40,440,260,50,'Multi-head self-attention',''],
+  ['enc_an',40,400,260,30,'Add & Norm',''],
+  ['enc_ff',40,340,260,44,'Feed forward (MLP)',''],
+  ['enc_an',40,300,260,30,'Add & Norm',''],
+  ['dec_emb',400,545,260,40,'Output embedding + positional encoding',''],
+  ['dec_mattn',400,455,260,50,'Masked multi-head self-attention',''],
+  ['dec_an',400,420,260,28,'Add & Norm',''],
+  ['dec_cross',400,350,260,50,'Cross-attention (looks at encoder)','x'],
+  ['dec_an',400,315,260,28,'Add & Norm',''],
+  ['dec_ff',400,255,260,44,'Feed forward (MLP)',''],
+  ['dec_an',400,215,260,28,'Add & Norm',''],
+  ['lin',400,120,260,34,'Linear',''],
+  ['soft',400,70,260,34,'Softmax','']
+];
+const OV_INFO={
+  enc_emb:['Encoder','Input embedding + positional encoding','Each English word is turned into a vector of numbers (512 in the paper), and a position signal is added so the model knows word order. Same idea as steps 1 and 2 of the decoder tab.'],
+  enc_attn:['Encoder','Self-attention (no mask)','Every English word looks at every other English word, before and after it, to understand itself in context. “bank” next to “river” ends up different from “bank” next to “money”. There is no mask because the whole source sentence is already known.'],
+  enc_an:['Both stacks','Add & Norm','Adds the block’s input back to its output (a residual connection) and normalises the numbers, so a deep stack stays stable. Explained in step 4 of the decoder tab.'],
+  enc_ff:['Both stacks','Feed forward (MLP)','A small neural network applied to each word separately: expand, squash, shrink back. The same kind of network as the fruit example in the basics tab.'],
+  dec_emb:['Decoder','Output embedding + positional encoding','The French words written so far, starting with a special start token, are turned into vectors with positions added. During training the correct translation is fed in, shifted one place to the right.'],
+  dec_mattn:['Decoder','Masked self-attention','Each French word looks only at the French words before it. The mask hides future words, because when translating for real they have not been written yet. This is step 3 of the decoder tab.'],
+  dec_cross:['Decoder · the bridge','Cross-attention','The only place the two halves meet. Queries come from the decoder (“what do I need next?”); keys and values come from the encoder’s output (“what the English sentence says”). This is how the decoder decides which English words to translate next.'],
+  dec_ff:['Decoder','Feed forward (MLP)','Processes each French position separately after it has gathered information from its own words and from the English sentence.'],
+  lin:['Decoder output','Linear','Turns the last position’s vector into one score for every word in the French vocabulary.'],
+  soft:['Decoder output','Softmax','Turns the scores into probabilities. The most likely word (or a sampled one) is written, appended to the decoder input, and the decoder runs again. Steps 7 to 9 of the decoder tab.'],
+  enc_stack:['Encoder','The encoder stack × 6','Reads the whole English sentence in parallel, in 6 identical blocks, and hands the decoder one context-rich vector per English word. It runs once per sentence.'],
+  dec_stack:['Decoder','The decoder stack × 6','Writes the French sentence one word at a time, in 6 identical blocks. Each block has three parts: masked self-attention, cross-attention, and an MLP. Modern chat models keep only this half, without cross-attention.']
+};
+function ovSelect(key){
+  $$('#ovDiagram .ob').forEach(g=>g.classList.toggle('on',g.dataset.k===key));
+  const [where,title,body]=OV_INFO[key]||OV_INFO.dec_cross;
+  $('#ovInfo').innerHTML=`<span class="where">${where}</span><h3>${title}</h3><p>${body}</p>`+(key.startsWith('dec')||key==='lin'||key==='soft'?`<div><button class="btn" type="button" data-tabgo="decoder">See the decoder in detail →</button></div>`:'');
+}
+function renderOverview(){
+  let s='';
+  const wire=(x,y1,y2)=>`<path class="w" d="M${x} ${y1} V${y2}" marker-end="url(#ovArr)"/>`;
+  s+=`<defs><marker id="ovArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>`;
+  s+=`<g class="ob" data-k="enc_stack"><rect class="fr" x="28" y="265" width="284" height="260" rx="14" style="fill:transparent;stroke:var(--accent)"/></g><text class="cap" x="40" y="518">ENCODER BLOCK × 6</text>`;
+  s+=`<g class="ob" data-k="dec_stack"><rect class="fr" x="388" y="175" width="284" height="350" rx="14" style="fill:transparent;stroke:var(--accent)"/></g><text class="cap" x="400" y="518">DECODER BLOCK × 6</text>`;
+  [[170,598,585],[170,545,490],[170,440,430],[170,400,384],[170,340,330],[530,598,585],[530,545,505],[530,455,448],[530,420,400],[530,350,343],[530,315,299],[530,255,243],[530,215,154],[530,120,104],[530,70,52]].forEach(([x,a,b])=>s+=wire(x,a,b));
+  s+=`<path class="cross" d="M170 300 V240 H355 V375 H396"/><text class="cap" x="178" y="232">encoder output (K, V)</text>`;
+  OV_BLOCKS.forEach(([k,x,y,w,h,l,c])=>{s+=`<g class="ob ${c}" data-k="${k}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text x="${x+w/2}" y="${y+h/2+5}" text-anchor="middle">${l}</text></g>`});
+  s+=`<text class="io" x="170" y="616" text-anchor="middle">The cat sat on the mat .</text><text class="io" x="530" y="616" text-anchor="middle">&lt;start&gt; Le chat</text>`;
+  s+=`<text class="io" x="530" y="40" text-anchor="middle">next word: “était”</text>`;
+  s+=`<text class="cap" x="170" y="640" text-anchor="middle">ENCODER · reads English</text><text class="cap" x="530" y="640" text-anchor="middle">DECODER · writes French</text>`;
+  $('#ovDiagram').innerHTML=s;ovSelect('dec_cross');
+}
+$('#ovDiagram').addEventListener('click',e=>{const g=e.target.closest('.ob');if(g)ovSelect(g.dataset.k)});
+
+const TRX=[
+  {src:['The','cat','sat','on','the','mat','.'],tgt:['Le','chat','était','assis','sur','le','tapis','.','<end>'],
+   al:[{0:.8,1:.1},{1:.85},{2:.7,1:.12},{2:.8,3:.08},{3:.85},{4:.8,5:.1},{5:.85},{6:.9},{6:.5,5:.1}]},
+  {src:['I','love','learning','new','things','.'],tgt:["J'",'adore','apprendre','de','nouvelles','choses','.','<end>'],
+   al:[{0:.85},{1:.85},{2:.85},{3:.45,4:.3},{3:.8},{4:.85},{5:.9},{5:.5,4:.1}]}
+];
+const trx={ex:0,step:-1,running:false,run:0};
+function trxWeights(row,n){const w=new Array(n).fill(0);let used=0;Object.entries(row).forEach(([k,v])=>{w[+k]=v;used+=v});const rest=(1-used)/(n-Object.keys(row).length);return w.map(v=>v||rest)}
+function renderTrx(){
+  const E=TRX[trx.ex],n=E.src.length,m=E.tgt.length+1,W=760,sx=i=>40+(W-80)/n*(i+.5),tx=i=>40+(W-80)/m*(i+.5),sy=70,ty=235;
+  const encOn=trx.step>=0,written=Math.max(0,trx.step);
+  let s=`<text class="cap" x="40" y="24" style="font:500 11px var(--mono);fill:var(--muted);letter-spacing:.08em">ENCODER · reads all English words at once</text>`;
+  s+=`<text class="cap" x="40" y="290" style="font:500 11px var(--mono);fill:var(--muted);letter-spacing:.08em">DECODER · writes one French word per step</text>`;
+  if(trx.step===0){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)s+=`<path d="M${sx(i)} ${sy-18} Q${(sx(i)+sx(j))/2} ${sy-18-12-(j-i)*5} ${sx(j)} ${sy-18}" fill="none" stroke="var(--accent)" stroke-opacity=".35" stroke-width="1.2"/>`}
+  if(trx.step>=1){const k=trx.step-1,w=trxWeights(E.al[k],n);
+    w.forEach((v,i)=>{s+=`<path d="M${tx(k+1)} ${ty-18} C${tx(k+1)} ${(sy+ty)/2} ${sx(i)} ${(sy+ty)/2} ${sx(i)} ${sy+18}" fill="none" stroke="var(--pos)" stroke-width="${(1+v*9).toFixed(1)}" stroke-opacity="${(.15+.85*v).toFixed(2)}" stroke-linecap="round"/>`;
+      s+=`<text x="${sx(i)}" y="${sy+40}" text-anchor="middle" style="font:500 11px var(--mono);fill:var(--muted)">${Math.round(v*100)}%</text>`})}
+  E.src.forEach((w,i)=>{s+=`<g><rect x="${sx(i)-40}" y="${sy-17}" width="80" height="34" rx="9" fill="${encOn?'var(--accent-weak)':'var(--surface)'}" stroke="${encOn?'var(--accent)':'var(--line)'}"/><text x="${sx(i)}" y="${sy+5}" text-anchor="middle" fill="var(--ink)">${esc(w)}</text></g>`});
+  const toks=['<start>',...E.tgt];
+  const cw=Math.min(76,(W-80)/m-6);
+  toks.forEach((w,i)=>{if(i>written)return;const cur=i===written&&trx.step>=1;s+=`<g class="${cur?'pop':''}"><rect x="${tx(i)-cw/2}" y="${ty-17}" width="${cw}" height="34" rx="9" fill="${cur?'var(--pos)':i===0||w==='<end>'?'var(--surface-2)':'var(--surface)'}" stroke="${cur?'var(--pos)':'var(--line)'}"/><text x="${tx(i)}" y="${ty+5}" text-anchor="middle" fill="${cur?'var(--on-strong)':i===0||w==='<end>'?'var(--muted)':'var(--ink)'}" style="font-size:${w.length>6?12:14}px">${esc(w)}</text></g>`});
+  $('#trxSvg').innerHTML=s;
+  let note;
+  if(trx.step<0)note='Press Translate. First the encoder reads the English sentence.';
+  else if(trx.step===0)note=`<b>Encoder:</b> all ${n} English words are processed at the same time, each one attending to all the others. The result is one context vector per English word, which the decoder will consult at every step.`;
+  else{const k=trx.step-1,w=trxWeights(E.al[k],n),top=w.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0])[0],so=toks.slice(0,k+1).join(' ');
+    note=E.tgt[k]==='<end>'?`<b>Done.</b> The decoder predicted the end token, so the translation is complete: <b>${esc(joinFr(E.tgt.slice(0,-1)))}</b>`:`<b>Step ${k+1}:</b> the decoder has “${esc(so)}”. Cross-attention focuses most on “${esc(E.src[top[1]])}” (${Math.round(top[0]*100)}%), and it writes <b>“${esc(E.tgt[k])}”</b>.`}
+  $('#trxNote').innerHTML=note;
+  $$('#trxPick .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.x===trx.ex));
+}
+const joinFr=a=>a.join(' ').replace(/ \./g,'.').replace(/' /g,"'");
+function trxDone(){return trx.step>=TRX[trx.ex].tgt.length}
+function trxStepFn(){if(trxDone())return false;trx.step++;renderTrx();return true}
+function trxReset(){trx.run++;trx.running=false;trx.step=-1;trxBtn();renderTrx()}
+function trxBtn(){$('#trxPlay').innerHTML=trx.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Translate'}
+async function trxPlay(){if(trx.running){trx.running=false;trxBtn();return}if(trxDone())trxReset();trx.running=true;trxBtn();const run=++trx.run;
+  while(trx.running&&run===trx.run){if(!trxStepFn())break;await sleep(trx.step===0?2000:1500)}if(run===trx.run){trx.running=false;trxBtn()}}
+$('#trxPlay').addEventListener('click',trxPlay);
+$('#trxStep').addEventListener('click',()=>{trx.run++;trx.running=false;trxBtn();trxStepFn()});
+$('#trxReset').addEventListener('click',trxReset);
+$('#trxPick').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;trx.ex=+b.dataset.x;trxReset()});
+renderOverview();renderTrx();
+
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
-const TABS={decoder:$('#tabDecoder'),basics:$('#tabBasics')};
+const TABS={basics:$('#tabBasics'),overview:$('#tabOverview'),decoder:$('#tabDecoder')};
 const ALLSECS=$$('main>section');
 let SECS=$$('#tabDecoder main>section');
 const jump=$('#jump');
@@ -2040,7 +2373,7 @@ function setTab(t,{scroll=true}={}){
   $$('.tabs .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));
   $('.prompt-wrap').hidden=$('#engineBadge').hidden=t!=='decoder';
   SECS=$$(`#${TABS[t].id} main>section`);buildJump();
-  try{history.replaceState(null,'','#'+(t==='basics'?'basics':'decoder'))}catch(e){}
+  try{history.replaceState(null,'','#'+t)}catch(e){}
   if(document.body.classList.contains('present'))goSlide(0);else if(scroll)window.scrollTo({top:0});
   markActive(SECS[0].id);
   setTimeout(()=>{if(t==='basics')dlRenderAll();else{drawPE();trDraw(true)}},30);
@@ -2071,7 +2404,7 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
@@ -2126,7 +2459,7 @@ async function initEngine(){
 renderAll();
 markActive('intro');
 initBasics();
-if(location.hash==='#basics')setTab('basics',{scroll:false});
+if(['#basics','#overview'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>
