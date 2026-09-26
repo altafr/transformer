@@ -394,6 +394,8 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .calc{font-family:var(--mono);font-size:13px;line-height:1.7;background:var(--surface-2);border-radius:10px;padding:12px 14px;min-height:5.2em;word-break:break-word}
 .calc b{color:var(--accent)}
 @media (max-width:1000px){.tr-grid,.mm-wrap{grid-template-columns:minmax(0,1fr)}}
+.subh{font-size:24px;font-weight:700}
+#mfSvg{width:100%;min-width:640px;height:auto;display:block}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -854,7 +856,7 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 6 of 9</div>
         <h2>The MLP: each word thinks on its own</h2>
-        <p class="lede">Attention moves information <strong>between</strong> tokens. The feed-forward network (MLP) then processes each token <strong>separately</strong>: it expands the vector to 4× its width, applies a non-linearity (GELU), and projects it back. Much of the model’s factual knowledge is thought to be stored in these weights. Then comes a second Add &amp; Norm.</p>
+        <p class="lede">Attention moves information <strong>between</strong> tokens; the MLP is where the model <strong>recalls what it knows</strong>. The feed-forward network (MLP) then processes each token <strong>separately</strong>: it expands the vector to 4× its width, applies a non-linearity (GELU), and projects it back. Much of the model’s factual knowledge is thought to be stored in these weights. Then comes a second Add &amp; Norm.</p>
         <div class="formula">MLP(x) = W₂ · GELU( W₁·x + b₁ ) + b₂ &nbsp;&nbsp; 16 → 64 → 16</div>
       </div>
       <div class="viz" id="v6">
@@ -885,8 +887,30 @@ body.present footer{display:none}
           </table></div>
         </div>
       </div>
+      <div class="viz" id="v6b">
+        <div style="display:grid;gap:10px;max-width:760px">
+          <span class="label">What the MLP is for: an example</span>
+          <h3 class="subh">The MLP is where the model looks things up</h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">Attention’s job is to <em>gather</em>: by the last word of “The Eiffel Tower is located in”, attention has already pulled two facts into that word’s vector: <strong>the sentence is about the Eiffel Tower</strong>, and <strong>it is asking for a place</strong>. But attention cannot know that the answer is Paris. That knowledge is stored in the MLP. Its first layer (W₁) holds <strong>keys</strong>: patterns that make a neuron fire. Its second layer (W₂) holds <strong>values</strong>: what each firing neuron adds to the vector, here a push toward “Paris”.</p>
+        </div>
+        <div class="viz-bar">
+          <div class="left" style="gap:14px">
+            <div class="seg" id="mfLand"><button class="btn" type="button" data-l="0" aria-pressed="true">Eiffel Tower</button><button class="btn" type="button" data-l="1">Colosseum</button><button class="btn" type="button" data-l="2">Big Ben</button></div>
+            <div class="seg" id="mfQ"><button class="btn" type="button" data-q="0" aria-pressed="true">is located in</button><button class="btn" type="button" data-q="1">was built in</button></div>
+          </div>
+          <div class="left">
+            <button class="btn" id="mfEdit" type="button" aria-pressed="false">Edit a fact: Eiffel Tower → Rome</button>
+            <button class="btn play" id="mfPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+          </div>
+        </div>
+        <div class="sentence" id="mfSentence"></div>
+        <div class="scroll-x"><svg id="mfSvg" viewBox="0 0 780 360" aria-label="A tiny MLP acting as a fact lookup: context features, key neurons, and output words"></svg></div>
+        <p class="stage-note" id="mfNote"></p>
+        <p class="note">This is a hand-built toy in which every neuron has one clear meaning. In real models a fact is spread over many neurons, and each neuron helps with many facts, but the principle is the same. Research on GPT-style models found that feed-forward layers act like key–value memories (Geva et al., 2021) and that factual associations can be located and edited in specific MLP layers (Meng et al., 2022). Outside transformers, a plain MLP is useful on its own for tasks like predicting house prices, credit risk or which product to recommend from a row of numbers.</p>
+      </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Roughly two thirds of a transformer’s parameters live in these MLP layers.</li>
+        <li>For the fact-lookup example: attention gathers (“this is about the Eiffel Tower, and it asks for a place”), the MLP recalls (“that means Paris”). Switch the neuron off, then use “Edit a fact” to show that knowledge lives in the weights.</li>
         <li>Nothing crosses between tokens here. The same weights run on every position independently.</li>
         <li>After N blocks, each token’s vector has absorbed context from everything before it.</li>
       </ul></details>
@@ -1888,6 +1912,56 @@ async function refreshPrediction(){
   render7();render8();
 }
 
+/* ================= STEP 6b: the MLP as a fact lookup ================= */
+const MF={l:0,q:0,edit:false,off:new Set()};
+const MF_LAND=['Eiffel Tower','Colosseum','Big Ben'],MF_Q=['is located in','was built in'];
+const MF_FEAT=['about the Eiffel Tower','about the Colosseum','about Big Ben','asks for a place','asks for a year'];
+const MF_OUT=['Paris','Rome','London','1889','80','1859','the'];
+// neuron j: landmark j%3, question floor(j/3); value word
+const MF_NEU=[0,1,2,3,4,5].map(j=>({land:j%3,q:Math.floor(j/3),val:j<3?j:3+j%3}));
+function mfCompute(){
+  const x=[0,0,0,0,0];x[MF.l]=1;x[3+MF.q]=1;
+  const h=MF_NEU.map((n,j)=>MF.off.has(j)?0:Math.max(0,x[n.land]+x[3+n.q]-1));
+  const logit=MF_OUT.map((_,k)=>k===6?1:0);
+  MF_NEU.forEach((n,j)=>{const v=(MF.edit&&j===0)?1:n.val;logit[v]+=4*h[j]});
+  const p=softmax(logit);return {x,h,p};
+}
+function renderMF(stage=3){
+  const {x,h,p}=mfCompute(),top=p.indexOf(Math.max(...p));
+  $$('#mfLand .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.l===MF.l));
+  $$('#mfQ .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.q===MF.q));
+  $('#mfEdit').setAttribute('aria-pressed',MF.edit);
+  const iy=i=>52+i*62,ny=j=>40+j*52,oy=k=>34+k*46;
+  let s=`<text class="cap" x="20" y="18" style="font:500 11px var(--mono);fill:var(--muted);letter-spacing:.08em">IN THE VECTOR (from attention)</text><text class="cap" x="300" y="18" style="font:500 11px var(--mono);fill:var(--muted);letter-spacing:.08em">KEYS · W₁ + GELU</text><text class="cap" x="585" y="18" style="font:500 11px var(--mono);fill:var(--muted);letter-spacing:.08em">VALUES · W₂ → NEXT WORD</text>`;
+  MF_NEU.forEach((n,j)=>{
+    [n.land,3+n.q].forEach(i=>{const on=stage>=1&&x[i]>0;s+=`<path d="M230 ${iy(i)} C265 ${iy(i)} 265 ${ny(j)} 300 ${ny(j)}" fill="none" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?2.2:1}" opacity="${on?.9:.8}"/>`});
+    const v=(MF.edit&&j===0)?1:n.val,on=stage>=2&&h[j]>0;
+    s+=`<path d="M460 ${ny(j)} C520 ${ny(j)} 530 ${oy(v)} 585 ${oy(v)}" fill="none" stroke="${on?'var(--pos)':'var(--line)'}" stroke-width="${on?3:1}" ${MF.edit&&j===0?'stroke-dasharray="5 4"':''}/>`;
+  });
+  MF_FEAT.forEach((f,i)=>{const on=stage>=0&&x[i]>0;s+=`<rect x="20" y="${iy(i)-18}" width="210" height="36" rx="9" fill="${on?'var(--accent-weak)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--line)'}"/><text x="34" y="${iy(i)+5}" style="font:500 13px var(--sans);fill:${on?'var(--ink)':'var(--muted)'}">${f}</text><text x="218" y="${iy(i)+5}" text-anchor="end" style="font:500 13px var(--mono);fill:var(--ink)">${x[i]}</text>`});
+  MF_NEU.forEach((n,j)=>{const on=stage>=2&&h[j]>0,off=MF.off.has(j);
+    s+=`<g data-n="${j}" style="cursor:pointer"><rect x="300" y="${ny(j)-19}" width="160" height="38" rx="9" fill="${off?'var(--surface-2)':on?'var(--pos)':'var(--surface)'}" stroke="${on?'var(--pos)':'var(--line)'}" ${off?'stroke-dasharray="4 3"':''}/><text x="312" y="${ny(j)-2}" style="font:600 12px var(--sans);fill:${on?'var(--on-strong)':off?'var(--muted)':'var(--ink)'}">${MF_LAND[n.land]} +</text><text x="312" y="${ny(j)+13}" style="font:500 11px var(--sans);fill:${on?'var(--on-strong)':'var(--muted)'}">${off?'switched off':n.q?'year?':'place?'}</text><text x="450" y="${ny(j)+5}" text-anchor="end" style="font:600 13px var(--mono);fill:${on?'var(--on-strong)':'var(--muted)'}">${(stage>=2?h[j]:0).toFixed(0)}</text></g>`});
+  MF_OUT.forEach((w,k)=>{const pp=stage>=3?p[k]:0,win=stage>=3&&k===top;
+    s+=`<rect x="585" y="${oy(k)-16}" width="70" height="32" rx="8" fill="${win?'var(--accent)':'var(--surface)'}" stroke="${win?'var(--accent)':'var(--line)'}"/><text x="620" y="${oy(k)+5}" text-anchor="middle" style="font:600 13px var(--mono);fill:${win?'var(--on-strong)':'var(--ink)'}">${w}</text><rect x="662" y="${oy(k)-6}" width="${(pp*100).toFixed(1)}" height="12" rx="3" fill="var(--accent)" opacity=".8"/><text x="${668+pp*100}" y="${oy(k)+4}" style="font:500 11px var(--mono);fill:var(--muted)">${stage>=3?Math.round(pp*100)+'%':''}</text>`});
+  $('#mfSvg').innerHTML=s;
+  const art=MF.l===2?'':'The ';
+  $('#mfSentence').innerHTML=`${art}${MF_LAND[MF.l]} ${MF_Q[MF.q]} ${stage>=3?`<span class="new">${MF_OUT[top]}</span>`:'<span class="ghost">?</span>'}`;
+  const fired=h.findIndex(v=>v>0);
+  let note;
+  if(fired<0)note=`<b>No key matched.</b> The neuron that stores this fact is switched off, so the MLP adds nothing and the model falls back to a vague guess (“the”). Click the grey neuron to switch it back on.`;
+  else if(MF.edit&&fired===0)note=`<b>Fact edited.</b> We changed one value in W₂: the “Eiffel Tower + place?” neuron now pushes toward “Rome”. Nothing else changed, yet the model now says the Eiffel Tower is in Rome. This is how researchers locate and edit facts inside real models.`;
+  else note=`<b>One key matched.</b> Only the “${MF_LAND[MF_NEU[fired].land]} + ${MF_NEU[fired].q?'year':'place'}?” neuron fires, because both of its inputs are on. Its value pushes the next word toward <b>“${MF_OUT[top]}”</b> (${Math.round(p[top]*100)}%). Click a neuron to switch it off and watch the fact disappear.`;
+  $('#mfNote').innerHTML=note;
+}
+let mfRun=0;
+async function playMF(){const run=++mfRun;for(let st=0;st<=3;st++){if(run!==mfRun)return;renderMF(st);await sleep(550)}}
+$('#mfLand').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(!b)return;MF.l=+b.dataset.l;playMF()});
+$('#mfQ').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;MF.q=+b.dataset.q;playMF()});
+$('#mfSvg').addEventListener('click',e=>{const g=e.target.closest('[data-n]');if(!g)return;const j=+g.dataset.n;MF.off.has(j)?MF.off.delete(j):MF.off.add(j);mfRun++;renderMF()});
+$('#mfEdit').addEventListener('click',()=>{MF.edit=!MF.edit;if(MF.edit){MF.l=0;MF.q=0}playMF()});
+$('#mfPlay').addEventListener('click',playMF);
+renderMF();
+
 /* ================= STEP 7 ================= */
 function render7(){
   const last=S.N-1,v=S.X2[last];
@@ -2015,7 +2089,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
