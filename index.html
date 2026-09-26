@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inside the Decoder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F1F3F6; --surface:#FFFFFF; --surface-2:#E7EAF0; --ink:#161920; --muted:#586072; --line:#D6DBE3;
+  --accent:#4B3FD1; --accent-weak:#E4E1FA; --pos:#E07B24; --neg:#12978A; --cell:#EDEFF3; --mask:#C3C9D4;
+  --h0:#4B3FD1; --h1:#CC3C7C; --h2:#E07B24; --h3:#12978A; --on-strong:#FFFFFF;
+  --shadow:0 1px 2px rgba(22,25,32,.05),0 8px 24px -12px rgba(22,25,32,.18);
+  --display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1016; --surface:#161922; --surface-2:#1F2330; --ink:#E8EAF0; --muted:#98A0B0; --line:#2A2F3B;
+    --accent:#9A92FF; --accent-weak:#282452; --pos:#F29A4A; --neg:#35C3B2; --cell:#1F2330; --mask:#353B49;
+    --h0:#9A92FF; --h1:#F06AA0; --h2:#F29A4A; --h3:#35C3B2; --on-strong:#0E1016;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1016; --surface:#161922; --surface-2:#1F2330; --ink:#E8EAF0; --muted:#98A0B0; --line:#2A2F3B;
+  --accent:#9A92FF; --accent-weak:#282452; --pos:#F29A4A; --neg:#35C3B2; --cell:#1F2330; --mask:#353B49;
+  --h0:#9A92FF; --h1:#F06AA0; --h2:#F29A4A; --h3:#35C3B2; --on-strong:#0E1016;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.02em}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 24px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.02em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.prompt-wrap{flex:1 1 320px;display:flex;align-items:center;gap:8px;min-width:0}
+.prompt-wrap label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+#prompt{flex:1;min-width:0;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:14px}
+#prompt:focus{outline:2px solid var(--accent);outline-offset:0}
+.trunc{font-size:12px;color:var(--pos)}
+#jump{display:none;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);max-width:100%}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;font-size:14px;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-strong)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[aria-pressed="true"]{background:var(--accent-weak);border-color:var(--accent);color:var(--ink)}
+.btn svg{width:14px;height:14px;fill:currentColor}
+.seg{display:inline-flex;gap:4px;padding:3px;border-radius:999px;background:var(--surface-2);flex-wrap:wrap}
+.seg .btn{border-color:transparent;background:transparent;padding:6px 12px}
+.seg .btn[aria-pressed="true"]{background:var(--surface);border-color:var(--line);box-shadow:var(--shadow)}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;max-width:1260px;margin:0 auto;padding-inline:24px}
+.rail{position:sticky;top:88px;align-self:start;padding-block:40px;display:flex;flex-direction:column;gap:2px}
+.rail .cap{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.rail a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:14px;line-height:1.35;transition:background .2s,color .2s}
+.rail a b{font-family:var(--mono);font-weight:500;font-size:12px;min-width:18px}
+.rail a:hover{color:var(--ink)}
+.rail a.on{background:var(--accent-weak);color:var(--ink)}
+.rail a.on b{color:var(--accent)}
+main{min-width:0}
+main>section{padding-block:72px;border-bottom:1px solid var(--line)}
+main>section:last-of-type{border-bottom:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;gap:10px;align-items:center}
+.eyebrow::before{content:"";width:22px;height:2px;background:currentColor}
+.sec-head{display:grid;gap:14px;max-width:760px}
+.sec-head h2{font-size:clamp(30px,4.4vw,46px);line-height:1.05;font-weight:800}
+.lede{font-size:18px;color:var(--muted);max-width:64ch}
+.lede strong{color:var(--ink);font-weight:600}
+.key{margin-top:4px;padding:12px 16px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 10px 10px 0;max-width:64ch;font-size:15px}
+.key b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:2px}
+
+.viz{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);display:grid;gap:22px;min-width:0}
+.viz-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.viz-bar .left{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.scroll-x{overflow-x:auto;max-width:100%;padding-bottom:4px}
+.row{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+.flow-arrow{font-family:var(--mono);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.flow-arrow::before{content:"↓";font-size:18px;color:var(--accent)}
+.note{font-size:13px;color:var(--muted);max-width:70ch}
+.formula{font-family:var(--mono);font-size:14px;padding:10px 14px;border-radius:10px;background:var(--surface-2);overflow-x:auto;white-space:nowrap}
+
+details.notes{margin-top:18px;max-width:760px;border:1px dashed var(--line);border-radius:12px;padding:10px 16px;background:transparent}
+details.notes summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+details.notes ul{margin:10px 0 4px;padding-left:18px;display:grid;gap:6px;font-size:15px}
+
+/* animation primitive */
+.a{transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.pre{opacity:0!important;transform:translateY(8px) scale(.97)}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center;padding-block:56px 64px!important}
+.hero h1{font-size:clamp(40px,6.2vw,74px);line-height:.98;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lede{margin-top:20px}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.hero-meta{margin-top:28px;display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.arch{width:100%;max-width:380px;justify-self:center;height:auto}
+.arch .box rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:fill .3s,stroke .3s}
+.arch .box text{fill:var(--ink);font:500 13px var(--sans)}
+.arch .box .num{fill:var(--muted);font:500 10px var(--mono)}
+.arch .box{cursor:pointer}
+.arch .box:hover rect{stroke:var(--accent)}
+.arch .box.on rect{fill:var(--accent-weak);stroke:var(--accent);stroke-width:1.6}
+.arch .box.on .num{fill:var(--accent)}
+.arch .wire{stroke:var(--muted);stroke-width:1.2;fill:none}
+.arch .res{stroke:var(--pos);stroke-width:1.2;fill:none;stroke-dasharray:3 3}
+.arch .loop{stroke:var(--accent);stroke-width:1.4;fill:none;stroke-dasharray:5 4;animation:dash 1.6s linear infinite}
+.arch .frame{fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:4 4;opacity:.7}
+.arch .cap{fill:var(--muted);font:500 10px var(--mono);letter-spacing:.06em}
+.arch .pulse{fill:var(--accent)}
+.arch .io{fill:var(--accent);font:500 12px var(--mono)}
+@keyframes dash{to{stroke-dashoffset:-18}}
+
+/* ---------- tokens ---------- */
+.rawline{font-family:var(--display);font-size:clamp(24px,3.4vw,36px);font-weight:600;letter-spacing:-.01em;line-height:1.2;word-break:break-word}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px 5px;border-radius:10px;border:1px solid var(--line);background:var(--surface);min-width:44px;box-shadow:var(--shadow)}
+.chip .t{font-family:var(--mono);font-size:15px;font-weight:500;white-space:pre}
+.chip .id{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.chip.sub{border-style:dashed}
+button.chip{cursor:pointer}
+button.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-weak)}
+.tokpick{display:flex;flex-wrap:wrap;gap:6px}
+.tokpick .chip{flex-direction:row;padding:5px 10px;min-width:0;box-shadow:none}
+
+/* ---------- matrices ---------- */
+.mat{display:inline-grid;gap:3px}
+.mhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
+.mhead .dim{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.mrow{display:flex;gap:2px;align-items:center}
+.rl{font-family:var(--mono);font-size:12px;width:62px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);padding-right:6px}
+.c{width:15px;height:15px;border-radius:3px;display:inline-block;flex:none}
+.mat.lg .c{width:18px;height:18px}
+.mblock{min-width:0}
+#peTrio .mblock,#concatViz .mblock{flex:none}
+.op{font-family:var(--display);font-size:32px;font-weight:600;color:var(--muted);align-self:center;padding-top:20px}
+.strip{display:flex;gap:2px}
+.legend{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend i{width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--neg),var(--cell),var(--pos))}
+
+/* ---------- PE ---------- */
+#peCanvas{width:100%;height:240px;display:block}
+.slider{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
+
+/* ---------- attention ---------- */
+.attn-layout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:start}
+.qk{display:flex;gap:18px;flex-wrap:wrap}
+.sgrid{display:grid;gap:3px;font-family:var(--mono);font-size:12px}
+.sgrid .hd{color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding:2px}
+.sgrid .rh{color:var(--muted);text-align:right;padding-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:center;cursor:pointer}
+.sgrid .rh.q{color:var(--accent);font-weight:600}
+.sc{height:34px;min-width:38px;border-radius:5px;display:grid;place-items:center;transition:background .45s ease,color .3s,box-shadow .2s;cursor:pointer;font-variant-numeric:tabular-nums}
+.sc.m{background:repeating-linear-gradient(135deg,var(--mask) 0 3px,transparent 3px 7px)!important;color:var(--muted)!important;animation:drop .5s ease both}
+.sc.qrow{box-shadow:inset 0 0 0 2px var(--accent)}
+@keyframes drop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.stagebar{display:flex;flex-wrap:wrap;gap:6px}
+.stagebar .btn b{font-family:var(--mono);font-weight:500;color:var(--muted)}
+.stage-note{font-size:15px;min-height:48px;max-width:70ch}
+.arcs text{font-family:var(--mono)}
+.mix{display:grid;gap:4px;font-family:var(--mono);font-size:12px}
+.mix .mr{display:flex;align-items:center;gap:8px}
+.mix .w{width:48px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.mix .sum{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.headtabs .btn i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* ---------- bars ---------- */
+.barrow{display:grid;grid-template-columns:170px minmax(0,1fr) 150px;gap:16px;align-items:center}
+.barrow .bl{font-size:14px;font-weight:500}
+.barrow .bl small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.barrow .stats{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.barrow svg{width:100%;max-width:420px;height:80px;display:block}
+.b{transition:transform .7s cubic-bezier(.2,.8,.2,1);transform-box:fill-box}
+.flat .b{transform:scaleY(0)}
+
+/* ---------- heads ---------- */
+.heads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.head-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
+.head-card h3{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.head-card h3 i{width:10px;height:10px;border-radius:50%}
+.head-card p{font-size:13px;color:var(--muted);line-height:1.4}
+.hm{display:grid;gap:2px;width:100%;max-width:220px}
+.hm span{aspect-ratio:1;border-radius:2px;max-width:100%}
+
+/* ---------- MLP ---------- */
+#mlpNet{width:100%;height:auto;display:block}
+.mlp-grid{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:24px;align-items:start}
+.stack-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.stack-table th,.stack-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.stack-table th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stack-table td:not(:first-child),.stack-table th:not(:first-child){text-align:right;font-family:var(--mono)}
+.stack-table tr.me td{color:var(--accent);font-weight:600}
+
+/* ---------- softmax ---------- */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.hbars{display:grid;gap:5px}
+.hb{display:grid;grid-template-columns:78px minmax(0,1fr) 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:13px}
+.hb .w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .track{height:18px;position:relative;border-radius:4px;background:var(--surface-2)}
+.hb .fill{position:absolute;top:0;bottom:0;border-radius:4px;transition:left .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1)}
+.hb .v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.hb.top .w{color:var(--accent);font-weight:600}
+.axis0{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+
+/* ---------- prediction ---------- */
+.cands{display:grid;gap:6px;max-width:560px}
+.cand{display:grid;grid-template-columns:28px 90px minmax(0,1fr) 60px;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;border:1px solid var(--line);font-family:var(--mono);font-size:14px;transition:background .12s,border-color .12s,transform .12s}
+.cand .rank{color:var(--muted);font-size:12px}
+.cand .bar{height:8px;border-radius:4px;background:var(--accent);opacity:.8}
+.cand .p{text-align:right;font-variant-numeric:tabular-nums}
+.cand.hot{background:var(--accent-weak);border-color:var(--accent);transform:translateX(4px)}
+.cand.win{background:var(--accent);border-color:var(--accent);color:var(--on-strong)}
+.cand.win .bar{background:var(--on-strong)}
+.cand.win .rank{color:var(--on-strong)}
+.cand.out{opacity:.45}
+.sentence{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:600;line-height:1.3}
+.sentence .new{color:var(--accent);background:var(--accent-weak);border-radius:8px;padding:0 6px;animation:pop .5s cubic-bezier(.2,.8,.2,1)}
+.sentence .ghost{color:var(--muted);border:1.5px dashed var(--line);border-radius:8px;padding:0 10px}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- loop ---------- */
+.pipe{display:flex;flex-wrap:wrap;gap:6px}
+.pipe span{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);transition:all .2s}
+.pipe span.lit{background:var(--accent);border-color:var(--accent);color:var(--on-strong);transform:translateY(-2px)}
+.pipe span.done{border-color:var(--accent);color:var(--ink)}
+.gen-text{font-family:var(--display);font-size:clamp(20px,2.6vw,28px);font-weight:600;line-height:1.45;min-height:3em;word-break:break-word}
+.gen-text .pr{color:var(--muted)}
+.gen-text .g{color:var(--ink)}
+.gen-text .g.new{color:var(--accent);animation:pop .45s cubic-bezier(.2,.8,.2,1)}
+.gen-text .caret{display:inline-block;width:3px;height:1em;background:var(--accent);vertical-align:-3px;margin-left:4px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.gen-grid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:24px;align-items:start}
+.tri{display:grid;gap:1px}
+.tri span{aspect-ratio:1;border-radius:1px;background:var(--cell)}
+.tri span.on{background:var(--accent);opacity:.55}
+.tri span.nw{background:var(--pos);opacity:1}
+.gen-status{font-size:14px;color:var(--muted);min-height:1.6em}
+
+/* ---------- misc ---------- */
+#tip{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:var(--bg);font:500 12px var(--mono);padding:5px 8px;border-radius:6px;white-space:nowrap;opacity:0;transition:opacity .12s}
+#tip.show{opacity:1}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:all .3s;z-index:70;max-width:calc(100% - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+footer{padding-block:40px 80px;color:var(--muted);font-size:14px;max-width:760px;display:grid;gap:10px}
+
+/* ---------- present mode ---------- */
+#deck{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+#deck .pos{font-family:var(--mono);font-size:13px;color:var(--muted);min-width:170px;text-align:center}
+#deck .progress{flex-basis:100%;height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden;max-width:520px}
+#deck .progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+body.present #deck{display:flex}
+body.present .rail{display:none}
+body.present .shell{grid-template-columns:minmax(0,1fr);max-width:1180px}
+body.present main>section{display:none;border:0;padding-block:36px 120px}
+body.present main>section.cur{display:block;animation:slidein .45s cubic-bezier(.2,.8,.2,1)}
+body.present main>section.hero.cur{display:grid}
+body.present footer{display:none}
+@keyframes slidein{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+
+@media (max-width:1000px){
+  .heads{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .attn-layout,.mlp-grid,.gen-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);padding-inline:16px}
+  .rail{display:none}
+  #jump{display:block}
+  .topbar{padding:10px 16px}
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .barrow{grid-template-columns:minmax(0,1fr)}
+  .barrow{gap:6px}
+}
+@media (max-width:520px){
+  .heads{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  .viz{padding:16px}
+  main>section{padding-block:52px}
+  .cand{grid-template-columns:22px 76px minmax(0,1fr) 52px;padding:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Inside the <span>Decoder</span></div>
+  <div class="prompt-wrap">
+    <label for="prompt">Input text</label>
+    <input id="prompt" type="text" value="The cat sat on the" maxlength="90" autocomplete="off" spellcheck="false">
+    <span class="trunc" id="truncNote" hidden>first 12 tokens</span>
+  </div>
+  <select id="jump" aria-label="Jump to step"></select>
+  <button class="btn primary" id="presentBtn" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Present</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Steps">
+    <div class="cap">The journey of one prediction</div>
+  </nav>
+
+  <main id="main">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="intro" data-name="Overview">
+      <div>
+        <div class="eyebrow">A decoder-only transformer, taken apart</div>
+        <h1 style="margin-top:16px">How a model writes <em>the next word</em></h1>
+        <p class="lede">Models like GPT read your text and predict one token at a time. Follow <strong id="heroPrompt">“The cat sat on the”</strong> through every stage of the decoder, from raw characters to a chosen next word, then watch the loop repeat to write a whole sentence.</p>
+        <div class="hero-cta">
+          <button class="btn primary" type="button" id="heroPresent"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Start presentation</button>
+          <a class="btn" href="#s1">Scroll through the steps</a>
+        </div>
+        <div class="hero-meta">
+          <span>9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
+        </div>
+      </div>
+      <svg class="arch" viewBox="0 0 340 640" role="img" aria-label="Decoder architecture diagram. Click a block to jump to its step.">
+        <path class="wire" d="M165 58 V78 M165 118 V146 M165 206 V226 M165 262 V286 M165 342 V366 M165 402 V446 M165 486 V510"/>
+        <path class="res" d="M36 132 H26 V244 H40 M36 272 H26 V384 H40"/>
+        <text class="cap" x="12" y="192" transform="rotate(-90 12 192)">residual</text>
+        <rect class="frame" x="18" y="128" width="296" height="290" rx="14"/>
+        <text class="cap" x="30" y="412">DECODER BLOCK × N</text>
+        <path class="loop" d="M290 532 H326 V36 H290"/>
+        <text class="cap" x="332" y="300" transform="rotate(90 332 300)">9 · append &amp; repeat</text>
+        <circle class="pulse" r="4"><animateMotion dur="5s" repeatCount="indefinite" path="M165 36 V532 H326 V36 H165"/></circle>
+
+        <g class="box" data-go="s1"><rect x="40" y="14" width="250" height="44" rx="10"/><text class="num" x="54" y="32">1</text><text x="70" y="32">Tokenize</text><text class="io" id="heroIn" x="70" y="49">The cat sat on the</text></g>
+        <g class="box" data-go="s2"><rect x="40" y="78" width="250" height="40" rx="10"/><text class="num" x="54" y="102">2</text><text x="70" y="103">Embed + positional encoding</text></g>
+        <g class="box" data-go="s3"><rect x="40" y="146" width="250" height="60" rx="10"/><text class="num" x="54" y="172">3</text><text x="70" y="172">Masked multi-head</text><text x="70" y="190">attention</text></g>
+        <g class="box" data-go="s5"><rect x="226" y="154" width="54" height="44" rx="6"/><rect x="232" y="160" width="42" height="32" rx="4"/><text class="num" x="238" y="180">5 · ×4</text></g>
+        <g class="box" data-go="s4"><rect x="40" y="226" width="250" height="36" rx="10"/><text class="num" x="54" y="248">4</text><text x="70" y="249">Add &amp; Norm</text></g>
+        <g class="box" data-go="s6"><rect x="40" y="286" width="250" height="56" rx="10"/><text class="num" x="54" y="310">6</text><text x="70" y="310">MLP (feed-forward)</text><text class="cap" x="70" y="328">16 → 64 → 16</text></g>
+        <g class="box" data-go="s4"><rect x="40" y="366" width="250" height="36" rx="10"/><text class="num" x="54" y="388">4</text><text x="70" y="389">Add &amp; Norm</text></g>
+        <g class="box" data-go="s7"><rect x="40" y="446" width="250" height="40" rx="10"/><text class="num" x="54" y="470">7</text><text x="70" y="471">Linear + softmax</text></g>
+        <g class="box" data-go="s8"><rect x="40" y="510" width="250" height="44" rx="10"/><text class="num" x="54" y="528">8</text><text x="70" y="528">Next token</text><text class="io" id="heroOut" x="70" y="545">“mat”</text></g>
+        <text class="cap" x="40" y="590">Papers draw this bottom-up.</text>
+        <text class="cap" x="40" y="606">Here it reads top to bottom.</text>
+      </svg>
+    </section>
+
+    <!-- ============ 1 TOKENIZATION ============ -->
+    <section id="s1" data-name="Tokenization">
+      <div class="sec-head">
+        <div class="eyebrow">Step 1 of 9</div>
+        <h2>Tokenization: text becomes numbers</h2>
+        <p class="lede">A neural network cannot read letters. The tokenizer cuts the text into <strong>tokens</strong> (whole words, pieces of words, or punctuation) and swaps each one for its ID in a fixed vocabulary. Each ID then picks out one row of the <strong>embedding table</strong>: a learned list of numbers that stands for that token’s meaning.</p>
+        <div class="key"><b>Key idea</b>From here on, every token is a vector. This demo uses 16 numbers per token; GPT‑2 small uses 768.</div>
+      </div>
+      <div class="viz" id="v1">
+        <div class="viz-bar"><span class="label">Raw text</span><button class="btn play" data-play="s1" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button></div>
+        <div class="rawline" id="rawText"></div>
+        <div class="flow-arrow">split into tokens, look up each token’s ID</div>
+        <div class="chips" id="tokChips"></div>
+        <div class="flow-arrow">each ID selects a row of the embedding table</div>
+        <div class="mblock">
+          <div class="mhead"><span class="label">Token embeddings E</span><span class="dim" id="embDim"></span></div>
+          <div class="scroll-x" id="embMat"></div>
+        </div>
+        <div class="legend"><span>negative</span><i></i><span>positive</span><span style="margin-left:8px">hover a cell for its value</span></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Real tokenizers (BPE) learn common chunks from data, so “unbelievable” might become “un” + “believ” + “able”. Try typing a long, rare word in the input box.</li>
+        <li>The vocabulary is fixed before training: GPT‑2 has 50,257 tokens. This demo has a 40‑word toy vocabulary.</li>
+        <li>The embedding numbers start random and are learned during training, so similar words end up with similar vectors.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 2 POSITIONAL ENCODING ============ -->
+    <section id="s2" data-name="Positional encoding">
+      <div class="sec-head">
+        <div class="eyebrow">Step 2 of 9</div>
+        <h2>Positional encoding: where is each word?</h2>
+        <p class="lede">Attention looks at all tokens at once, so on its own it has no sense of order: “dog bites man” and “man bites dog” would look identical. We fix that by <strong>adding a position signal</strong> to each embedding. The original transformer uses sine and cosine waves of different wavelengths, so every position gets a unique fingerprint.</p>
+        <div class="formula">PE(pos, 2i) = sin(pos / 10000^(2i/d)) &nbsp;&nbsp; PE(pos, 2i+1) = cos(pos / 10000^(2i/d))</div>
+      </div>
+      <div class="viz" id="v2">
+        <div class="viz-bar">
+          <div class="slider"><label class="label" for="peDim">Dimension pair</label><input type="range" id="peDim" min="0" max="7" value="0"><span class="mono" id="peDimLbl" style="font-size:13px"></span></div>
+          <button class="btn play" data-play="s2" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <canvas id="peCanvas" aria-label="Sine and cosine positional encoding waves with dots at each token position"></canvas>
+        <div class="scroll-x"><div class="row" id="peTrio" style="flex-wrap:nowrap"></div></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Low dimension pairs wiggle fast (they tell neighbours apart); high pairs change slowly (they tell early from late). Drag the slider to show this.</li>
+        <li>Many modern models (Llama, GPT‑NeoX) use rotary embeddings (RoPE) instead, which rotate the queries and keys by position. The purpose is the same.</li>
+        <li>The result, embedding + position, is the input to the first decoder block.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 3 MASKED ATTENTION ============ -->
+    <section id="s3" data-name="Masked attention">
+      <div class="sec-head">
+        <div class="eyebrow">Step 3 of 9</div>
+        <h2>Masked self-attention: each word looks back</h2>
+        <p class="lede">Every token asks a question (its <strong>query</strong>), advertises what it contains (its <strong>key</strong>), and carries information to share (its <strong>value</strong>). A query is compared with every key; the best matches get the most weight. The <strong>mask</strong> hides future tokens, because when the model writes text, the future does not exist yet.</p>
+        <div class="formula">Attention(Q, K, V) = softmax( Q·Kᵀ / √d<sub>k</sub> + mask ) · V</div>
+      </div>
+      <div class="viz" id="v3">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Head</span><div class="seg headtabs" id="headTabs"></div></div>
+          <button class="btn play" data-play="s3" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Play all stages</button>
+        </div>
+        <div class="stagebar" id="stageBar">
+          <button class="btn" type="button" data-stage="0"><b>a</b> Scores Q·Kᵀ/√d</button>
+          <button class="btn" type="button" data-stage="1"><b>b</b> Apply causal mask</button>
+          <button class="btn" type="button" data-stage="2"><b>c</b> Softmax each row</button>
+          <button class="btn" type="button" data-stage="3"><b>d</b> Mix the values</button>
+        </div>
+        <p class="stage-note" id="stageNote"></p>
+        <div class="attn-layout">
+          <div class="qk" id="qkMats"></div>
+          <div style="min-width:0;display:grid;gap:10px">
+            <span class="label">Rows are queries (the token asking). Columns are keys. Click a row.</span>
+            <div class="scroll-x"><div class="sgrid" id="scoreGrid"></div></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:10px;min-width:0">
+          <span class="label" id="arcLbl"></span>
+          <div class="scroll-x"><svg class="arcs" id="arcSvg"></svg></div>
+        </div>
+        <div id="mixWrap" style="display:grid;gap:10px"><span class="label">New vector for the selected token = weighted sum of value vectors</span><div class="mix" id="mixViz"></div></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Dividing by √d<sub>k</sub> keeps the scores in a range where softmax does not saturate.</li>
+        <li>The mask sets future positions to −∞, and e<sup>−∞</sup> = 0, so they get exactly zero weight.</li>
+        <li>The first token can only attend to itself. The last token can see the entire prompt, which is why its vector is used to predict the next word.</li>
+        <li>This all happens as one matrix multiply, so a GPU processes every position in parallel during training.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 4 ADD & NORM ============ -->
+    <section id="s4" data-name="Add & Norm">
+      <div class="sec-head">
+        <div class="eyebrow">Step 4 of 9</div>
+        <h2>Add &amp; Norm: keep the original, keep it steady</h2>
+        <p class="lede">Attention’s output is not used on its own. It is <strong>added back</strong> to the vector that went in (a residual connection), so the model only has to learn what to change. Then <strong>layer normalization</strong> rescales each token’s vector to mean 0 and standard deviation 1, which keeps numbers stable through dozens of stacked layers.</p>
+        <div class="formula">x₁ = LayerNorm( x + Attention(x) ) &nbsp;&nbsp; LayerNorm(v) = γ · (v − mean) / std + β</div>
+      </div>
+      <div class="viz" id="v4">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Token</span><div class="tokpick" id="s4Tok"></div></div>
+          <button class="btn play" data-play="s4" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div id="s4Bars" style="display:grid;gap:14px"></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>The residual path is a highway: gradients flow straight through it, which is what makes 100‑layer networks trainable.</li>
+        <li>Watch the stats column: after LayerNorm the mean is 0.00 and the standard deviation is 1.00, whatever the input was.</li>
+        <li>The original paper normalizes after adding (post-norm, shown here). GPT‑2 and most modern models normalize before each sub-layer (pre-norm).</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 5 MULTI HEADS ============ -->
+    <section id="s5" data-name="Multiple heads">
+      <div class="sec-head">
+        <div class="eyebrow">Step 5 of 9</div>
+        <h2>Multi-head: many ways of looking, in parallel</h2>
+        <p class="lede">One attention pattern cannot capture everything. So the model runs several <strong>heads</strong> side by side, each with its own Q, K and V weights and a slice of the vector. One head may track the previous word, another the subject of the sentence. Their outputs are <strong>concatenated</strong> and mixed by one more matrix, W<sub>O</sub>.</p>
+        <div class="formula">MultiHead(x) = Concat(head₁, head₂, head₃, head₄) · W<sub>O</sub> &nbsp;&nbsp; 4 heads × 4 dims = 16</div>
+      </div>
+      <div class="viz" id="v5">
+        <div class="viz-bar"><span class="label">Attention pattern of each head (rows attend to columns)</span><button class="btn play" data-play="s5" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button></div>
+        <div class="heads" id="headsGrid"></div>
+        <div class="scroll-x"><div class="row" id="concatViz" style="flex-wrap:nowrap"></div></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>The four patterns here are deliberately shaped to resemble head types that researchers have found in trained models: previous-token heads, heads that park on the first token, and content-matching heads.</li>
+        <li>Heads are cheap: splitting 16 dims into 4 × 4 costs the same compute as one big head.</li>
+        <li>GPT‑2 small has 12 heads in each of its 12 layers, 144 heads in total.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 6 MLP ============ -->
+    <section id="s6" data-name="MLP">
+      <div class="sec-head">
+        <div class="eyebrow">Step 6 of 9</div>
+        <h2>The MLP: each word thinks on its own</h2>
+        <p class="lede">Attention moves information <strong>between</strong> tokens. The feed-forward network (MLP) then processes each token <strong>separately</strong>: it expands the vector to 4× its width, applies a non-linearity (GELU), and projects it back. Much of the model’s factual knowledge is thought to be stored in these weights. Then comes a second Add &amp; Norm.</p>
+        <div class="formula">MLP(x) = W₂ · GELU( W₁·x + b₁ ) + b₂ &nbsp;&nbsp; 16 → 64 → 16</div>
+      </div>
+      <div class="viz" id="v6">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Token</span><div class="tokpick" id="s6Tok"></div></div>
+          <button class="btn play" data-play="s6" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div class="mlp-grid">
+          <svg id="mlpNet" viewBox="0 0 680 270" aria-label="MLP network: 16 inputs, 64 hidden neurons, 16 outputs"></svg>
+          <div style="display:grid;gap:8px">
+            <span class="label">GELU activation</span>
+            <svg id="geluSvg" viewBox="0 0 200 130" style="width:100%;max-width:220px"></svg>
+            <p class="note">Negative inputs are squashed toward 0; positive ones pass through. Brighter hidden neurons fired harder for this token.</p>
+          </div>
+        </div>
+        <div id="s6Rows" style="display:grid;gap:10px"></div>
+        <div style="display:grid;gap:10px">
+          <span class="label">Then the whole block repeats</span>
+          <p class="note">Steps 3 to 6 form one decoder block. Its output feeds the next identical block (with its own weights). Real models stack many:</p>
+          <div class="scroll-x"><table class="stack-table">
+            <thead><tr><th>Model</th><th>Layers</th><th>Heads / layer</th><th>Vector size</th></tr></thead>
+            <tbody>
+              <tr class="me"><td>This demo</td><td>1</td><td>4</td><td>16</td></tr>
+              <tr><td>GPT‑2 small (2019)</td><td>12</td><td>12</td><td>768</td></tr>
+              <tr><td>GPT‑2 XL (2019)</td><td>48</td><td>25</td><td>1,600</td></tr>
+              <tr><td>GPT‑3 175B (2020)</td><td>96</td><td>96</td><td>12,288</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Roughly two thirds of a transformer’s parameters live in these MLP layers.</li>
+        <li>Nothing crosses between tokens here. The same weights run on every position independently.</li>
+        <li>After N blocks, each token’s vector has absorbed context from everything before it.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 7 SOFTMAX ============ -->
+    <section id="s7" data-name="Final softmax">
+      <div class="sec-head">
+        <div class="eyebrow">Step 7 of 9</div>
+        <h2>Linear + softmax: a score for every word</h2>
+        <p class="lede">Only the <strong>last token’s</strong> vector is needed to predict what comes next. A final linear layer multiplies it by the unembedding matrix, producing one raw score (a <strong>logit</strong>) per vocabulary entry. <strong>Softmax</strong> turns those scores into probabilities that sum to 100%. Temperature controls how sharp that distribution is.</p>
+        <div class="formula">p(word) = exp(logit / T) / Σ exp(logit / T)</div>
+      </div>
+      <div class="viz" id="v7">
+        <div class="viz-bar">
+          <div class="slider"><label class="label" for="temp">Temperature</label><input type="range" id="temp" min="0.1" max="2" step="0.05" value="1"><span class="mono" id="tempLbl" style="font-size:13px">T = 1.00</span></div>
+          <button class="btn play" data-play="s7" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div class="mblock">
+          <div class="mhead"><span class="label" id="finalLbl">Final vector of the last token</span><span class="dim">× W<sub>U</sub> (16 × 40) → 40 logits</span></div>
+          <div class="strip" id="finalVec"></div>
+        </div>
+        <div class="two">
+          <div style="display:grid;gap:10px"><span class="label">Logits (top 10 of 40)</span><div class="hbars" id="logitBars"></div></div>
+          <div style="display:grid;gap:10px"><span class="label">Probabilities after softmax</span><div class="hbars" id="probBars"></div><span class="note" id="probSum"></span></div>
+        </div>
+        <p class="note">Steps 1 to 6 are computed live in your browser with small random weights. An untrained model like that would predict noise, so the logits here come from a small hand-built table that imitates a trained model’s preferences for this toy vocabulary.</p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Drag temperature toward 0.1: the top word takes nearly all the probability. Drag toward 2: the distribution flattens and unlikely words gain a chance.</li>
+        <li>Many models reuse the embedding table from step 1 as W<sub>U</sub> (weight tying).</li>
+        <li>A real vocabulary has 50k to 200k entries, so this is one very long vector of probabilities.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 8 NEXT WORD ============ -->
+    <section id="s8" data-name="Next word">
+      <div class="sec-head">
+        <div class="eyebrow">Step 8 of 9</div>
+        <h2>Next-word prediction: pick one token</h2>
+        <p class="lede">The model does not output a word. It outputs a probability distribution, and a <strong>decoding strategy</strong> chooses from it. <strong>Greedy</strong> always takes the most likely token: predictable, but it can get repetitive. <strong>Sampling</strong> rolls weighted dice among the top candidates, which gives more varied and natural text.</p>
+      </div>
+      <div class="viz" id="v8">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Strategy</span><div class="seg" id="modeSeg">
+            <button class="btn" type="button" data-mode="greedy" aria-pressed="true">Greedy</button>
+            <button class="btn" type="button" data-mode="sample" aria-pressed="false">Sample top‑5</button>
+          </div></div>
+          <div class="left">
+            <button class="btn primary" id="pickBtn" type="button">Choose next token</button>
+            <button class="btn" id="acceptBtn" type="button" disabled>Append to input</button>
+          </div>
+        </div>
+        <div class="sentence" id="s8Sentence"></div>
+        <div class="cands" id="candList"></div>
+        <p class="note" id="s8Note">Temperature from step 7 applies here too.</p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Switch to “Sample top‑5” and press the button several times to show that the same input can lead to different words.</li>
+        <li>“Append to input” adds the chosen word to the text at the top, and every step above recomputes with the longer input. That is one turn of the loop, done by hand.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 9 LOOP ============ -->
+    <section id="s9" data-name="Generation loop">
+      <div class="sec-head">
+        <div class="eyebrow">Step 9 of 9</div>
+        <h2>The loop: append, repeat, write</h2>
+        <p class="lede">Generation is just steps 1 to 8 on repeat. The chosen token is <strong>appended</strong> to the input and the whole decoder runs again, now with one more token of context. This is called <strong>autoregressive</strong> generation. It continues until the model emits an end token or hits a length limit.</p>
+      </div>
+      <div class="viz" id="v9">
+        <div class="viz-bar">
+          <div class="left">
+            <button class="btn primary" id="genPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Generate</button>
+            <button class="btn" id="genStep" type="button">One step</button>
+            <button class="btn" id="genReset" type="button">Reset</button>
+          </div>
+          <div class="left"><label class="label" for="genSpeed">Speed</label>
+            <select id="genSpeed" class="btn"><option value="3200">Slow</option><option value="1600" selected>Normal</option><option value="600">Fast</option></select>
+          </div>
+        </div>
+        <div class="pipe" id="loopPipe"></div>
+        <div class="gen-text" id="genText" aria-live="polite"></div>
+        <div class="gen-grid">
+          <div style="display:grid;gap:10px"><span class="label">Last prediction</span><div class="hbars" id="genTop"></div><p class="gen-status" id="genStatus"></p></div>
+          <div style="display:grid;gap:8px"><span class="label">Causal mask grows each step</span><div class="tri" id="genTri"></div><p class="note">Newest row in orange. Every new token can see all earlier ones.</p></div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Real systems cache each layer’s keys and values (the KV cache), so each new step only computes attention for the newest token instead of redoing the whole prompt.</li>
+        <li>A small repetition penalty is on in this demo, so greedy decoding does not repeat “The cat sat on the mat” forever.</li>
+        <li>Chat models work the same way: your message is the prompt, and the reply is generated one token at a time.</li>
+      </ul></details>
+    </section>
+
+    <footer>
+      <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights. Head patterns in steps 3 and 5 get a small nudge so they resemble patterns seen in trained models. The next-word probabilities come from a hand-built table, because a model with random weights would not produce sensible words.</p>
+      <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
+    </footer>
+  </main>
+</div>
+
+<div id="deck" role="navigation" aria-label="Presentation controls">
+  <button class="btn" id="deckPrev" type="button">← Prev</button>
+  <span class="pos" id="deckPos"></span>
+  <button class="btn primary" id="deckNext" type="button">Next →</button>
+  <button class="btn" id="deckPlay" type="button">Replay animation</button>
+  <button class="btn" id="deckExit" type="button">Exit</button>
+  <div class="progress"><i id="deckBar"></i></div>
+</div>
+<div id="tip"></div>
+<div id="toast" role="status"></div>
+
+<script>
+(() => {
+'use strict';
+/* ================= utilities ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = (v, d=2) => (v >= 0 ? ' ' : '') + v.toFixed(d);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function randn(r){let u=0;while(!u)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+const randMat=(rows,cols,scale,seed)=>{const r=mulberry32(seed);return Array.from({length:rows},()=>Array.from({length:cols},()=>randn(r)*scale))};
+const matmul=(A,B)=>A.map(row=>B[0].map((_,j)=>{let s=0;for(let k=0;k<row.length;k++)s+=row[k]*B[k][j];return s}));
+const addM=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j]));
+const colsOf=(M,a,b)=>M.map(r=>r.slice(a,b));
+const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+const mean=v=>v.reduce((a,b)=>a+b,0)/v.length;
+const std=v=>{const m=mean(v);return Math.sqrt(mean(v.map(x=>(x-m)**2)))};
+const layerNorm=v=>{const m=mean(v),s=Math.sqrt(mean(v.map(x=>(x-m)**2))+1e-5);return v.map(x=>(x-m)/s)};
+const gelu=x=>0.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+0.044715*x**3)));
+const softmax=row=>{const m=Math.max(...row);const e=row.map(v=>v===-Infinity?0:Math.exp(v-m));const s=e.reduce((a,b)=>a+b,0);return e.map(v=>v/s)};
+const maxAbs=M=>Math.max(1e-6,...M.flat().map(Math.abs));
+const divColor=(v,mx)=>{const t=Math.min(1,Math.abs(v)/mx);return `color-mix(in oklab, var(${v>=0?'--pos':'--neg'}) ${Math.round(t*100)}%, var(--cell))`};
+const attColor=(p,v='--accent')=>`color-mix(in oklab, var(${v}) ${Math.round(Math.min(1,p)*100)}%, var(--cell))`;
+function stagger(nodes, delay){
+  nodes.forEach(n=>n.classList.add('pre'));
+  void document.body.offsetWidth;
+  nodes.forEach((n,i)=>setTimeout(()=>n.classList.remove('pre'), RM?0:i*delay));
+  return sleep(nodes.length*delay+350);
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600)}
+const cssVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ================= toy vocabulary + tokenizer ================= */
+const VOCAB=['the','a','cat','dog','sat','on','mat','and','purred','softly','.',',','it','was','slept','sofa','window','floor','rug','by','down','quietly','happily','watched','birds','sun','warm','in','then','her','his','garden','ran','to','very','morning','while','looked','at','quiet'];
+const PUNCT=new Set(['.',',','!','?',';',':']);
+const SUFFIX=['ing','tion','ness','ed','er','ly','est','s'];
+const MAXT=12;
+function tokenize(text){
+  const parts=text.match(/[A-Za-z']+|[0-9]+|[^\sA-Za-z0-9]/g)||[];
+  const out=[];
+  for(const p of parts){
+    const low=p.toLowerCase();
+    const vi=VOCAB.indexOf(low);
+    if(vi>=0){out.push({text:p,key:low,id:vi});continue}
+    if(p.length<=5){out.push({text:p,key:low,id:40+hashStr(low)%9960});continue}
+    let pieces=null;
+    for(const s of SUFFIX){if(low.endsWith(s)&&low.length-s.length>=3){pieces=[p.slice(0,p.length-s.length),p.slice(p.length-s.length)];break}}
+    if(!pieces){pieces=[];for(let i=0;i<p.length;i+=4)pieces.push(p.slice(i,i+4))}
+    pieces.forEach((pc,i)=>{const k=(i?'##':'')+pc.toLowerCase();out.push({text:(i?'##':'')+pc,key:k,id:40+hashStr(k)%9960,sub:i>0})});
+  }
+  return out;
+}
+function joinWords(arr){return arr.reduce((s,w,i)=>i===0?w:(PUNCT.has(w)?s+w:w.startsWith('##')?s+w.slice(2):s+' '+w),'')}
+const displayWord=(key,prevKey)=>PUNCT.has(key)?key:((prevKey===undefined||prevKey==='.')?key[0].toUpperCase()+key.slice(1):key);
+
+/* ================= hand-built "trained" next-word table ================= */
+const BI={
+  the:{cat:3.0,dog:2.6,mat:2.2,sun:2.0,garden:1.9,window:1.8,sofa:1.8,morning:1.6,floor:1.4,rug:1.3,birds:1.4},
+  a:{cat:2.6,dog:2.5,warm:2.2,rug:1.8,morning:1.5,window:1.2},
+  cat:{sat:3.0,purred:2.5,slept:2.4,was:2.2,watched:2.0,ran:1.8,and:1.4,'.':1.2},
+  dog:{ran:3.0,sat:2.4,slept:2.2,was:2.0,watched:1.6,and:1.5},
+  sat:{on:3.6,by:2.4,down:2.3,quietly:1.9,in:1.6},
+  on:{the:4.0,a:2.6,her:1.4,his:1.3},
+  by:{the:3.8,a:2.2}, in:{the:3.6,a:2.3}, to:{the:3.4,a:1.8}, at:{the:3.6,a:1.9},
+  mat:{and:3.1,'.':2.9,',':2.2,while:1.5},
+  sofa:{and:2.8,'.':2.8,',':2.0}, window:{and:2.6,'.':2.8,',':2.1}, rug:{and:2.8,'.':2.7}, floor:{and:2.6,'.':2.8},
+  garden:{'.':3.0,and:2.5,',':2.0},
+  and:{purred:2.9,slept:2.6,watched:2.4,looked:2.0,the:1.8,ran:1.5},
+  purred:{softly:3.2,'.':2.6,happily:2.3,and:1.7},
+  slept:{'.':3.0,quietly:2.4,in:2.2,and:1.8},
+  watched:{the:3.4,birds:2.6}, looked:{at:3.4,down:2.0},
+  softly:{'.':3.6,and:2.2,',':1.8}, happily:{'.':3.4,and:2.0}, quietly:{'.':3.2,and:2.2,by:1.4},
+  was:{warm:2.6,very:2.5,quiet:2.2,on:1.6,by:1.4}, very:{warm:3.2,quiet:2.8,happily:1.0},
+  warm:{'.':3.2,and:2.4,',':1.8}, quiet:{'.':3.2,and:2.2},
+  birds:{'.':2.8,and:2.4,in:2.0}, sun:{was:3.0,'.':2.2,and:1.8}, morning:{sun:2.6,',':2.4,'.':2.2},
+  '.':{the:3.2,it:2.6,then:2.3}, ',':{and:2.8,the:2.4,it:2.0,then:2.0},
+  it:{was:3.4,slept:2.3,purred:2.2,sat:2.0}, then:{it:3.0,the:2.6}, while:{the:3.4,it:2.4},
+  her:{sofa:2.2,cat:2.0,rug:2.0,window:1.8}, his:{dog:2.8,sofa:2.0,rug:1.8},
+  down:{on:2.6,by:2.4,'.':2.2}, ran:{to:3.0,in:2.4,down:2.2,and:1.8,'.':1.4}
+};
+const TRI={
+  'on the':{mat:3.6,sofa:3.0,floor:2.7,rug:2.6,window:2.2,cat:1.2},
+  'by the':{window:3.5,sofa:2.6,garden:2.4},
+  'in the':{garden:3.4,sun:3.0,morning:2.6},
+  'to the':{garden:3.4,window:2.6,mat:1.8},
+  'at the':{birds:3.2,window:3.0,garden:2.2},
+  'watched the':{birds:3.6,sun:2.2,dog:2.0}
+};
+const FALLBACK={'.':1.8,and:1.6,the:1.5,',':1.4,it:1.2,was:1.2};
+const NOPEN=new Set(['the','a','.',',','and','on','in','to','at','by','it','was']);
+function lmLogits(keys){
+  const k=keys.map(x=>x.replace(/^##/,''));
+  const last=k[k.length-1]??'.';
+  const rule=TRI[k.slice(-2).join(' ')]||BI[last]||FALLBACK;
+  const recent=k.slice(-14);
+  return VOCAB.map(w=>{
+    let l=rule[w]!==undefined?rule[w]:-1+(hashStr(w+'|'+last)%150)/100;
+    if(!NOPEN.has(w)) l-=1.3*recent.filter(x=>x===w).length;
+    return {w,l};
+  });
+}
+const probsAt=(logits,T)=>{const p=softmax(logits.map(o=>o.l/T));return logits.map((o,i)=>({...o,p:p[i]}))};
+function choose(dist,mode){
+  const sorted=[...dist].sort((a,b)=>b.p-a.p);
+  if(mode==='greedy')return sorted[0];
+  const top=sorted.slice(0,5);const s=top.reduce((a,b)=>a+b.p,0);
+  let r=Math.random()*s;for(const c of top){r-=c.p;if(r<=0)return c}
+  return top[0];
+}
+
+/* ================= the tiny decoder ================= */
+const D=16,NH=4,DK=4,FF=64;
+const Wq=randMat(D,D,0.38,11), Wk=randMat(D,D,0.38,12), Wv=randMat(D,D,0.38,13), Wo=randMat(D,D,0.32,14);
+for(let r=0;r<D;r++)for(let c=12;c<16;c++)Wk[r][c]=Wq[r][c]; // head 4: queries match similar keys
+const W1=randMat(D,FF,0.32,15), b1=randMat(1,FF,0.25,17)[0], W2=randMat(FF,D,0.16,16);
+const HEADS=[
+  {name:'Previous word',desc:'Looks one step back.',bias:(i,j)=>j===i-1?3.0:0},
+  {name:'Sentence start',desc:'Parks attention on the first token.',bias:(i,j)=>j===0?2.6:0},
+  {name:'Self',desc:'Mostly keeps its own information.',bias:(i,j)=>i===j?2.6:0},
+  {name:'Content match',desc:'Finds tokens with similar vectors.',bias:()=>0}
+];
+const embedVec=key=>{const r=mulberry32(hashStr(key.replace(/^##/,'')));return Array.from({length:D},()=>randn(r)*0.85)};
+const pe=(pos,i)=>{const e=(i-(i%2))/D;const a=pos/Math.pow(10000,e);return i%2?Math.cos(a):Math.sin(a)};
+
+const S={toks:[],T:1,mode:'greedy',head:0,stage:3,q:0,sel:0};
+function compute(){
+  const text=$('#prompt').value;
+  let toks=tokenize(text);
+  if(!toks.length) toks=tokenize('The');
+  $('#truncNote').hidden=toks.length<=MAXT;
+  toks=toks.slice(0,MAXT);
+  const N=toks.length;
+  const labels=toks.map(t=>t.text);
+  const E=toks.map(t=>embedVec(t.key));
+  const PE=toks.map((_,p)=>Array.from({length:D},(_,i)=>pe(p,i)));
+  const X0=addM(E,PE);
+  const Q=matmul(X0,Wq),K=matmul(X0,Wk),V=matmul(X0,Wv);
+  const heads=HEADS.map((h,hi)=>{
+    const q=colsOf(Q,hi*DK,hi*DK+DK),k=colsOf(K,hi*DK,hi*DK+DK),v=colsOf(V,hi*DK,hi*DK+DK);
+    const raw=q.map((qi,i)=>k.map((kj,j)=>dot(qi,kj)/Math.sqrt(DK)+h.bias(i,j)));
+    const masked=raw.map((r,i)=>r.map((x,j)=>j>i?-Infinity:x));
+    const P=masked.map(softmax);
+    return {q,k,v,raw,P,out:matmul(P,v)};
+  });
+  const concat=toks.map((_,i)=>heads.flatMap(h=>h.out[i]));
+  const A=matmul(concat,Wo);
+  const R1=addM(X0,A), X1=R1.map(layerNorm);
+  const Hpre=matmul(X1,W1).map(r=>r.map((v,j)=>v+b1[j]));
+  const Hact=Hpre.map(r=>r.map(gelu));
+  const F=matmul(Hact,W2);
+  const R2=addM(X1,F), X2=R2.map(layerNorm);
+  const keys=toks.map(t=>t.key);
+  const logits=lmLogits(keys);
+  Object.assign(S,{toks,N,labels,E,PE,X0,heads,concat,A,R1,X1,Hpre,Hact,F,R2,X2,keys,logits});
+  S.q=Math.min(S.q,N-1); if(S.q<0||S._lastN!==N) S.q=N-1;
+  S.sel=Math.min(S.sel,N-1); if(S._lastN!==N) S.sel=N-1;
+  S._lastN=N;
+}
+
+/* ================= shared renderers ================= */
+function matHTML(M,labels,{mx,big,groups,tipName='dim'}={}){
+  const m=mx??maxAbs(M);
+  return `<div class="mat${big?' lg':''}">${M.map((r,i)=>`<div class="mrow a"><span class="rl" title="${esc(labels[i])}">${esc(labels[i])}</span>${r.map((v,j)=>`<i class="c" style="background:${divColor(v,m)}${groups?`;box-shadow:inset 0 -3px var(--h${Math.floor(j/4)})`:''}" data-tip="${esc(labels[i])} · ${tipName} ${j}: ${v.toFixed(3)}"></i>`).join('')}</div>`).join('')}</div>`;
+}
+const stripHTML=(v,mx,lbl='')=>`<div class="strip">${v.map((x,j)=>`<i class="c" style="background:${divColor(x,mx)}" data-tip="${esc(lbl)}dim ${j}: ${x.toFixed(3)}"></i>`).join('')}</div>`;
+function tokPicker(el,onPick){
+  el.innerHTML=S.toks.map((t,i)=>`<button type="button" class="chip" data-i="${i}" aria-pressed="${i===S.sel}"><span class="t">${esc(t.text)}</span></button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;S.sel=+b.dataset.i;onPick()};
+}
+
+/* ================= STEP 1 ================= */
+function render1(){
+  $('#rawText').textContent=$('#prompt').value.trim()||'The';
+  $('#tokChips').innerHTML=S.toks.map(t=>`<div class="chip a${t.sub?' sub':''}"><span class="t">${esc(t.text)}</span><span class="id">#${t.id}</span></div>`).join('');
+  $('#embMat').innerHTML=matHTML(S.E,S.labels,{big:true});
+  $('#embDim').textContent=`${S.N} tokens × ${D} numbers`;
+}
+async function play1(){
+  const chips=$$('#tokChips .chip'),rows=$$('#embMat .mrow');
+  rows.forEach(r=>r.classList.add('pre'));
+  const raw=$('#rawText');raw.classList.add('a','pre');void raw.offsetWidth;raw.classList.remove('pre');
+  await sleep(300);
+  await stagger(chips,140);
+  await stagger(rows,120);
+}
+
+/* ================= STEP 2 ================= */
+let peProg=1;
+function drawPE(){
+  const cv=$('#peCanvas');if(!cv)return;
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  if(!w)return;
+  cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);
+  const k=+$('#peDim').value,N=S.N,xmax=Math.max(N-1,11);
+  const L=34,R=14,T=14,B=42,pw=w-L-R,ph=h-T-B;
+  const X=p=>L+p/xmax*pw,Y=v=>T+(1-v)/2*ph;
+  const line=cssVar('--line'),muted=cssVar('--muted'),c1=cssVar('--accent'),c2=cssVar('--h1'),ink=cssVar('--ink');
+  g.font=`11px ${cssVar('--mono')}`;g.lineWidth=1;
+  g.strokeStyle=line;
+  for(let p=0;p<=xmax;p++){g.beginPath();g.moveTo(X(p),T);g.lineTo(X(p),T+ph);g.stroke()}
+  g.fillStyle=muted;g.textAlign='right';
+  [1,0,-1].forEach(v=>{g.fillText(v,L-8,Y(v)+4);g.beginPath();g.moveTo(L,Y(v));g.lineTo(L+pw,Y(v));g.strokeStyle=v===0?muted:line;g.stroke()});
+  const e=(2*k)/D,freq=1/Math.pow(10000,e);
+  const upTo=xmax*peProg;
+  [[Math.sin,c1,'sin · dim '+(2*k)],[Math.cos,c2,'cos · dim '+(2*k+1)]].forEach(([f,col],ci)=>{
+    g.strokeStyle=col;g.lineWidth=2.2;g.beginPath();
+    for(let s=0;s<=400;s++){const p=s/400*upTo;const y=f(p*freq);s?g.lineTo(X(p),Y(y)):g.moveTo(X(p),Y(y))}
+    g.stroke();
+    for(let p=0;p<N&&p<=upTo;p++){g.fillStyle=col;g.beginPath();g.arc(X(p),Y(f(p*freq)),4,0,7);g.fill()}
+  });
+  g.textAlign='center';g.fillStyle=ink;
+  for(let p=0;p<N;p++){const t=S.labels[p];g.fillText(t.length>6?t.slice(0,5)+'…':t,X(p),T+ph+16);g.fillStyle=muted;g.fillText('pos '+p,X(p),T+ph+30);g.fillStyle=ink}
+  const wl=2*Math.PI/freq;
+  $('#peDimLbl').innerHTML=`<span style="color:var(--accent)">● sin dim ${2*k}</span> &nbsp;<span style="color:var(--h1)">● cos dim ${2*k+1}</span> &nbsp;· wavelength ≈ ${wl<100?wl.toFixed(1):Math.round(wl).toLocaleString()} positions`;
+}
+function render2(){
+  const mx=Math.max(maxAbs(S.E),maxAbs(S.X0));
+  $('#peTrio').innerHTML=
+    `<div class="mblock"><div class="mhead"><span class="label">Embedding</span></div>${matHTML(S.E,S.labels,{mx})}</div><span class="op">+</span>`+
+    `<div class="mblock" id="peBlock"><div class="mhead"><span class="label">Position</span></div>${matHTML(S.PE,S.labels.map((_,i)=>'pos '+i),{mx})}</div><span class="op">=</span>`+
+    `<div class="mblock"><div class="mhead"><span class="label">Decoder input</span></div>${matHTML(S.X0,S.labels,{mx})}</div>`;
+  drawPE();
+}
+async function play2(){
+  const pe=$$('#peBlock .mrow'),outRows=$$('#peTrio .mblock:last-child .mrow');
+  pe.forEach(r=>r.classList.add('pre'));outRows.forEach(r=>r.classList.add('pre'));
+  const start=performance.now(),dur=RM?0:1400;
+  await new Promise(res=>{const f=t=>{peProg=dur?Math.min(1,(t-start)/dur):1;drawPE();peProg<1?requestAnimationFrame(f):res()};requestAnimationFrame(f)});
+  await stagger(pe,90);
+  await stagger(outRows,90);
+}
+
+/* ================= STEP 3 ================= */
+const STAGE_NOTES=[
+  q=>`<b>Scores.</b> Each cell is the dot product of a query (row) and a key (column), divided by √4 = 2. Higher means “this key answers my question”. Orange is positive, teal is negative.`,
+  q=>`<b>Mask.</b> Everything above the diagonal is a future token. It is set to −∞ so it can never be seen. “${esc(S.labels[0])}” can only see itself; “${esc(S.labels[S.N-1])}” sees the whole prompt.`,
+  q=>`<b>Softmax.</b> Each row is turned into percentages that add up to 100%. Masked cells become exactly 0%. Row “${esc(S.labels[q])}” now says how much attention it pays to each earlier token.`,
+  q=>`<b>Mix.</b> The new vector for “${esc(S.labels[q])}” is a blend of the value vectors of the tokens it attends to, weighted by those percentages. Information has moved between words.`
+];
+function render3(){
+  $('#headTabs').innerHTML=HEADS.map((h,i)=>`<button type="button" class="btn" data-h="${i}" aria-pressed="${i===S.head}"><i style="background:var(--h${i})"></i>${i+1}. ${h.name}</button>`).join('');
+  const h=S.heads[S.head];
+  const qmx=Math.max(maxAbs(h.q),maxAbs(h.k));
+  $('#qkMats').innerHTML=`<div class="mblock"><div class="mhead"><span class="label">Queries Q</span></div>${matHTML(h.q,S.labels,{mx:qmx,big:true})}</div><div class="mblock"><div class="mhead"><span class="label">Keys K</span></div>${matHTML(h.k,S.labels,{mx:qmx,big:true})}</div>`;
+  const N=S.N,g=$('#scoreGrid');
+  g.style.gridTemplateColumns=`64px repeat(${N}, minmax(40px, 52px))`;
+  let html='<span></span>'+S.labels.map(l=>`<span class="hd" title="${esc(l)}">${esc(l)}</span>`).join('');
+  for(let i=0;i<N;i++){html+=`<span class="rh${i===S.q?' q':''}" data-q="${i}">${esc(S.labels[i])}</span>`;for(let j=0;j<N;j++)html+=`<span class="sc" data-i="${i}" data-j="${j}"></span>`}
+  g.innerHTML=html;
+  applyStage(false);
+}
+function applyStage(animate=true){
+  const h=S.heads[S.head],mx=maxAbs(h.raw.map((r,i)=>r.filter((_,j)=>j<=i))),st=S.stage;
+  $$('#stageBar .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.stage===st));
+  $$('#scoreGrid .sc').forEach(el=>{
+    const i=+el.dataset.i,j=+el.dataset.j,raw=h.raw[i][j],p=h.P[i][j],fut=j>i;
+    el.classList.toggle('qrow',i===S.q);
+    el.style.transitionDelay=animate&&st===2?(j*40+i*25)+'ms':'0ms';
+    el.style.animationDelay=animate&&st===1&&fut?((j-i)*70+i*30)+'ms':'0ms';
+    if(st===0||(st===1&&!fut)){
+      el.classList.remove('m');el.textContent=raw.toFixed(1);
+      const t=Math.abs(raw)/mx;el.style.background=divColor(raw,mx);el.style.color=t>.62?'var(--on-strong)':'var(--ink)';
+      el.dataset.tip=`${S.labels[i]} · ${S.labels[j]}: score ${raw.toFixed(2)}`;
+    } else if(fut){
+      el.classList.add('m');el.textContent=st===1?'−∞':'0%';el.style.background='';el.dataset.tip=`${S.labels[j]} is in the future of ${S.labels[i]}: masked`;
+    } else {
+      el.classList.remove('m');el.textContent=Math.round(p*100)+'%';el.style.background=attColor(p,`--h${S.head}`);el.style.color=p>.55?'var(--on-strong)':'var(--ink)';
+      el.dataset.tip=`${S.labels[i]} → ${S.labels[j]}: ${(p*100).toFixed(1)}% attention`;
+    }
+  });
+  $$('#scoreGrid .rh').forEach(r=>r.classList.toggle('q',+r.dataset.q===S.q));
+  $('#stageNote').innerHTML=STAGE_NOTES[st](S.q);
+  renderArcs();renderMix();
+}
+function renderArcs(){
+  const h=S.heads[S.head],N=S.N,i=S.q,step=86,W=Math.max(N*step,320),base=150,svg=$('#arcSvg');
+  svg.setAttribute('viewBox',`0 0 ${W} 200`);svg.style.width=W+'px';svg.style.maxWidth='none';svg.style.height='200px';
+  const off=(W-N*step)/2,x=k=>off+step*(k+.5),col=`var(--h${S.head})`,showP=S.stage>=2;
+  let s='';
+  for(let j=0;j<=i;j++){
+    const p=showP?h.P[i][j]:1/(i+1);
+    if(j===i){s+=`<path d="M${x(i)-12},${base-18} C${x(i)-22},${base-66} ${x(i)+22},${base-66} ${x(i)+12},${base-18}" fill="none" stroke="${col}" stroke-width="${1+p*10}" stroke-opacity="${.2+.8*p}" stroke-linecap="round"/>`;continue}
+    const hgt=Math.min(125,28+(i-j)*step*.38);
+    s+=`<path d="M${x(i)},${base-18} C${x(i)},${base-18-hgt} ${x(j)},${base-18-hgt} ${x(j)},${base-18}" fill="none" stroke="${col}" stroke-width="${1+p*10}" stroke-opacity="${.2+.8*p}" stroke-linecap="round"/>`;
+  }
+  for(let k=0;k<N;k++){
+    const fut=k>i,sel=k===i,lab=S.labels[k].length>9?S.labels[k].slice(0,8)+'…':S.labels[k];
+    s+=`<g data-q="${k}" style="cursor:pointer" opacity="${fut?.35:1}"><rect x="${x(k)-38}" y="${base-16}" width="76" height="28" rx="8" fill="${sel?'var(--accent-weak)':'var(--surface)'}" stroke="${sel?'var(--accent)':'var(--line)'}"/><text x="${x(k)}" y="${base+3}" text-anchor="middle" font-size="13" fill="var(--ink)">${esc(lab)}</text>`;
+    s+=`<text x="${x(k)}" y="${base+34}" text-anchor="middle" font-size="12" fill="${fut?'var(--muted)':'var(--ink)'}">${fut?'masked':showP?Math.round(h.P[i][k]*100)+'%':'?'}</text></g>`;
+  }
+  svg.innerHTML=s;
+  $('#arcLbl').textContent=showP?`Where “${S.labels[i]}” looks (line thickness = attention weight). Click any token.`:`“${S.labels[i]}” can look at ${i+1} token${i?'s':''}. Weights appear after the softmax stage.`;
+}
+function renderMix(){
+  const h=S.heads[S.head],i=S.q,wrap=$('#mixWrap');
+  wrap.hidden=S.stage<3;if(S.stage<3)return;
+  const mx=maxAbs(h.v);
+  let s='';
+  for(let j=0;j<=i;j++)s+=`<div class="mr"><span class="w">${(h.P[i][j]*100).toFixed(0)}% ×</span><span class="rl">${esc(S.labels[j])}</span>${stripHTML(h.v[j],mx,S.labels[j]+' value · ')}</div>`;
+  s+=`<div class="mr sum"><span class="w">=</span><span class="rl" style="color:var(--accent)">${esc(S.labels[i])}′</span>${stripHTML(h.out[i],mx,'output · ')}</div>`;
+  $('#mixViz').innerHTML=s;
+}
+let play3Run=0;
+async function play3(){
+  const run=++play3Run;
+  for(let st=0;st<4;st++){if(run!==play3Run)return;S.stage=st;applyStage(true);await sleep(st===0?1500:2100)}
+}
+
+/* ================= STEP 4 ================= */
+function barsSVG(v,mx,flat){
+  const w=16*24,h=80,mid=h/2,sc=(mid-4)/mx;
+  return `<svg viewBox="0 0 ${w} ${h}" class="${flat?'flat':''}" preserveAspectRatio="none"><line x1="0" x2="${w}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${v.map((x,j)=>{const bh=Math.max(1,Math.abs(x)*sc);return `<rect class="b" x="${j*24+3}" y="${x>=0?mid-bh:mid}" width="18" height="${bh}" rx="2" fill="var(${x>=0?'--pos':'--neg'})" style="transform-origin:${x>=0?'bottom':'top'}"><title>dim ${j}: ${x.toFixed(3)}</title></rect>`}).join('')}</svg>`;
+}
+function barRow(label,sub,v,mx,op=''){
+  return `<div class="barrow a"><div class="bl">${op?`<span class="muted mono">${op}</span> `:''}${label}<small>${sub}</small></div>${barsSVG(v,mx)}<div class="stats">mean ${fmt(mean(v))}<br>std&nbsp; ${std(v).toFixed(2)}</div></div>`;
+}
+function render4(){
+  tokPicker($('#s4Tok'),()=>{render4();render6();play4()});
+  const i=S.sel,mx=Math.max(...[S.X0[i],S.A[i],S.R1[i],S.X1[i]].flat().map(Math.abs));
+  $('#s4Bars').innerHTML=
+    barRow('Input x','embedding + position',S.X0[i],mx)+
+    barRow('Attention output','from steps 3 and 5',S.A[i],mx,'+')+
+    barRow('Residual sum','x + Attention(x)',S.R1[i],mx,'=')+
+    barRow('After LayerNorm','mean 0, std 1',S.X1[i],mx,'→');
+}
+async function play4(){
+  const rows=$$('#s4Bars .barrow');
+  rows.forEach(r=>{r.classList.add('pre');r.querySelector('svg').classList.add('flat')});
+  for(const r of rows){void r.offsetWidth;r.classList.remove('pre');await sleep(120);r.querySelector('svg').classList.remove('flat');await sleep(650)}
+}
+
+/* ================= STEP 5 ================= */
+function render5(){
+  const N=S.N;
+  $('#headsGrid').innerHTML=S.heads.map((h,hi)=>`<div class="head-card"><h3><i style="background:var(--h${hi})"></i>${HEADS[hi].name}</h3><p>${HEADS[hi].desc}</p><div class="hm" style="grid-template-columns:repeat(${N},1fr)">${h.P.map((r,i)=>r.map((p,j)=>`<span class="a" style="background:${j>i?'var(--surface-2)':attColor(p,`--h${hi}`)}" data-tip="${esc(S.labels[i])} → ${esc(S.labels[j])}: ${j>i?'masked':(p*100).toFixed(0)+'%'}"></span>`).join('')).join('')}</div></div>`).join('');
+  const mxC=maxAbs(S.concat),mxA=maxAbs(S.A);
+  $('#concatViz').innerHTML=`<div class="mblock"><div class="mhead"><span class="label">Concatenated heads</span><span class="dim">4 × 4 = 16</span></div>${matHTML(S.concat,S.labels,{mx:mxC,big:true,groups:true})}</div><span class="op">×W<sub style="font-size:.5em">O</sub></span><div class="mblock" id="aBlock"><div class="mhead"><span class="label">Attention output</span><span class="dim">goes to Add &amp; Norm</span></div>${matHTML(S.A,S.labels,{mx:mxA,big:true})}</div>`;
+}
+async function play5(){
+  const cards=$$('#headsGrid .head-card');
+  const cells=cards.map(c=>[...c.querySelectorAll('.hm span')]);
+  cells.flat().forEach(c=>c.classList.add('pre'));
+  const concatRows=$$('#concatViz .mblock:first-child .mrow'),aRows=$$('#aBlock .mrow');
+  [...concatRows,...aRows].forEach(r=>r.classList.add('pre'));
+  void document.body.offsetWidth;
+  const N=S.N;
+  for(let i=0;i<N;i++){cells.forEach(cs=>cs.slice(i*N,i*N+N).forEach(c=>c.classList.remove('pre')));await sleep(110)}
+  await stagger(concatRows,90);
+  await stagger(aRows,90);
+}
+
+/* ================= STEP 6 ================= */
+function render6(){
+  tokPicker($('#s6Tok'),()=>{render4();render6();play6()});
+  const i=S.sel,x=S.X1[i],hA=S.Hact[i],out=S.F[i];
+  const inX=k=>100+k*(480/15),hX=m=>18+m*(644/63),yI=34,yH=135,yO=236;
+  const mxIn=maxAbs([x]),mxOut=maxAbs([out]),mxH=Math.max(1e-6,...hA);
+  const top=hA.map((v,m)=>[v,m]).sort((a,b)=>b[0]-a[0]).slice(0,10).map(o=>o[1]);
+  const mxW1=maxAbs(W1),mxW2=maxAbs(W2);
+  let l1='',l2='';
+  for(const m of top){
+    for(let k=0;k<D;k++){const w=W1[k][m];l1+=`<line x1="${inX(k)}" y1="${yI+7}" x2="${hX(m)}" y2="${yH-4}" stroke="var(${w>=0?'--pos':'--neg'})" stroke-opacity="${(Math.abs(w)/mxW1*.55).toFixed(2)}" stroke-width="1"/>`}
+    for(let k=0;k<D;k++){const w=W2[m][k];l2+=`<line x1="${hX(m)}" y1="${yH+4}" x2="${inX(k)}" y2="${yO-7}" stroke="var(${w>=0?'--pos':'--neg'})" stroke-opacity="${(Math.abs(w)/mxW2*.55).toFixed(2)}" stroke-width="1"/>`}
+  }
+  const nodes=(arr,X,y,r,col)=>arr.map((v,k)=>`<circle cx="${X(k)}" cy="${y}" r="${r}" fill="${col(v)}" stroke="var(--line)" stroke-width=".8"><title>${v.toFixed(3)}</title></circle>`).join('');
+  $('#mlpNet').innerHTML=
+    `<text x="0" y="${yI+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">in 16</text>`+
+    `<text x="0" y="${yH-14}" font-size="11" fill="var(--muted)" font-family="var(--mono)">hidden 64</text>`+
+    `<text x="0" y="${yO+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">out 16</text>`+
+    `<g class="a" id="mlpL1">${l1}</g><g class="a" id="mlpL2">${l2}</g>`+
+    `<g class="a" id="mlpIn">${nodes(x,inX,yI,7,v=>divColor(v,mxIn))}</g>`+
+    `<g class="a" id="mlpH">${nodes(hA,hX,yH,4.2,v=>v>0?attColor(v/mxH):'var(--cell)')}</g>`+
+    `<g class="a" id="mlpOut">${nodes(out,inX,yO,7,v=>divColor(v,mxOut))}</g>`+
+    `<text x="680" y="262" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--mono)">lines: weights into and out of the 10 most active neurons</text>`;
+  const mx=Math.max(...[S.X1[i],S.F[i],S.R2[i],S.X2[i]].flat().map(Math.abs));
+  const row=(op,l,v,tip)=>`<div class="mr a" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="mono muted" style="width:16px">${op}</span><span style="width:190px;font-size:14px">${l}</span>${stripHTML(v,mx,tip)}</div>`;
+  $('#s6Rows').innerHTML=`<span class="label">Second Add &amp; Norm for “${esc(S.labels[i])}”</span>`+
+    row('','Input to MLP (x₁)',S.X1[i],'x₁ · ')+row('+','MLP output',S.F[i],'MLP · ')+row('=','Residual sum',S.R2[i],'sum · ')+row('→','LayerNorm: block output',S.X2[i],'out · ');
+  // GELU chart
+  const gx=v=>20+(v+3)/6*170,gy=v=>100-(v+.4)/3.4*90;
+  let p='';for(let s=0;s<=60;s++){const v=-3+s/10;p+=(s?'L':'M')+gx(v).toFixed(1)+','+gy(gelu(v)).toFixed(1)}
+  $('#geluSvg').innerHTML=`<line x1="20" x2="190" y1="${gy(0)}" y2="${gy(0)}" stroke="var(--line)"/><line x1="${gx(0)}" x2="${gx(0)}" y1="6" y2="112" stroke="var(--line)"/><path d="M${gx(-3)},${gy(0)} L${gx(0)},${gy(0)} L${gx(3)},${gy(3)}" stroke="var(--muted)" stroke-dasharray="3 3" fill="none"/><path d="${p}" stroke="var(--accent)" stroke-width="2.4" fill="none"/><text x="${gx(3)}" y="${gy(3)+14}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">ReLU (dashed)</text><text x="22" y="124" font-size="10" fill="var(--muted)" font-family="var(--mono)">−3</text><text x="190" y="124" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--mono)">+3</text>`;
+}
+async function play6(){
+  const seq=['#mlpIn','#mlpL1','#mlpH','#mlpL2','#mlpOut'].map(s=>$(s));
+  const rows=$$('#s6Rows .mr');
+  seq.forEach(g=>g.classList.add('pre'));rows.forEach(r=>r.classList.add('pre'));
+  void document.body.offsetWidth;
+  for(const g of seq){g.classList.remove('pre');await sleep(420)}
+  await stagger(rows,200);
+}
+
+/* ================= STEP 7 ================= */
+function render7(){
+  const last=S.N-1,v=S.X2[last];
+  $('#finalLbl').textContent=`Final vector of the last token, “${S.labels[last]}”`;
+  $('#finalVec').innerHTML=v.map((x,j)=>`<i class="c" style="width:22px;height:22px;background:${divColor(x,maxAbs([v]))}" data-tip="dim ${j}: ${x.toFixed(3)}"></i>`).join('');
+  const dist=probsAt(S.logits,S.T);
+  const byLogit=[...dist].sort((a,b)=>b.l-a.l).slice(0,10);
+  const lmx=Math.max(...byLogit.map(o=>Math.abs(o.l)),1),neg=Math.min(0,...byLogit.map(o=>o.l));
+  const zero=(-neg)/(lmx-neg)*100;
+  $('#logitBars').innerHTML=byLogit.map((o,i)=>{const w=Math.abs(o.l)/(lmx-neg)*100;return `<div class="hb${i===0?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:${o.l>=0?zero:zero-w}%;width:${w}%;background:var(${o.l>=0?'--pos':'--neg'})"></span>${neg<0?`<span class="axis0" style="left:${zero}%"></span>`:''}</span><span class="v">${o.l.toFixed(2)}</span></div>`}).join('');
+  const byP=[...dist].sort((a,b)=>b.p-a.p).slice(0,10);
+  $('#probBars').innerHTML=byP.map((o,i)=>`<div class="hb${i===0?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:0;width:${(o.p*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.p*100).toFixed(1)}%</span></div>`).join('');
+  const top10=byP.reduce((a,b)=>a+b.p,0);
+  $('#probSum').textContent=`These 10 hold ${(top10*100).toFixed(1)}% of the probability; the other 30 words share the remaining ${((1-top10)*100).toFixed(1)}%. Total = 100%.`;
+  $('#tempLbl').textContent=`T = ${S.T.toFixed(2)}`;
+}
+async function play7(){
+  const fills=$$('#logitBars .fill, #probBars .fill');
+  const saved=fills.map(f=>f.style.width);
+  fills.forEach(f=>f.style.width='0%');
+  await stagger($$('#finalVec .c'),30);
+  void document.body.offsetWidth;
+  $$('#logitBars .fill').forEach((f,i)=>setTimeout(()=>f.style.width=saved[i],RM?0:i*60));
+  await sleep(900);
+  const n=$$('#logitBars .fill').length;
+  $$('#probBars .fill').forEach((f,i)=>setTimeout(()=>f.style.width=saved[n+i],RM?0:i*60));
+}
+
+/* ================= STEP 8 ================= */
+let pickState=null;
+function render8(){
+  pickState=null;$('#acceptBtn').disabled=true;
+  const dist=probsAt(S.logits,S.T).sort((a,b)=>b.p-a.p).slice(0,6);
+  $('#candList').innerHTML=dist.map((o,i)=>`<div class="cand${S.mode==='sample'&&i>=5?' out':''}" data-w="${esc(o.w)}"><span class="rank">${i+1}</span><span>${esc(o.w)}</span><span class="bar" style="width:${Math.max(2,o.p/dist[0].p*100)}%"></span><span class="p">${(o.p*100).toFixed(1)}%</span></div>`).join('');
+  $('#s8Sentence').innerHTML=`${esc(joinWords(S.toks.map(t=>t.text)))} <span class="ghost">?</span>`;
+  $$('#modeSeg .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
+  $('#s8Note').textContent=S.mode==='greedy'?`Greedy always picks rank 1. Temperature (T = ${S.T.toFixed(2)}) changes the percentages but not the order.`:`Sampling draws from the top 5 in proportion to their probability (T = ${S.T.toFixed(2)}). Rank 6 and below are never picked.`;
+  const hw=probsAt(S.logits,S.T).sort((a,b)=>b.p-a.p)[0];
+  $('#heroOut').textContent=`“${hw.w}”  ${(hw.p*100).toFixed(0)}%`;
+}
+async function play8(){
+  const cands=$$('#candList .cand');
+  cands.forEach(c=>c.classList.remove('hot','win'));
+  const dist=probsAt(S.logits,S.T);
+  const pick=choose(dist,S.mode);
+  const pool=S.mode==='greedy'?cands.slice(0,3):cands.slice(0,5);
+  const hops=RM?0:10;
+  for(let h=0;h<hops;h++){const c=pool[h%pool.length];c.classList.add('hot');await sleep(70+h*18);c.classList.remove('hot')}
+  const win=cands.find(c=>c.dataset.w===pick.w);if(win)win.classList.add('win');
+  const prev=S.keys[S.keys.length-1];
+  const word=displayWord(pick.w,prev);
+  $('#s8Sentence').innerHTML=`${esc(joinWords(S.toks.map(t=>t.text)))}${PUNCT.has(word)?'':' '}<span class="new">${esc(word)}</span>`;
+  pickState=word;$('#acceptBtn').disabled=false;
+}
+
+/* ================= STEP 9 ================= */
+const PIPE=['Tokenize','Positions','Masked attention','Add & Norm','Heads','MLP','Softmax','Pick','Append'];
+const MAXGEN=16;
+const gen={keys:[],words:[],newCount:0,running:false,busy:false,run:0};
+function resetGen(){
+  gen.run++;gen.running=false;gen.busy=false;
+  gen.keys=S.keys.slice();gen.promptWords=S.toks.map(t=>t.text);gen.words=[];gen.newCount=0;gen.lastNew=-1;
+  $('#loopPipe').innerHTML=PIPE.map((p,i)=>`<span data-i="${i}">${i+1} · ${p}</span>`).join('');
+  $('#genTop').innerHTML='';$('#genStatus').textContent=`Press Generate to run the loop from “${joinWords(gen.promptWords)}”.`;
+  setPlayLabel();renderGenText();renderTri();
+}
+function renderGenText(){
+  const all=[...gen.promptWords,...gen.words];
+  let html='';
+  all.forEach((w,i)=>{
+    const isP=i<gen.promptWords.length,sp=i===0||PUNCT.has(w)||w.startsWith('##')?'':' ';
+    const txt=w.startsWith('##')?w.slice(2):w;
+    html+=sp+`<span class="${isP?'pr':'g'}${i===gen.promptWords.length+gen.lastNew?' new':''}">${esc(txt)}</span>`;
+  });
+  $('#genText').innerHTML=html+'<span class="caret"></span>';
+}
+function renderTri(){
+  const all=gen.promptWords.length+gen.words.length,n=Math.min(all,24),el=$('#genTri');
+  el.style.gridTemplateColumns=`repeat(${n},1fr)`;el.style.maxWidth=Math.min(240,n*20)+'px';
+  let s='';for(let i=0;i<n;i++)for(let j=0;j<n;j++)s+=`<span class="${j<=i?(i===n-1&&gen.words.length?'nw':'on'):''}"></span>`;
+  el.innerHTML=s;
+}
+function setPlayLabel(){$('#genPlay').innerHTML=gen.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Generate'}
+async function genStep(){
+  if(gen.busy)return false;
+  if(gen.newCount>=MAXGEN){$('#genStatus').textContent=`Stopped after ${MAXGEN} new tokens. Real models stop at an end-of-text token or a length limit.`;return false}
+  gen.busy=true;const run=gen.run;
+  const speed=+$('#genSpeed').value,pipes=$$('#loopPipe span');
+  pipes.forEach(p=>p.classList.remove('lit','done'));
+  for(let k=0;k<pipes.length-1;k++){if(run!==gen.run)return false;pipes[k].classList.add('lit');await sleep(speed/9);pipes[k].classList.remove('lit');pipes[k].classList.add('done')}
+  if(run!==gen.run)return false;
+  const dist=probsAt(lmLogits(gen.keys),S.T);
+  const pick=choose(dist,S.mode);
+  const prev=gen.keys[gen.keys.length-1];
+  gen.keys.push(pick.w);gen.words.push(displayWord(pick.w,prev));gen.lastNew=gen.newCount;gen.newCount++;
+  pipes[8].classList.add('lit');
+  renderGenText();renderTri();
+  const top=[...dist].sort((a,b)=>b.p-a.p).slice(0,4);
+  $('#genTop').innerHTML=top.map(o=>`<div class="hb${o.w===pick.w?' top':''}"><span class="w">${esc(o.w)}</span><span class="track"><span class="fill" style="left:0;width:${(o.p*100).toFixed(1)}%;background:var(--accent)"></span></span><span class="v">${(o.p*100).toFixed(1)}%</span></div>`).join('');
+  $('#genStatus').textContent=`Step ${gen.newCount}: context was ${gen.keys.length-1} tokens → picked “${pick.w}” (${(pick.p*100).toFixed(1)}%, ${S.mode==='greedy'?'greedy':'sampled'}).`;
+  await sleep(speed/9);pipes[8].classList.remove('lit');pipes[8].classList.add('done');
+  gen.busy=false;return true;
+}
+async function genLoop(){
+  const run=gen.run;
+  while(gen.running&&run===gen.run){const ok=await genStep();if(!ok){gen.running=false;setPlayLabel();break}await sleep(250)}
+}
+
+/* ================= render all ================= */
+function renderAll(){
+  compute();
+  const p=joinWords(S.toks.map(t=>t.text));
+  $('#heroPrompt').textContent=`“${p}”`;
+  $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
+  render1();render2();render3();render4();render5();render6();render7();render8();resetGen();
+}
+const PLAY={s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:play6,s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+
+/* ================= events ================= */
+let deb;
+$('#prompt').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(renderAll,250)});
+$$('.play').forEach(b=>b.addEventListener('click',()=>PLAY[b.dataset.play]()));
+$('#headTabs').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;S.head=+b.dataset.h;render3()});
+$('#stageBar').addEventListener('click',e=>{const b=e.target.closest('[data-stage]');if(!b)return;play3Run++;S.stage=+b.dataset.stage;applyStage(true)});
+$('#scoreGrid').addEventListener('click',e=>{const c=e.target.closest('[data-i],[data-q]');if(!c)return;S.q=+(c.dataset.q??c.dataset.i);applyStage(false)});
+$('#arcSvg').addEventListener('click',e=>{const g=e.target.closest('[data-q]');if(!g)return;S.q=+g.dataset.q;applyStage(false)});
+$('#peDim').addEventListener('input',()=>{peProg=1;drawPE()});
+$('#temp').addEventListener('input',e=>{S.T=+e.target.value;render7();render8()});
+$('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.mode=b.dataset.mode;render8()});
+$('#pickBtn').addEventListener('click',play8);
+$('#acceptBtn').addEventListener('click',()=>{
+  if(!pickState)return;const inp=$('#prompt');
+  inp.value=inp.value.replace(/\s+$/,'')+(PUNCT.has(pickState)?'':' ')+pickState;
+  const w=pickState;renderAll();toast(`Added “${w}”. Every step now uses the longer input.`);
+});
+$('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.newCount>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
+$('#genStep').addEventListener('click',()=>{gen.running=false;setPlayLabel();genStep()});
+$('#genReset').addEventListener('click',resetGen);
+addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(drawPE,100)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(drawPE,50));
+new MutationObserver(()=>setTimeout(drawPE,50)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* tooltips */
+const tip=$('#tip');
+document.addEventListener('pointerover',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.classList.remove('show');return}tip.textContent=t.dataset.tip;tip.classList.add('show')});
+document.addEventListener('pointermove',e=>{if(!tip.classList.contains('show'))return;const w=tip.offsetWidth;let x=e.clientX+14;if(x+w>innerWidth-8)x=e.clientX-w-14;tip.style.left=Math.max(8,x)+'px';tip.style.top=(e.clientY+16)+'px'});
+
+/* ================= navigation: rail, jump, diagram ================= */
+const SECS=$$('main>section');
+const rail=$('.rail'),jump=$('#jump');
+SECS.forEach((s,i)=>{
+  const a=document.createElement('a');a.href='#'+s.id;a.dataset.s=s.id;a.innerHTML=`<b>${i?i:'·'}</b><span>${s.dataset.name}</span>`;rail.appendChild(a);
+  const o=document.createElement('option');o.value=s.id;o.textContent=(i?i+'. ':'')+s.dataset.name;jump.appendChild(o);
+});
+jump.addEventListener('change',()=>{if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===jump.value));else $('#'+jump.value).scrollIntoView({behavior:RM?'auto':'smooth'})});
+$$('.arch .box').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.go;if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===id));else $('#'+id).scrollIntoView({behavior:RM?'auto':'smooth'})}));
+function markActive(id){
+  $$('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.s===id));
+  $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  jump.value=id;
+}
+const played=new Set();
+const io=new IntersectionObserver(ents=>{
+  ents.forEach(en=>{
+    if(!en.isIntersecting||document.body.classList.contains('present'))return;
+    markActive(en.target.id);
+    const id=en.target.id;
+    if(!played.has(id)&&PLAY[id]&&id!=='s9'){played.add(id);PLAY[id]()}
+  });
+},{rootMargin:'-35% 0px -55% 0px'});
+SECS.forEach(s=>io.observe(s));
+
+/* ================= present mode ================= */
+let cur=0;
+function goSlide(i){
+  cur=Math.max(0,Math.min(SECS.length-1,i));
+  SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
+  const s=SECS[cur];
+  $('#deckPos').textContent=cur?`Step ${cur} of 9 · ${s.dataset.name}`:'Overview';
+  $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
+  $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
+  markActive(s.id);
+  window.scrollTo({top:0});
+  if(s.id==='s2')setTimeout(drawPE,30);
+  if(PLAY[s.id]&&s.id!=='s9')setTimeout(()=>PLAY[s.id](),350);
+}
+function enterPresent(){
+  document.body.classList.add('present');
+  try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch(e){}
+  const vis=SECS.findIndex(s=>s.getBoundingClientRect().bottom>120);
+  goSlide(vis<0?0:vis);
+}
+function exitPresent(){
+  document.body.classList.remove('present');SECS.forEach(s=>s.classList.remove('cur'));
+  try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}
+  SECS[cur].scrollIntoView();setTimeout(drawPE,30);
+}
+$('#presentBtn').addEventListener('click',()=>document.body.classList.contains('present')?exitPresent():enterPresent());
+$('#heroPresent').addEventListener('click',()=>{enterPresent();goSlide(0)});
+$('#deckPrev').addEventListener('click',()=>goSlide(cur-1));
+$('#deckNext').addEventListener('click',()=>goSlide(cur+1));
+$('#deckExit').addEventListener('click',exitPresent);
+$('#deckPlay').addEventListener('click',()=>{const id=SECS[cur].id;PLAY[id]?.()});
+document.addEventListener('keydown',e=>{
+  if(!document.body.classList.contains('present'))return;
+  if(e.target.matches('input,select,textarea'))return;
+  if(['ArrowRight','PageDown'].includes(e.key)){e.preventDefault();goSlide(cur+1)}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();goSlide(cur-1)}
+  else if(e.key==='Escape')exitPresent();
+  else if(e.key==='p'||e.key==='P'){PLAY[SECS[cur].id]?.()}
+});
+
+renderAll();
+markActive('intro');
+})();
+</script>
+</body>
+</html>
