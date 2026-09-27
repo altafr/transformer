@@ -405,6 +405,23 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .ctxbar{display:grid;gap:6px;margin-top:6px}
 .ctxtrack{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
 .ctxtrack i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+.cmp{display:grid;grid-template-columns:auto auto auto;gap:6px 10px;align-items:start;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.cmp .col{display:grid;gap:2px}
+.cmp .wg,.cmp .orow{display:grid;grid-template-columns:repeat(16,16px);gap:2px}
+.cmp .c{width:16px;height:16px;transition:box-shadow .15s}
+.cmp .wg .c.hl{box-shadow:0 0 0 2px var(--ink)}
+.cmp .orow .c.hl{box-shadow:0 0 0 2px var(--accent)}
+.cmp .cap2{font-size:11px}
+.cmp .shared{color:var(--accent);font-weight:600}
+.blocks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.blk{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:start}
+.blk.me{border-color:var(--accent)}
+.blk.more{border-style:dashed;align-content:center;justify-items:center;text-align:center;color:var(--muted)}
+.blk h4{margin:0;font:600 14px var(--sans)}
+.blk p{margin:0;font-size:13px}
+.thumb{display:grid;grid-template-columns:repeat(16,1fr);gap:1px;width:100%;max-width:160px}
+.thumb i{aspect-ratio:1;border-radius:1px}
+@media (max-width:1000px){.blocks{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -773,8 +790,49 @@ body.present footer{display:none}
           <div class="scroll-x"><div class="row" id="qkvAll" style="flex-wrap:nowrap"></div></div>
         </div>
       </div>
+      <div class="viz" id="v3a2">
+        <div style="display:grid;gap:10px;max-width:760px">
+          <span class="label">Callout 1 · within one block</span>
+          <h3 class="subh">One W<sub>Q</sub> for every token and every position</h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">There is no separate W<sub>Q</sub> for “cat” and another for “mat”. Every token in the sentence goes through the <strong>same</strong> grid of numbers; only its own vector x differs, so each token ends up with its own query. Pick any two tokens below and compare: the W<sub>Q</sub> in the middle is shared, the x columns and the q rows are not.</p>
+        </div>
+        <div class="viz-bar">
+          <div class="left" style="gap:14px">
+            <label class="label" for="cmpA">Token A</label><select id="cmpA" class="btn"></select>
+            <label class="label" for="cmpB">Token B</label><select id="cmpB" class="btn"></select>
+          </div>
+        </div>
+        <div class="mm-wrap">
+          <div class="scroll-x"><div class="cmp" id="cmpGrid"></div></div>
+          <div style="display:grid;gap:10px;align-content:start;min-width:0">
+            <span class="label">Same column, different inputs</span>
+            <p class="calc" id="cmpCalc"></p>
+            <p class="note">Hover a column of W<sub>Q</sub> to see both sums. Tokens with similar vectors (for example two nouns) get similar queries, so anything the model learned for one word carries over to the others. And because every token uses the same W, all of them can be computed in one matrix multiply: Q = X · W<sub>Q</sub>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="viz" id="v3a3">
+        <div style="display:grid;gap:10px;max-width:760px">
+          <span class="label">Callout 2 · across blocks</span>
+          <h3 class="subh">Every block has its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub></h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">The sharing stops at the block boundary. Each decoder block (layer) learns its <strong>own</strong> three matrices, so block 1 and block 7 ask different kinds of questions. Early layers tend to pick up simple patterns such as neighbouring words and grammar; later layers build on them to track meaning across the sentence. The input x also changes from block to block: block 1 reads the embeddings, block 2 reads what block 1 produced, and so on. So the query for “cat” is different in every layer for two reasons: a different W and a different x.</p>
+        </div>
+        <div class="blocks" id="blkGrid"></div>
+        <div class="scroll-x"><table class="stack-table">
+          <thead><tr><th>Shared?</th><th>W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub></th></tr></thead>
+          <tbody>
+            <tr><td>Across tokens and positions in one block</td><td>Same matrices</td></tr>
+            <tr><td>Across heads in one block</td><td>One matrix, but each head uses its own slice of columns (step 5)</td></tr>
+            <tr><td>Across blocks (layers)</td><td>Different matrices, each learned separately</td></tr>
+            <tr><td>Across different prompts</td><td>Same matrices; they are fixed after training</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">GPT‑2 small has 12 blocks, each with its own 768 × 768 W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub>: 12 × 3 × 589,824 ≈ 21 million learned numbers just for these projections. A few models deliberately share one set of weights across all layers to save memory (ALBERT, 2019), but most do not.</p>
+      </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Point at one output cell: it is just x₀·W₀ⱼ + x₁·W₁ⱼ + … + x₁₅·W₁₅ⱼ. Sixteen multiplies and a sum.</li>
+        <li>Callout 1: pick “cat” and “mat” (or any two tokens). Same W<sub>Q</sub> grid, different x, different q. One rule for all words is why what the model learns about one word carries over to others, and why the model’s size does not depend on sentence length.</li>
+        <li>Callout 2: within a block the matrices are shared; between blocks they are not. Block 1’s W<sub>Q</sub> and block 2’s W<sub>Q</sub> are learned separately and ask different questions.</li>
         <li>Why three different matrices? Because what a word is looking for (query) differs from how it should be found (key) and from what it should pass on (value). Training discovers useful versions of all three.</li>
         <li>In this demo W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> are fixed random numbers. In GPT‑2 small each is 768 × 768 = 589,824 learned numbers, in each of 12 layers.</li>
       </ul></details>
@@ -1633,7 +1691,7 @@ function trDraw(full){
 const WMAT={Q:()=>Wq,K:()=>Wk,V:()=>Wv};
 S.qkv='Q';
 function renderQKV(){
-  tokPicker($('#qkvTok'),()=>{render4();render6();renderQKV();playQKV()});
+  tokPicker($('#qkvTok'),()=>{render4();render6();renderQKV();renderBlocks();playQKV()});
   $$('#qkvSeg .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===S.qkv));
   const i=S.sel,x=S.X0[i],W=WMAT[S.qkv](),out=matmul([x],W)[0];
   const mxx=maxAbs([x]),mxw=maxAbs(W),mxo=maxAbs([out]),nm=S.qkv.toLowerCase();
@@ -1665,6 +1723,42 @@ async function playQKV(){
   for(let j=0;j<16;j++){if(run!==qkvRun)return;qkvCalc(j);cells[j].classList.remove('pre');await sleep(260)}
   await stagger($$('#qkvAll .mrow'),40);
 }
+
+/* ================= STEP 3a callouts: shared W within a block, new W per block ================= */
+S.cmpA=null;S.cmpB=null;
+function renderCmp(){
+  const N=S.N,opts=S.labels.map((l,i)=>`<option value="${i}">${i}: ${esc(l.trim()||l)}</option>`).join('');
+  if(S.cmpA===null||S.cmpA>=N)S.cmpA=Math.min(1,N-1);if(S.cmpB===null||S.cmpB>=N)S.cmpB=N-1;
+  $('#cmpA').innerHTML=opts;$('#cmpB').innerHTML=opts;$('#cmpA').value=S.cmpA;$('#cmpB').value=S.cmpB;
+  const xa=S.X0[S.cmpA],xb=S.X0[S.cmpB],qa=matmul([xa],Wq)[0],qb=matmul([xb],Wq)[0];
+  const mx=Math.max(maxAbs([xa]),maxAbs([xb])),mw=maxAbs(Wq),mq=Math.max(maxAbs([qa]),maxAbs([qb]));
+  const col=(v,lab)=>`<div class="col">${v.map((x,k)=>`<i class="c" style="background:${divColor(x,mx)}" data-tip="${esc(lab)} x[${k}] = ${x.toFixed(3)}"></i>`).join('')}</div>`;
+  const row=(q,lab)=>`<div class="orow">${q.map((x,j)=>`<i class="c" data-j="${j}" style="background:${divColor(x,mq)}" data-tip="${esc(lab)} q[${j}] = ${x.toFixed(3)}"></i>`).join('')}</div>`;
+  const la=S.labels[S.cmpA].trim(),lb=S.labels[S.cmpB].trim();
+  $('#cmpGrid').innerHTML=
+    `<span class="cap2">x “${esc(la)}”</span><span class="cap2 shared">W<sub>Q</sub> · shared by every token</span><span class="cap2">x “${esc(lb)}”</span>`+
+    col(xa,la)+`<div class="wg">${Wq.map((r,k)=>r.map((v,j)=>`<i class="c" data-j="${j}" style="background:${divColor(v,mw)}" data-tip="W_Q[${k}][${j}] = ${v.toFixed(3)}"></i>`).join('')).join('')}</div>`+col(xb,lb)+
+    `<span class="cap2" style="text-align:right">q “${esc(la)}”</span>${row(qa,la)}<span></span>`+
+    `<span class="cap2" style="text-align:right">q “${esc(lb)}”</span>${row(qb,lb)}<span></span>`;
+  cmpCalc(0,false);
+}
+function cmpCalc(j,hl=true){
+  const xa=S.X0[S.cmpA],xb=S.X0[S.cmpB],la=S.labels[S.cmpA].trim(),lb=S.labels[S.cmpB].trim();
+  $$('#cmpGrid .c.hl').forEach(c=>c.classList.remove('hl'));
+  if(hl)$$(`#cmpGrid [data-j="${j}"]`).forEach(c=>c.classList.add('hl'));
+  const sa=xa.reduce((s,v,k)=>s+v*Wq[k][j],0),sb=xb.reduce((s,v,k)=>s+v*Wq[k][j],0);
+  $('#cmpCalc').innerHTML=`Column ${j} of W<sub>Q</sub> is the <b>same 16 numbers</b> for both tokens.<br>q[${j}] for “${esc(la)}” = Σ x·W[·][${j}] = <b>${sa.toFixed(3)}</b><br>q[${j}] for “${esc(lb)}” = Σ x·W[·][${j}] = <b>${sb.toFixed(3)}</b><br><span class="muted">Different answers only because x is different.</span>`;
+}
+const BLK_W=[Wq,randMat(16,16,0.38,101),randMat(16,16,0.38,102)];
+function renderBlocks(){
+  const mw=maxAbs(Wq),x=S.X0[S.sel],lab=S.labels[S.sel].trim();
+  const thumb=W=>`<div class="thumb">${W.map(r=>r.map(v=>`<i style="background:${divColor(v,mw)}"></i>`).join('')).join('')}</div>`;
+  $('#blkGrid').innerHTML=BLK_W.map((W,b)=>`<div class="blk${b===0?' me':''}"><h4>Block ${b+1} <span class="muted">${b===0?'(computed on this page)':'(illustrative)'}</span></h4>${thumb(W)}<p>W<sub>Q</sub><sup>(${b+1})</sup>, and its own W<sub>K</sub><sup>(${b+1})</sup>, W<sub>V</sub><sup>(${b+1})</sup></p><p class="mono muted" style="font-size:12px">input: ${b===0?'embeddings + positions':'output of block '+b}</p></div>`).join('')+
+    `<div class="blk more"><h4>… up to block 12</h4><p>in GPT‑2 small; 96 in GPT‑3</p></div>`;
+}
+$('#cmpA').addEventListener('change',e=>{S.cmpA=+e.target.value;renderCmp()});
+$('#cmpB').addEventListener('change',e=>{S.cmpB=+e.target.value;renderCmp()});
+$('#cmpGrid').addEventListener('pointerover',e=>{const c=e.target.closest('[data-j]');if(c)cmpCalc(+c.dataset.j)});
 
 /* ================= STEP 3 ================= */
 const STAGE_NOTES=[
@@ -2126,7 +2220,7 @@ function renderAll(predDelay=800){
   const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
-  render1();render2();renderQKV();render3();render4();render5();render6();render7();render8();resetGen();renderMeta();
+  render1();render2();renderQKV();renderCmp();renderBlocks();render3();render4();render5();render6();render7();render8();resetGen();renderMeta();
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
