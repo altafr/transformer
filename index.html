@@ -422,6 +422,9 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .thumb{display:grid;grid-template-columns:repeat(16,1fr);gap:1px;width:100%;max-width:160px}
 .thumb i{aspect-ratio:1;border-radius:1px}
 @media (max-width:1000px){.blocks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.demo-frame{position:relative;width:100%;height:min(82vh,900px);min-height:520px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface-2)}
+.demo-frame iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+.demo-ph{position:absolute;inset:0;display:grid;place-content:center;gap:10px;text-align:center;padding:24px;max-width:560px;margin:auto}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -484,7 +487,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -1072,6 +1075,7 @@ body.present footer{display:none}
           <div style="display:grid;gap:8px"><span class="label">Causal mask grows each step</span><div class="tri" id="genTri"></div><p class="note">Newest row in orange. Every new token can see all earlier ones.</p></div>
         </div>
       </div>
+      <div style="margin-top:22px"><button class="btn primary" type="button" data-tabgo="demos">Now try a real GPT‑2: open the Demos tab →</button></div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Real systems cache each layer’s keys and values (the KV cache), so each new step only computes attention for the newest token instead of redoing the whole prompt.</li>
         <li>Each turn of the loop sends the full text so far to the model and gets back a fresh probability distribution for the next token. Nothing is scripted.</li>
@@ -1085,7 +1089,7 @@ body.present footer{display:none}
       <p><strong>The training demo.</strong> Step 0 really trains a tiny model in your browser by gradient descent: 2 numbers per word, a next-word output layer, and the sentences shown plus yours. Real models train a full transformer the same way.</p>
       <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
-      <p>Further reading: <a href="https://prvnsmpth.github.io/animated-transformer/" target="_blank" rel="noopener">The Animated Transformer</a> by Praveen Sampath (the “robots will bring” example and the image-search analogy come from there), and Andrej Karpathy’s <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">nanoGPT</a>, a compact GPT‑2 implementation in about 300 lines.</p>
+      <p>Further reading: <a href="https://prvnsmpth.github.io/animated-transformer/" target="_blank" rel="noopener">The Animated Transformer</a> by Praveen Sampath (the “robots will bring” example and the image-search analogy come from there), and the <a href="https://poloclub.github.io/transformer-explainer/" target="_blank" rel="noopener">Transformer Explainer</a> (Georgia Tech) for a live GPT‑2 you can poke at, and Andrej Karpathy’s <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">nanoGPT</a>, a compact GPT‑2 implementation in about 300 lines.</p>
     </footer>
   </main>
 </div>
@@ -1355,6 +1359,42 @@ body.present footer{display:none}
       </ul></details>
     </section>
 
+  </main>
+</div>
+
+<div class="shell" id="tabDemos" hidden>
+  <nav class="rail" aria-label="Demos">
+    <div class="cap">Hands-on with real models</div>
+  </nav>
+  <main>
+    <section id="d1" data-name="Transformer Explainer" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Demo 1 · real GPT‑2 in your browser</div>
+        <h2>Transformer Explainer</h2>
+        <p class="lede">An interactive tool from the <strong>Polo Club of Data Science at Georgia Tech</strong> that runs a real <strong>GPT‑2 small</strong> model live in the browser. Type your own text and watch it flow through embeddings, Q/K/V, masked attention, the MLP and the final softmax, with the real numbers of a trained model. Everything you learned in the decoder tab appears here at full scale: 768 numbers per token, 12 heads, 12 blocks.</p>
+        <div class="key"><b>Things to try during the demo</b>Type “The cat sat on the” and compare its predictions with our decoder tab. Change the temperature slider and watch the probabilities sharpen or flatten (step 7). Click into an attention block to see the masked Q·Kᵀ matrix (step 3b).</div>
+      </div>
+      <div class="viz demo-wrap">
+        <div class="viz-bar">
+          <span class="label">poloclub.github.io/transformer-explainer</span>
+          <div class="left">
+            <button class="btn primary" id="demoLoad" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Load the live demo</button>
+            <a class="btn" href="https://poloclub.github.io/transformer-explainer/" target="_blank" rel="noopener">Open in a new tab ↗</a>
+          </div>
+        </div>
+        <div class="demo-frame" id="demoFrame">
+          <div class="demo-ph" id="demoPh">
+            <p><strong>The demo is not loaded yet.</strong> It downloads a GPT‑2 model the first time, which can take a minute on a slow connection.</p>
+            <p class="note">Press “Load the live demo” to show it here, or open it in its own tab for the full screen.</p>
+          </div>
+        </div>
+        <p class="note">Transformer Explainer is made by Aeree Cho, Grace C. Kim, Alexander Karpekov and colleagues at Georgia Tech. It is embedded unchanged from its public site. If the frame stays blank, the site is blocking embedding in your browser: use “Open in a new tab”.</p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Load the demo before the session starts so the model download does not eat into your time.</li>
+        <li>Our site uses a tiny 16-number model so every value fits on screen; this demo shows the real 768-number GPT‑2, so the audience can see that the same steps scale up unchanged.</li>
+      </ul></details>
+    </section>
   </main>
 </div>
 
@@ -2565,9 +2605,21 @@ $('#trxReset').addEventListener('click',trxReset);
 $('#trxPick').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;trx.ex=+b.dataset.x;trxReset()});
 renderOverview();renderTrx();
 
+/* ================= DEMOS TAB ================= */
+const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+$('#demoLoad').addEventListener('click',()=>{
+  if(IN_CLAUDE){$('#demoPh').innerHTML='<p><strong>This viewer does not allow other websites to be embedded.</strong></p><p class="note">Use “Open in a new tab”, or open this page from its standalone copy (a local file, Netlify or GitHub Pages), where the demo loads right here.</p>';return}
+  if($('#demoFrame iframe'))return;
+  const f=document.createElement('iframe');f.src='https://poloclub.github.io/transformer-explainer/';f.title='Transformer Explainer by Polo Club of Data Science, Georgia Tech';f.loading='lazy';f.referrerPolicy='no-referrer';f.allow='fullscreen';
+  $('#demoPh').innerHTML='<p class="loading">Loading Transformer Explainer…</p>';
+  f.addEventListener('load',()=>$('#demoPh').remove());
+  $('#demoFrame').appendChild(f);
+  $('#demoLoad').disabled=true;$('#demoLoad').textContent='Demo loaded';
+});
+
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
-const TABS={basics:$('#tabBasics'),overview:$('#tabOverview'),decoder:$('#tabDecoder')};
+const TABS={basics:$('#tabBasics'),overview:$('#tabOverview'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
 const ALLSECS=$$('main>section');
 let SECS=$$('#tabDecoder main>section');
 const jump=$('#jump');
@@ -2614,7 +2666,7 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:TAB==='demos'?`Demo ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
@@ -2669,7 +2721,7 @@ async function initEngine(){
 renderAll();
 markActive('intro');
 initBasics();
-if(['#basics','#overview'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
+if(['#basics','#overview','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>

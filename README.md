@@ -1,6 +1,6 @@
 # Inside the Decoder
 
-An animated, interactive single-page website with three tabs.
+An animated, interactive single-page website with four tabs.
 
 **Deep learning basics** (for newcomers): a neural network as a machine full of tunable dials, one neuron you can tune by hand, a 13-dial network that learns live in the browser to tell whether a fruit is good to eat (training phase, with a step-by-step explanation of one gradient step), then the same network answering new fruits with its dials frozen (inference phase), how this scales up to GPT, and a closing section on network architectures (MLP, CNN, RNN, transformer, diffusion, GNN) showing that the architecture is a research design choice matched to the data. Open it directly with `index.html#basics`.
 
@@ -38,3 +38,6 @@ No build step. Either:
 
 1. **Connect the repo:** Netlify → *Add new site* → *Import an existing project* → GitHub → `altafr/transformer`, choose this branch (or `main` once merged). Build command empty, publish directory `.` (already set in `netlify.toml`).
 2. **Drag and drop:** open https://app.netlify.com/drop and drop `index.html`.
+
+
+**Demos**: embeds the [Transformer Explainer](https://poloclub.github.io/transformer-explainer/) from Georgia Tech's Polo Club (a live GPT-2 small in the browser) in an iframe, loaded on demand. Open with `index.html#demos`. Inside a Claude artifact, embedding other sites is blocked, so the tab shows an "Open in a new tab" link instead.
