@@ -425,6 +425,18 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .demo-frame{position:relative;width:100%;height:min(82vh,900px);min-height:520px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface-2)}
 .demo-frame iframe{width:100%;height:100%;border:0;display:block;background:#fff}
 .demo-ph{position:absolute;inset:0;display:grid;place-content:center;gap:10px;text-align:center;padding:24px;max-width:560px;margin:auto}
+.clips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
+.clips.one{grid-template-columns:minmax(0,1fr);max-width:760px}
+.clips-lbl{grid-column:1/-1}
+.clip{margin:0;display:grid;gap:8px;min-width:0}
+.clip video{width:100%;aspect-ratio:16/9;display:block;border-radius:12px;background:#000;border:1px solid var(--line)}
+.clip figcaption{display:grid;gap:2px;font-size:13px}
+.clip figcaption b{font-weight:600}
+.clip figcaption span{color:var(--muted);font-size:12px}
+.clip-link{display:flex;gap:14px;align-items:center;padding:18px;border-radius:12px;border:1px dashed var(--line);background:var(--surface);text-decoration:none;color:var(--ink);aspect-ratio:16/5}
+.clip-link .pl{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-strong);flex:none}
+.clip-link small{display:block;color:var(--muted);font-size:12px}
+@media (max-width:760px){.clips{grid-template-columns:minmax(0,1fr)}}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -2616,6 +2628,36 @@ $('#demoLoad').addEventListener('click',()=>{
   $('#demoFrame').appendChild(f);
   $('#demoLoad').disabled=true;$('#demoLoad').textContent='Demo loaded';
 });
+
+/* ================= ANIMATED RECAPS: clips from The Animated Transformer (embedded from the author's GitHub, not copied) ================= */
+const CLIP_BASE='https://cdn.jsdelivr.net/gh/prvnsmpth/animated-transformer@7cf627d4f5d66109962450ec93a99fd1f713203a/src/lib/animations/media/';
+const CLIP_ARTICLE='https://prvnsmpth.github.io/animated-transformer/';
+const CLIPS={
+  s1:[['TransformerFunc','The whole model as one function: tokens in, next token out'],['WordEmbeddings','Each token ID picks its row of the embedding table']],
+  s2:[['PositionEmbeddings','GPT‑2 looks up a learned vector for each position (we use sine waves instead)'],['PreparingEmbeddings','Token and position embeddings are added together']],
+  s3a:[['QueryKeyValue','Three weight matrices turn X into Q, K and V']],
+  s3:[['SelfAttn','Attention scores: Q times Kᵀ, for one head'],['SelfAttnPt2','Hide the future, then take a weighted mix of the values']],
+  s5:[['SplittingHeads','Q, K and V are split into 12 heads of 64 columns'],['SelfAttnPt3','The heads’ outputs are stacked back into 768 columns']],
+  s6:[['FeedFwd','Feed-forward: 768 → 3,072 → 768 with a non-linearity'],['GoingDeeper','Many identical blocks stacked one after another']],
+  s7:[['Prediction','Last token’s vector → a score for every word → probabilities']],
+  s9:[['GeneratingText','Each new token is appended and fed back in']]
+};
+function renderClips(){
+  Object.entries(CLIPS).forEach(([id,list])=>{
+    const head=document.querySelector(`#${id} .sec-head`);if(!head||head.nextElementSibling?.classList.contains('clips'))return;
+    const box=document.createElement('div');box.className='clips'+(list.length===1?' one':'');
+    box.innerHTML=`<span class="label clips-lbl">Animated recap · GPT‑2 at full size (768 numbers per token)</span>`+list.map(([f,t])=>{
+      const media=IN_CLAUDE
+        ?`<a class="clip-link" href="${CLIP_ARTICLE}" target="_blank" rel="noopener"><span class="pl">▶</span><span><b>Watch this animation</b><small>opens The Animated Transformer in a new tab (videos can’t load inside this viewer)</small></span></a>`
+        :`<video muted loop playsinline controls preload="none" poster="${CLIP_BASE}images/gen/${f}_ManimCE_v0.17.3.png" src="${CLIP_BASE}videos/gen/1080p60/${f}.mp4" aria-label="${esc(t)}"></video>`;
+      return `<figure class="clip">${media}<figcaption><b>${esc(t)}</b><span>Animation by Praveen Sampath, <a href="${CLIP_ARTICLE}" target="_blank" rel="noopener">The Animated Transformer</a> · <a href="https://github.com/prvnsmpth/animated-transformer" target="_blank" rel="noopener">source</a></span></figcaption></figure>`}).join('');
+    head.insertAdjacentElement('afterend',box);
+  });
+  if(IN_CLAUDE||RM)return;
+  const vio=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.6});
+  $$('.clip video').forEach(v=>vio.observe(v));
+}
+renderClips();
 
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';

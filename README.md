@@ -41,3 +41,5 @@ No build step. Either:
 
 
 **Demos**: embeds the [Transformer Explainer](https://poloclub.github.io/transformer-explainer/) from Georgia Tech's Polo Club (a live GPT-2 small in the browser) in an iframe, loaded on demand. Open with `index.html#demos`. Inside a Claude artifact, embedding other sites is blocked, so the tab shows an "Open in a new tab" link instead.
+
+**Animated recaps**: decoder steps 1, 2, 3a, 3b, 5, 6, 7 and 9 embed the matching Manim animations from Praveen Sampath's [The Animated Transformer](https://prvnsmpth.github.io/animated-transformer/) ([source](https://github.com/prvnsmpth/animated-transformer)). They are streamed from the author's GitHub repo via jsDelivr, pinned to commit `7cf627d`, and are not copied into this repository. Inside a Claude artifact, where other hosts' media is blocked, each clip is replaced by a link to the article.
