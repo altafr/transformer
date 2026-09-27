@@ -396,6 +396,15 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 @media (max-width:1000px){.tr-grid,.mm-wrap{grid-template-columns:minmax(0,1fr)}}
 .subh{font-size:24px;font-weight:700}
 #mfSvg{width:100%;min-width:640px;height:auto;display:block}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;gap:8px;align-items:baseline;font:500 12.5px var(--mono);padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.pill b{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pill.theta b{color:var(--pos)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:14px}
+.presets .btn{font-size:13px;padding:6px 12px;font-family:var(--mono)}
+.ctxbar{display:grid;gap:6px;margin-top:6px}
+.ctxtrack{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.ctxtrack i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -583,6 +592,8 @@ body.present footer{display:none}
           <button class="btn" type="button" data-tabgo="basics">New to neural networks? Start with the basics</button>
           <button class="btn" type="button" data-tabgo="overview">See the full transformer first</button>
         </div>
+        <div class="formula" style="margin-top:22px;max-width:520px">next token = f<sub>θ</sub>(tokens) · θ = all learned numbers</div>
+        <div class="presets"><span class="label">Try a prompt</span><button class="btn" type="button" data-prompt="The cat sat on the">The cat sat on the</button><button class="btn" type="button" data-prompt="The robots will bring">The robots will bring</button><button class="btn" type="button" data-prompt="Once upon a time, there was a">Once upon a time…</button><button class="btn" type="button" data-prompt="The capital of France is">The capital of France is</button></div>
         <div class="hero-meta">
           <span>training + 9 steps</span><span>live numbers</span><span>edit the input text at the top</span><span>← → keys in present mode</span>
         </div>
@@ -735,6 +746,7 @@ body.present footer{display:none}
         <p class="lede">Queries, keys and values are not extra inputs. Each one is the token’s vector <strong>x</strong> (from step 2) multiplied by a learned weight matrix. The same three matrices W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are applied to every token at every position; only x changes. Each output number is a weighted sum of all 16 input numbers, with the weights taken from one column of W.</p>
         <div class="formula">q = x · W<sub>Q</sub> &nbsp;&nbsp; k = x · W<sub>K</sub> &nbsp;&nbsp; v = x · W<sub>V</sub> &nbsp;&nbsp; (x is 1 × 16, each W is 16 × 16, learned in step 0)</div>
         <div class="key"><b>Analogy</b>Think of a library. The <em>query</em> is what you are looking for, each book’s <em>key</em> is the label on its spine, and its <em>value</em> is what is written inside. W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are three different learned ways of reading the same token.</div>
+        <div class="key"><b>Or think of an image search</b>You type a search (the <em>query</em>). It is matched against each photo’s caption (the <em>key</em>). What you get back is the photo itself (the <em>value</em>), and only the photos whose captions match best. In self-attention every token runs this kind of search over the tokens before it.</div>
       </div>
       <div class="viz" id="v3a">
         <div class="viz-bar">
@@ -837,7 +849,8 @@ body.present footer{display:none}
         <div class="eyebrow">Step 5 of 9</div>
         <h2>Multi-head: many ways of looking, in parallel</h2>
         <p class="lede">One attention pattern cannot capture everything. So the model runs several <strong>heads</strong> side by side, each with its own Q, K and V weights and a slice of the vector. One head may track the previous word, another the subject of the sentence. Their outputs are <strong>concatenated</strong> and mixed by one more matrix, W<sub>O</sub>.</p>
-        <div class="formula">MultiHead(x) = Concat(head₁, head₂, head₃, head₄) · W<sub>O</sub> &nbsp;&nbsp; 4 heads × 4 dims = 16</div>
+        <div class="formula">MultiHead(x) = Concat(head₁, head₂, head₃, head₄) · W<sub>O</sub> &nbsp;&nbsp; 4 heads × 4 dims = 16 &nbsp;&nbsp; (GPT‑2: 12 heads × 64 dims = 768)</div>
+        <div class="key"><b>Heads work in parallel and never talk to each other</b>Head 1’s queries only meet head 1’s keys and values; head 2 only meets head 2, and so on. Each head is free to specialise, for example one in grammar and another in meaning. Steps 3a to 5 together form one <em>self-attention unit</em>: a T × C matrix goes in and a T × C matrix comes out.</div>
       </div>
       <div class="viz" id="v5">
         <div class="viz-bar"><span class="label">Attention pattern of each head (rows attend to columns)</span><button class="btn play" data-play="s5" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button></div>
@@ -858,6 +871,7 @@ body.present footer{display:none}
         <h2>The MLP: each word thinks on its own</h2>
         <p class="lede">Attention moves information <strong>between</strong> tokens; the MLP is where the model <strong>recalls what it knows</strong>. The feed-forward network (MLP) then processes each token <strong>separately</strong>: it expands the vector to 4× its width, applies a non-linearity (GELU), and projects it back. Much of the model’s factual knowledge is thought to be stored in these weights. Then comes a second Add &amp; Norm.</p>
         <div class="formula">MLP(x) = W₂ · GELU( W₁·x + b₁ ) + b₂ &nbsp;&nbsp; 16 → 64 → 16</div>
+        <div class="key"><b>Why a non-linearity?</b>Making Q, K, V and mixing the heads with W<sub>O</sub> are all plain matrix multiplications, and a chain of matrix multiplications is still just one matrix multiplication, however long it is. The GELU bend in the MLP breaks that, and it is what lets stacked layers learn complicated relationships instead of straight-line ones. (The same squash you tuned by hand in the basics tab.)</div>
       </div>
       <div class="viz" id="v6">
         <div class="viz-bar">
@@ -980,6 +994,7 @@ body.present footer{display:none}
         <div class="eyebrow">Step 9 of 9</div>
         <h2>The loop: append, repeat, write</h2>
         <p class="lede">Generation is just steps 1 to 8 on repeat. The chosen token is <strong>appended</strong> to the input and the whole decoder runs again, now with one more token of context. This is called <strong>autoregressive</strong> generation. It continues until the model emits an end token or hits a length limit.</p>
+        <div class="key"><b>The context window</b>A model can only read a fixed maximum number of tokens at once: 1,024 for GPT‑2, and hundreds of thousands for some modern models. Every generated token uses up one more slot. When the window is full, the oldest tokens must be dropped or the conversation summarised, which is why very long chats can “forget” their beginning.</div>
       </div>
       <div class="viz" id="v9">
         <div class="viz-bar">
@@ -995,7 +1010,7 @@ body.present footer{display:none}
         <div class="pipe" id="loopPipe"></div>
         <div class="gen-text" id="genText" aria-live="polite"></div>
         <div class="gen-grid">
-          <div style="display:grid;gap:10px"><span class="label">Last prediction</span><div class="hbars" id="genTop"></div><p class="gen-status" id="genStatus"></p></div>
+          <div style="display:grid;gap:10px"><span class="label">Last prediction</span><div class="hbars" id="genTop"></div><p class="gen-status" id="genStatus"></p><div class="ctxbar"><span class="label">Context window used (GPT‑2 limit)</span><div class="ctxtrack"><i id="ctxFill"></i></div><span class="mono muted" id="ctxLbl" style="font-size:12px"></span></div></div>
           <div style="display:grid;gap:8px"><span class="label">Causal mask grows each step</span><div class="tri" id="genTri"></div><p class="note">Newest row in orange. Every new token can see all earlier ones.</p></div>
         </div>
       </div>
@@ -1012,6 +1027,7 @@ body.present footer{display:none}
       <p><strong>The training demo.</strong> Step 0 really trains a tiny model in your browser by gradient descent: 2 numbers per word, a next-word output layer, and the sentences shown plus yours. Real models train a full transformer the same way.</p>
       <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
+      <p>Further reading: <a href="https://prvnsmpth.github.io/animated-transformer/" target="_blank" rel="noopener">The Animated Transformer</a> by Praveen Sampath (the “robots will bring” example and the image-search analogy come from there), and Andrej Karpathy’s <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">nanoGPT</a>, a compact GPT‑2 implementation in about 300 lines.</p>
     </footer>
   </main>
 </div>
@@ -1200,6 +1216,7 @@ body.present footer{display:none}
           <dt>Backpropagation</dt><dd>The method that computes all the gradients at once, working backward from the output.</dd>
           <dt>Epoch (pass)</dt><dd>Showing the network every training example once.</dd>
           <dt>Inference</dt><dd>Using the trained network: one forward pass with frozen dials.</dd>
+          <dt>Parameters (θ)</dt><dd>All the dials together. Papers write the model as f<sub>θ</sub>(input): the same function, with θ as its settings.</dd>
         </dl>
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
@@ -1962,6 +1979,29 @@ $('#mfEdit').addEventListener('click',()=>{MF.edit=!MF.edit;if(MF.edit){MF.l=0;M
 $('#mfPlay').addEventListener('click',playMF);
 renderMF();
 
+/* ================= shape + parameter tracker on every decoder step ================= */
+const META={
+  s0:N=>['All the numbers below start random',`θ = every learned number (GPT‑2 small: 124 M)`],
+  s1:N=>[`T = ${N} tokens → embeddings T × C = ${N} × 16`,'Learned (θ): the embedding table'],
+  s2:N=>[`T × C = ${N} × 16 in, same shape out`,'Learned (θ): nothing here (fixed sine waves). GPT‑2 learns a position table instead'],
+  s3a:N=>[`X (${N} × 16) · W (16 × 16) → Q, K, V each ${N} × 16`,'Learned (θ): W_Q, W_K, W_V'],
+  s3:N=>[`per head: scores T × T = ${N} × ${N}, output T × 4 = ${N} × 4`,'Learned (θ): nothing new. The scores are computed from Q and K'],
+  s4:N=>[`T × C = ${N} × 16 in, same shape out`,'Learned (θ): LayerNorm scale γ and shift β'],
+  s5:N=>[`4 heads × (${N} × 4) → stacked ${N} × 16 → × W_O → ${N} × 16`,'Learned (θ): W_O'],
+  s6:N=>[`${N} × 16 → ${N} × 64 → ${N} × 16`,'Learned (θ): W₁, b₁, W₂, b₂'],
+  s7:N=>[`last row only: 1 × 16 → × W_U → one score per vocabulary token`,'Learned (θ): W_U (GPT‑2 reuses the embedding table)'],
+  s8:N=>['probabilities → 1 chosen token','Learned (θ): nothing. Greedy vs sampling is a choice made at inference time'],
+  s9:N=>[`T grows by 1 each loop, up to the context window`,'Learned (θ): nothing new. The same weights run every loop']
+};
+function renderMeta(){
+  Object.entries(META).forEach(([id,f])=>{
+    const head=document.querySelector(`#${id} .sec-head`);if(!head)return;
+    let el=head.querySelector('.meta-row');if(!el){el=document.createElement('div');el.className='meta-row';head.appendChild(el)}
+    const [shape,theta]=f(S.N||1);
+    el.innerHTML=`<span class="pill shape" title="T = number of tokens, C = numbers per token (GPT‑2: C = 768)"><b>Shape</b>${esc(shape)}</span><span class="pill theta"><b>Learned θ</b>${esc(theta.replace(/^Learned \(θ\): /,''))}</span>`;
+  });
+}
+
 /* ================= STEP 7 ================= */
 function render7(){
   const last=S.N-1,v=S.X2[last];
@@ -2039,7 +2079,8 @@ function resetGen(){
 function renderGenText(){
   $('#genText').innerHTML=`<span class="pr">${esc(gen.prompt)}</span>`+gen.pieces.map((p,i)=>`<span class="g${i===gen.pieces.length-1?' new':''}">${esc(p)}</span>`).join('')+'<span class="caret"></span>';
 }
-function renderTri(){
+function renderCtx(){const n=tokensFor(gen.text).length;$('#ctxFill').style.width=Math.max(.6,n/1024*100)+'%';$('#ctxLbl').textContent=`${n} of 1,024 tokens used · ${1024-n} left`}
+function renderTri(){renderCtx();
   const n=Math.min(tokensFor(gen.text).length,24),el=$('#genTri');
   el.style.gridTemplateColumns=`repeat(${n},1fr)`;el.style.maxWidth=Math.min(240,n*20)+'px';
   let s='';for(let i=0;i<n;i++)for(let j=0;j<n;j++)s+=`<span class="${j<=i?(i===n-1&&gen.pieces.length?'nw':'on'):''}"></span>`;
@@ -2085,7 +2126,7 @@ function renderAll(predDelay=800){
   const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
-  render1();render2();renderQKV();render3();render4();render5();render6();render7();render8();resetGen();
+  render1();render2();renderQKV();render3();render4();render5();render6();render7();render8();resetGen();renderMeta();
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
@@ -2095,6 +2136,7 @@ const PLAY={o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInferen
 let deb;
 $('#prompt').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(()=>renderAll(),250)});
 document.addEventListener('click',e=>{if(e.target.closest('.retry'))refreshPrediction()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-prompt]');if(!b)return;$('#prompt').value=b.dataset.prompt;renderAll(0);toast(`Prompt set to “${b.dataset.prompt}”. Every step now uses it.`)});
 $$('.play').forEach(b=>b.addEventListener('click',()=>PLAY[b.dataset.play]()));
 $('#headTabs').addEventListener('click',e=>{const b=e.target.closest('[data-h]');if(!b)return;S.head=+b.dataset.h;render3()});
 $('#stageBar').addEventListener('click',e=>{const b=e.target.closest('[data-stage]');if(!b)return;play3Run++;S.stage=+b.dataset.stage;applyStage(true)});
