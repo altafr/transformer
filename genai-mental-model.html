@@ -1,0 +1,1490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generative AI Mental Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F6F7FB; --surface:#FFFFFF; --surface-2:#EEF1F8; --ink:#0E1628; --muted:#58627A; --faint:#8A93A8; --line:#DFE3EE;
+  --blue:#2F5BEA; --blue-soft:rgba(47,91,234,.10); --violet:#7447F0; --violet-soft:rgba(116,71,240,.10); --teal:#0F9A83; --teal-soft:rgba(15,154,131,.12);
+  --warn:#C2410C; --warn-soft:rgba(194,65,12,.10);
+  --serif:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --sans:"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1);
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0B1120; --surface:#111A2E; --surface-2:#18223A; --ink:#E8ECF6; --muted:#9CA6BD; --faint:#6D7892; --line:#243049;
+    --blue:#7B9BFF; --blue-soft:rgba(123,155,255,.14); --violet:#A98BFF; --violet-soft:rgba(169,139,255,.14); --teal:#3FD0B3; --teal-soft:rgba(63,208,179,.14);
+    --warn:#FB8A4C; --warn-soft:rgba(251,138,76,.14);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B1120; --surface:#111A2E; --surface-2:#18223A; --ink:#E8ECF6; --muted:#9CA6BD; --faint:#6D7892; --line:#243049;
+  --blue:#7B9BFF; --blue-soft:rgba(123,155,255,.14); --violet:#A98BFF; --violet-soft:rgba(169,139,255,.14); --teal:#3FD0B3; --teal-soft:rgba(63,208,179,.14);
+  --warn:#FB8A4C; --warn-soft:rgba(251,138,76,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:72px}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 var(--sans); -webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px; margin:0 auto; padding-inline:24px}
+@media (max-width:560px){.wrap{padding-inline:16px}}
+h1,h2,h3{font-family:var(--serif); font-weight:400; text-wrap:balance; margin:0; letter-spacing:-.01em}
+h2{font-size:clamp(30px,4.2vw,44px); line-height:1.05}
+h3{font-size:22px; line-height:1.15}
+p{margin:0}
+em.acc, .acc{font-style:italic; color:var(--blue)}
+.eyebrow{font:500 11px/1.4 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.lede{color:var(--muted); max-width:66ch; font-size:16px}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible, input:focus-visible, a:focus-visible, label:focus-within{outline:2px solid var(--blue); outline-offset:2px}
+a{color:var(--blue)}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- top bar ---------- */
+.bar{position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex; align-items:center; gap:16px; height:52px}
+.brand{display:flex; align-items:center; gap:10px; font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; color:var(--ink); text-decoration:none}
+.brand i{display:grid; place-items:center; width:22px; height:22px; border-radius:6px; background:var(--violet); color:#fff; font:italic 15px var(--serif)}
+.parts{display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; margin-left:auto}
+.parts::-webkit-scrollbar{display:none}
+.parts a{font:500 11px var(--mono); letter-spacing:.06em; color:var(--muted); text-decoration:none; padding:6px 10px; border-radius:6px; white-space:nowrap; transition:color .2s ease, background-color .2s ease}
+.parts a.on{color:var(--blue); background:var(--blue-soft)}
+@media (hover:hover) and (pointer:fine){.parts a:hover{color:var(--ink)}}
+.progress{position:absolute; left:0; right:0; bottom:-1px; height:2px; background:linear-gradient(90deg,var(--blue),var(--violet)); transform-origin:0 50%; transform:scaleX(0)}
+@media (max-width:640px){.brand span{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding-block:72px 56px; border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid; grid-template-columns:1.5fr 1fr; gap:40px; align-items:center}
+.hero h1{font-size:clamp(44px,7vw,84px); line-height:.98; margin-top:18px}
+.hero .lede{margin-top:20px; font-size:17px}
+.hero .lede b{color:var(--ink); font-weight:600}
+.meta{display:grid; grid-template-columns:repeat(4,auto); gap:28px; margin-top:32px; justify-content:start}
+.meta div span{display:block}
+.meta .v{font-size:14px; margin-top:4px}
+.orbit{width:100%; max-width:340px; justify-self:center; color:var(--violet)}
+.orbit .ring{fill:none; stroke:currentColor; stroke-opacity:.45; stroke-width:1; transform-box:fill-box; transform-origin:center}
+.orbit .r1{animation:spin 38s linear infinite}
+.orbit .r2{animation:spin 52s linear infinite reverse}
+.orbit .r3{animation:spin 70s linear infinite}
+.orbit .core{fill:var(--ink)}
+.orbit .glow{fill:url(#g)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:820px){.hero .wrap{grid-template-columns:1fr} .orbit{max-width:220px; order:-1; justify-self:start} .meta{grid-template-columns:repeat(2,auto)}}
+.foreword{display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:48px; padding-top:28px; border-top:1px solid var(--line)}
+.foreword h3{margin-top:6px}
+.foreword p{color:var(--muted); margin-top:6px}
+@media (max-width:760px){.foreword{grid-template-columns:1fr; gap:20px}}
+
+/* ---------- parts & chapters ---------- */
+.part{padding-block:72px 24px}
+.part-head{display:grid; grid-template-columns:auto 1fr; gap:8px 28px; align-items:end; padding-bottom:28px; border-bottom:1px solid var(--ink)}
+.part-head .roman{font:italic 88px/0.8 var(--serif); color:var(--blue)}
+.part-head h2{font-size:clamp(34px,5vw,56px)}
+.part-head p{grid-column:2; color:var(--muted); max-width:60ch}
+@media (max-width:560px){.part-head{grid-template-columns:1fr}.part-head p{grid-column:1}.part-head .roman{font-size:64px}}
+.ch{display:grid; grid-template-columns:84px minmax(0,1fr); gap:20px; padding-block:48px; border-bottom:1px solid var(--line)}
+.ch:last-child{border-bottom:0}
+.ch-num{font:italic 44px/1 var(--serif); color:var(--violet)}
+.ch-body > * + *{margin-top:20px}
+.ch-body > .eyebrow{margin-bottom:-12px}
+.ch-body > .lede + *{margin-top:28px}
+@media (max-width:640px){.ch{grid-template-columns:minmax(0,1fr); gap:4px; padding-block:36px}.ch-num{font-size:36px}}
+.takeaway{font:italic 22px/1.3 var(--serif); color:var(--ink); max-width:60ch; padding-left:16px; border-left:2px solid var(--blue)}
+
+.grid{display:grid; gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 18px 20px; display:flex; flex-direction:column; gap:6px}
+.card .eyebrow{color:var(--blue)}
+.card h3{font-size:21px}
+.card p{color:var(--muted); font-size:14px}
+.plain{display:flex; flex-direction:column; gap:6px; padding-top:14px; border-top:1px solid var(--line)}
+.plain h3{font-size:21px}
+.plain p{color:var(--muted); font-size:14px}
+.plain .eyebrow{color:var(--blue)}
+ul.ticks{list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
+ul.ticks li{position:relative; padding-left:16px; color:var(--muted); font-size:14px}
+ul.ticks li::before{content:""; position:absolute; left:0; top:.62em; width:6px; height:6px; border-radius:50%; background:var(--blue)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px}
+@media (max-width:560px){.panel{padding:16px}}
+.scroll-x{overflow-x:auto; -webkit-overflow-scrolling:touch}
+figure{margin:0}
+figcaption{font-size:13px; color:var(--muted); margin-top:10px}
+svg.diagram{display:block; width:100%; height:auto; color:var(--ink)}
+svg text{font-family:var(--mono); font-size:12px; fill:currentColor}
+svg .lbl-s{font-size:10.5px; fill:var(--muted); letter-spacing:.06em}
+svg .serif{font-family:var(--serif); font-size:20px}
+
+.seg{display:inline-flex; flex-wrap:wrap; gap:4px; padding:4px; background:var(--surface-2); border-radius:10px}
+.seg button{border:0; background:transparent; padding:7px 12px; border-radius:7px; font-size:13px; color:var(--muted); transition:background-color .2s ease, color .2s ease}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(14,22,40,.12)}
+.btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--blue); background:var(--blue); color:#fff; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:500; transition:transform .12s var(--ease-out), background-color .2s ease}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn[disabled]{opacity:.5; cursor:default}
+:root[data-theme="dark"] .btn:not(.ghost){color:#0B1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost){color:#0B1120}}
+.row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.pill{display:inline-flex; align-items:center; gap:6px; font:500 11px var(--mono); letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:var(--blue-soft); color:var(--blue)}
+.pill.v{background:var(--violet-soft); color:var(--violet)}
+.pill.t{background:var(--teal-soft); color:var(--teal)}
+.pill.w{background:var(--warn-soft); color:var(--warn)}
+
+/* ---------- ch01 nested ---------- */
+.nest{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.1fr); gap:28px; align-items:center}
+@media (max-width:760px){.nest{grid-template-columns:1fr}}
+.nest svg{max-width:420px; margin:0 auto}
+.ring-btn{cursor:pointer}
+.ring-btn circle{stroke-width:1.5; transition:fill-opacity .25s ease, stroke-width .25s ease}
+.ring-btn.ml circle{fill:var(--blue); fill-opacity:.06; stroke:var(--blue)}
+.ring-btn.dl circle{fill:var(--violet); fill-opacity:.08; stroke:var(--violet)}
+.ring-btn.gen circle{fill:var(--teal); fill-opacity:.12; stroke:var(--teal)}
+.ring-btn.on circle{fill-opacity:.22; stroke-width:2.5}
+.nest-list{display:flex; flex-direction:column; gap:10px}
+.nest-item{text-align:left; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; transition:border-color .2s ease, background-color .2s ease}
+.nest-item.on{border-color:var(--blue); background:var(--blue-soft)}
+.nest-item h3{font-size:20px}
+.nest-item p{color:var(--muted); font-size:14px; margin-top:4px}
+
+/* ---------- ch02 tokens ---------- */
+.tok-stage{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:24px}
+@media (max-width:760px){.tok-stage{grid-template-columns:1fr}}
+.stream{display:flex; flex-wrap:wrap; gap:6px; min-height:84px; align-content:flex-start; padding:14px; background:var(--surface-2); border-radius:10px}
+.chip{font:13px var(--mono); padding:5px 8px; border-radius:6px; background:var(--surface); border:1px solid var(--line); white-space:pre}
+.chip.new{border-color:var(--violet); color:var(--violet); animation:chipIn .22s var(--ease-out)}
+.chip .sp{color:var(--faint)}
+@keyframes chipIn{from{opacity:0; transform:translateY(4px)}}
+.probs{display:flex; flex-direction:column; gap:7px}
+.prob{display:grid; grid-template-columns:92px 1fr 44px; gap:10px; align-items:center; font:12.5px var(--mono)}
+.prob .track{height:10px; background:var(--surface-2); border-radius:4px; overflow:hidden}
+.prob .fill{height:100%; background:var(--blue); transform-origin:0 50%; transition:transform .28s var(--ease-out), background-color .2s ease}
+.prob.pick .fill{background:var(--violet)}
+.prob.pick{color:var(--violet)}
+.prob .pc{text-align:right; color:var(--muted)}
+.temp{display:flex; align-items:center; gap:12px; font:12px var(--mono); color:var(--muted)}
+.temp input{flex:1; accent-color:var(--violet); min-width:0}
+.loop-steps{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
+@media (max-width:640px){.loop-steps{grid-template-columns:1fr}}
+.note{font-size:13px; color:var(--muted); padding:10px 12px; border-radius:8px; background:var(--warn-soft)}
+.note b{color:var(--warn); font-weight:600}
+
+/* ---------- ch03 modalities ---------- */
+.modal-svg .out rect{fill:var(--surface); stroke:var(--line); transition:stroke .25s ease, fill .25s ease}
+.modal-svg .out.on rect{stroke:var(--violet); fill:var(--violet-soft)}
+.modal-svg .wire{stroke:var(--line); stroke-width:1.5; fill:none; transition:stroke .25s ease}
+.modal-svg .wire.on{stroke:var(--violet); stroke-dasharray:6 6; animation:flow 1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-12}}
+.modal-svg .core rect{fill:var(--ink)}
+.modal-svg .core text{fill:var(--bg)}
+.modal-svg .out{cursor:pointer}
+
+/* ---------- ch04 timeline ---------- */
+.timeline{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; position:relative}
+.timeline::before{content:""; position:absolute; left:0; right:0; top:7px; height:2px; background:linear-gradient(90deg,var(--blue),var(--violet),var(--teal))}
+.era{padding-top:28px; padding-right:18px; position:relative}
+.era::before{content:""; position:absolute; top:0; left:0; width:16px; height:16px; border-radius:50%; background:var(--bg); border:2px solid var(--blue)}
+.era:nth-child(2)::before{border-color:var(--violet)}
+.era:nth-child(3)::before{border-color:var(--teal); background:var(--teal)}
+.era .yrs{font:500 12px var(--mono); color:var(--muted)}
+.era h3{margin:4px 0 8px}
+@media (max-width:640px){.timeline{grid-template-columns:1fr; gap:20px}.timeline::before{left:7px; right:auto; top:0; bottom:0; width:2px; height:auto; background:linear-gradient(180deg,var(--blue),var(--violet),var(--teal))}.era{padding:0 0 0 32px}}
+
+/* ---------- ch06 prompt ---------- */
+.contract{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:760px){.contract{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.part-btn{text-align:left; border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); padding:12px 14px; transition:border-color .2s ease, background-color .2s ease, opacity .2s ease}
+.part-btn .eyebrow{display:flex; justify-content:space-between}
+.part-btn h3{font-size:20px; margin-top:2px}
+.part-btn p{color:var(--muted); font-size:13px; margin-top:4px}
+.part-btn[aria-pressed="false"]{opacity:.55}
+.part-btn[aria-pressed="true"].c1{border-color:var(--blue); background:var(--blue-soft)}
+.part-btn[aria-pressed="true"].c2{border-color:var(--violet); background:var(--violet-soft)}
+.part-btn[aria-pressed="true"].c3{border-color:var(--teal); background:var(--teal-soft)}
+.part-btn[aria-pressed="true"].c4{border-color:var(--warn); background:var(--warn-soft)}
+.prompt-out{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px}
+@media (max-width:760px){.prompt-out{grid-template-columns:1fr}}
+.code{font:13px/1.65 var(--mono); background:var(--surface-2); border-radius:10px; padding:14px 16px; min-height:120px; white-space:pre-wrap; overflow-wrap:anywhere}
+.code .k1{color:var(--blue)} .code .k2{color:var(--violet)} .code .k3{color:var(--teal)} .code .k4{color:var(--warn)}
+.code .seg-t{transition:opacity .2s ease}
+.meter{display:flex; flex-direction:column; gap:10px}
+.meter-row{display:grid; grid-template-columns:110px 1fr; gap:10px; align-items:center; font-size:13px}
+.meter-row .track{height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden}
+.meter-row .fill{height:100%; background:var(--teal); transform-origin:0 50%; transition:transform .3s var(--ease-out)}
+.verdict{font-size:14px; color:var(--muted)}
+.verdict b{color:var(--ink)}
+
+/* ---------- ch07 recipes ---------- */
+.recipe{position:relative}
+.recipe .top{display:flex; justify-content:space-between; align-items:center; gap:10px}
+.recipe .code{min-height:0; font-size:12.5px; padding:12px}
+.recipe .why{font-size:13px; color:var(--muted)}
+.recipe .why b{color:var(--ink); font-weight:500}
+.copy{border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:4px 9px; font:500 11px var(--mono); color:var(--muted); transition:color .2s ease, border-color .2s ease}
+.copy.done{color:var(--teal); border-color:var(--teal)}
+
+/* ---------- ch08 modes ---------- */
+.modes{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:760px){.modes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mode{text-align:left; border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:10px; transition:border-color .2s ease, background-color .2s ease}
+.mode[aria-pressed="true"]{border-color:var(--violet); background:var(--violet-soft)}
+.mode h3{font-size:21px}
+.rel{display:flex; align-items:center; gap:6px; font:11px var(--mono); color:var(--muted)}
+.rel .dot{width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-size:10px; border:1.5px solid currentColor}
+.rel .you{color:var(--blue)} .rel .ai{color:var(--violet)}
+.mode-detail{display:grid; grid-template-columns:auto 1fr; gap:16px 24px; align-items:start}
+.mode-detail .big{font:italic 44px/1 var(--serif); color:var(--violet)}
+.mode-detail p{color:var(--muted)}
+.mode-detail p b{color:var(--ink); font-weight:500}
+
+/* ---------- ch09 maya ---------- */
+.steps-track{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px}
+.steps-track button{border:0; background:transparent; padding:0; text-align:left; display:flex; flex-direction:column; gap:8px}
+.steps-track .bar-s{height:4px; border-radius:2px; background:var(--line); overflow:hidden}
+.steps-track .bar-s i{display:block; height:100%; background:var(--blue); transform-origin:0 50%; transform:scaleX(0); transition:transform .35s var(--ease-out)}
+.steps-track button.done .bar-s i{transform:scaleX(1)}
+.steps-track .t{font:500 11px var(--mono); color:var(--muted); letter-spacing:.04em}
+.steps-track button.cur .t{color:var(--ink)}
+.maya-view{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:start; margin-top:18px; min-height:130px}
+.maya-view h3{font-size:28px}
+.maya-view p{color:var(--muted); margin-top:8px; max-width:56ch}
+.maya-view .swap{animation:fadeUp .26s var(--ease-out)}
+@keyframes fadeUp{from{opacity:0; transform:translateY(6px)}}
+@media (max-width:560px){.maya-view{grid-template-columns:1fr}.steps-track .t{font-size:9.5px}}
+
+/* ---------- ch10 rag ---------- */
+.rag-svg .node rect{fill:var(--surface); stroke:var(--line); stroke-width:1.5; transition:stroke .25s ease, fill .25s ease}
+.rag-svg .node.on rect{stroke:var(--blue); fill:var(--blue-soft)}
+.rag-svg .node.db rect{stroke-dasharray:4 3}
+.rag-svg .edge{stroke:var(--faint); stroke-width:1.5; fill:none}
+.rag-svg .arrowhead{fill:var(--faint)}
+.rag-svg .packet circle{fill:var(--violet)}
+.rag-svg .packet .halo{fill:var(--violet); fill-opacity:.2}
+.rag-stages{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+@media (max-width:760px){.rag-stages{grid-template-columns:1fr}}
+.stage{padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; color:var(--muted); transition:border-color .2s ease, background-color .2s ease, color .2s ease}
+.stage b{display:block; font:500 11px var(--mono); letter-spacing:.06em; color:var(--ink); margin-bottom:2px}
+.stage.on{border-color:var(--blue); background:var(--blue-soft); color:var(--ink)}
+.qa{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
+@media (max-width:640px){.qa{grid-template-columns:1fr}}
+.bubble{border-radius:10px; padding:12px 14px; font-size:14px; background:var(--surface-2)}
+.bubble .eyebrow{display:block; margin-bottom:4px}
+.bubble.ans{background:var(--teal-soft)}
+.bubble cite{font:normal 11.5px var(--mono); color:var(--teal); display:block; margin-top:6px}
+
+/* ---------- ch11 context ---------- */
+.ctx-bar{display:flex; height:44px; border-radius:8px; overflow:hidden; border:1px solid var(--line); background:var(--surface-2)}
+.ctx-bar div{height:100%; display:flex; align-items:center; justify-content:center; font:500 10px var(--mono); letter-spacing:.04em; color:#fff; overflow:hidden; white-space:nowrap; transition:flex-basis .3s var(--ease-out)}
+.ctx-sys{background:#3B4A6B} .ctx-tool{background:var(--blue)} .ctx-prior{background:var(--violet)} .ctx-docs{background:var(--teal)} .ctx-last{background:var(--warn)}
+:root[data-theme="dark"] .ctx-bar div{color:#0B1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ctx-bar div{color:#0B1120}}
+:root[data-theme="dark"] .ctx-sys{background:#8FA0C4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ctx-sys{background:#8FA0C4}}
+.ctx-scale{display:flex; justify-content:space-between; font:11px var(--mono); color:var(--faint); margin-top:6px}
+.ctx-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px}
+.ctx-status{font:500 12px var(--mono); letter-spacing:.04em}
+.ctx-status.warn{color:var(--warn)}
+.dropped{font:12px var(--mono); color:var(--warn); min-height:18px}
+.mem .code{min-height:0; font-size:12px; padding:10px 12px}
+
+/* ---------- ch12 checklist ---------- */
+.checks{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+@media (max-width:640px){.checks{grid-template-columns:1fr}}
+.check{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); font-size:14px; cursor:pointer; transition:border-color .2s ease, background-color .2s ease}
+.check input{margin-top:3px; accent-color:var(--teal); width:16px; height:16px; flex:none}
+.check:has(input:checked){border-color:var(--teal); background:var(--teal-soft)}
+.ship{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px}
+
+/* ---------- ch14 agent ---------- */
+.agent-svg .n rect{fill:var(--surface); stroke:var(--line); stroke-width:1.5; transition:stroke .2s ease, fill .2s ease}
+.agent-svg .n.on rect{stroke:var(--violet); fill:var(--violet-soft)}
+.agent-svg .n.ok rect{stroke:var(--teal); fill:var(--teal-soft)}
+.agent-svg .e{stroke:var(--faint); stroke-width:1.5; fill:none}
+.agent-svg .ah{fill:var(--faint)}
+.agent-svg .reflect{stroke:var(--violet); stroke-width:1.5; fill:none; stroke-dasharray:5 5; opacity:.5; transition:opacity .2s ease}
+.agent-svg .reflect.on{opacity:1; animation:flow .8s linear infinite}
+.agent-svg .rah{fill:var(--violet)}
+.log{font:12.5px/1.7 var(--mono); background:var(--surface-2); border-radius:10px; padding:12px 14px; min-height:170px}
+.log div{animation:fadeUp .22s var(--ease-out)}
+.log .k{color:var(--violet)}
+.log .ok{color:var(--teal)}
+.layers{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.layers > div{padding:16px 18px; background:var(--surface)}
+.layers > div + div{border-left:1px solid var(--line)}
+.layers h3{font-size:20px; margin-top:4px}
+.layers p{color:var(--muted); font-size:14px; margin-top:4px}
+@media (max-width:760px){.layers{grid-template-columns:1fr}.layers > div + div{border-left:0; border-top:1px solid var(--line)}}
+
+/* ---------- ch15 mcp ---------- */
+.mcp-svg .box rect{fill:var(--surface); stroke:var(--line); stroke-width:1.5}
+.mcp-svg .hub rect{fill:var(--blue); transition:opacity .3s ease}
+.mcp-svg .hub text{fill:#fff}
+:root[data-theme="dark"] .mcp-svg .hub text{fill:#0B1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mcp-svg .hub text{fill:#0B1120}}
+.mcp-svg .l{stroke-width:1.4; fill:none; transition:opacity .3s ease}
+.mcp-svg .direct .l{stroke:var(--warn)}
+.mcp-svg .via .l{stroke:var(--blue)}
+.mcp-svg.mode-with .direct, .mcp-svg.mode-without .via, .mcp-svg.mode-without .hub{opacity:0}
+.mcp-svg.mode-with .via, .mcp-svg.mode-without .direct{opacity:1}
+.mcp-svg .direct, .mcp-svg .via, .mcp-svg .hub{transition:opacity .35s var(--ease-out)}
+.count{font:italic 40px/1 var(--serif)}
+.count small{font:12px var(--mono); color:var(--muted); display:block; margin-top:6px; font-style:normal}
+
+/* ---------- ch16 a2a ---------- */
+.a2a-svg .ag rect{fill:var(--surface); stroke:var(--violet); stroke-width:1.5}
+.a2a-svg .tl rect{fill:var(--surface-2); stroke:var(--line)}
+.a2a-svg .a2a{stroke:var(--violet); stroke-width:1.8; fill:none; stroke-dasharray:6 5; animation:flow 1.2s linear infinite}
+.a2a-svg .mcpl{stroke:var(--blue); stroke-width:1.4; fill:none}
+.legend{display:flex; flex-wrap:wrap; gap:18px; font:12px var(--mono); color:var(--muted)}
+.legend span{display:inline-flex; align-items:center; gap:8px}
+.legend i{display:inline-block; width:26px; height:0; border-top:2px solid var(--blue)}
+.legend i.d{border-top:2px dashed var(--violet)}
+
+/* ---------- ch17 labs ---------- */
+.lab{display:grid; grid-template-columns:40px 1fr; gap:4px 12px}
+.lab .mark{width:40px; height:40px; border-radius:10px; display:grid; place-items:center; font:italic 22px var(--serif); background:var(--surface-2); grid-row:span 3}
+.lab .eyebrow{font-size:10px}
+
+/* ---------- ch18 stats ---------- */
+.stats{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; border-top:1px solid var(--ink)}
+.stat{padding:18px 16px 18px 0; display:flex; flex-direction:column; gap:8px}
+.stat + .stat{padding-left:16px; border-left:1px solid var(--line)}
+.stat .n{font:400 52px/1 var(--serif); color:var(--blue); font-variant-numeric:tabular-nums}
+.stat p{font-size:13.5px; color:var(--muted)}
+.stat q{font:italic 16px/1.3 var(--serif); color:var(--ink)}
+.stat .src{font:10px var(--mono); letter-spacing:.06em; color:var(--faint); margin-top:auto}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat,.stat + .stat{padding:16px 12px 16px 0; border-left:0; border-bottom:1px solid var(--line)}}
+@media (max-width:480px){.stats{grid-template-columns:1fr}}
+
+/* ---------- ch19 toolkit ---------- */
+.tool{transition:opacity .2s ease}
+.tool[hidden]{display:none!important}
+.tool .eyebrow.c-CODING{color:var(--blue)} .tool .eyebrow.c-WORK{color:var(--violet)} .tool .eyebrow.c-CREATE{color:var(--warn)} .tool .eyebrow.c-LEARN{color:var(--teal)}
+
+/* ---------- ch20 table ---------- */
+table.guide{width:100%; border-collapse:collapse; min-width:720px; font-size:14px}
+table.guide th{font:500 10.5px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); text-align:left; padding:10px 12px; border-bottom:1px solid var(--ink)}
+table.guide td{padding:12px; border-bottom:1px solid var(--line); vertical-align:top}
+table.guide td:first-child{font-family:var(--serif); font-size:19px}
+table.guide td:nth-child(3){font-family:var(--mono); font-size:12.5px; color:var(--blue)}
+table.guide td:last-child{color:var(--muted)}
+table.guide tr{transition:background-color .15s ease}
+@media (hover:hover) and (pointer:fine){table.guide tbody tr:hover{background:var(--blue-soft)}}
+
+/* ---------- ch21 physical ---------- */
+.sda{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.sda .s{font:italic 30px var(--serif); padding:6px 18px; border:1px solid var(--line); border-radius:999px; background:var(--surface)}
+.sda .s.on{border-color:var(--teal); color:var(--teal)}
+.sda .arr{color:var(--faint); font-family:var(--mono)}
+
+/* ---------- ch22 jobs ---------- */
+.jobs{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
+@media (max-width:760px){.jobs{grid-template-columns:1fr}}
+.jobs .card:nth-child(1){border-top:3px solid var(--faint)}
+.jobs .card:nth-child(2){border-top:3px solid var(--blue)}
+.jobs .card:nth-child(3){border-top:3px solid var(--teal)}
+.skills{display:flex; flex-wrap:wrap; gap:8px}
+
+/* ---------- ch25 agi ---------- */
+.agi-svg .area{fill:url(#agiFill)}
+.agi-svg .curve{fill:none; stroke:url(#agiLine); stroke-width:2.5}
+.agi-svg .axis{stroke:var(--line); stroke-width:1}
+.agi-svg .ms{cursor:pointer}
+.agi-svg .ms circle.dot{fill:var(--violet); transition:r .2s var(--ease-out)}
+.agi-svg .ms circle.ringc{fill:none; stroke:var(--violet); stroke-opacity:0; transition:stroke-opacity .2s ease}
+.agi-svg .ms.on circle.ringc{stroke-opacity:.6}
+.agi-svg .ms.last circle.dot{fill:var(--teal)}
+.agi-svg .ms.last circle.ringc{stroke:var(--teal)}
+.agi-svg .ms text{font-size:11px; letter-spacing:.08em}
+.agi-svg .ms .sub{font-size:10.5px; fill:var(--muted); letter-spacing:0}
+
+/* ---------- ch26 gantt ---------- */
+.gantt{display:grid; grid-template-columns:150px repeat(13,minmax(34px,1fr)); min-width:680px; row-gap:8px; align-items:center}
+.gantt .wk{font:10.5px var(--mono); color:var(--faint); text-align:center; padding-bottom:4px; border-bottom:1px solid var(--line)}
+.gantt .nm{font:italic 19px var(--serif); padding-right:10px}
+.gantt .gb{height:30px; border-radius:6px; border:0; padding:0 10px; text-align:left; font:500 11px var(--mono); color:#fff; letter-spacing:.04em; white-space:nowrap; overflow:hidden; transition:transform .15s var(--ease-out), opacity .2s ease}
+.gantt .gb:active{transform:scale(.98)}
+.gantt .gb[aria-pressed="false"]{opacity:.55}
+.gb.p1{background:var(--blue)} .gb.p2{background:var(--violet)} .gb.p3{background:var(--teal)} .gb.p4{background:var(--warn)} .gb.p5{background:var(--ink); color:var(--bg)}
+:root[data-theme="dark"] .gantt .gb:not(.p5){color:#0B1120}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gantt .gb:not(.p5){color:#0B1120}}
+.pillar-detail{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px}
+@media (max-width:640px){.pillar-detail{grid-template-columns:1fr}}
+
+/* ---------- ch27 workbook ---------- */
+.wb{display:flex; flex-direction:column}
+.wb label{display:grid; grid-template-columns:28px 64px 1fr; gap:12px; align-items:start; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer}
+.wb input{width:18px; height:18px; accent-color:var(--teal); margin-top:3px}
+.wb .pn{font:500 11px var(--mono); color:var(--blue); letter-spacing:.06em; padding-top:3px}
+.wb label:has(input:checked) .tx{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--faint)}
+@media (max-width:480px){.wb label{grid-template-columns:24px 1fr}.wb .pn{grid-column:2}.wb .tx{grid-column:2}}
+.finish{display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; padding:16px 18px; border-radius:12px; background:var(--surface-2)}
+.finish .track{flex:1; min-width:160px; height:8px; background:var(--line); border-radius:4px; overflow:hidden}
+.finish .fill{height:100%; background:var(--teal); transform-origin:0 50%; transition:transform .35s var(--ease-out)}
+
+/* ---------- glossary ---------- */
+.search{width:100%; max-width:360px; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font:14px var(--sans)}
+.gloss{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0 28px}
+@media (max-width:860px){.gloss{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.gloss{grid-template-columns:1fr}}
+.term{padding:14px 0; border-top:1px solid var(--line)}
+.term dt{font:500 11px var(--mono); letter-spacing:.1em; color:var(--blue)}
+.term dd{margin:4px 0 0; font-size:14px; color:var(--muted)}
+
+footer{padding-block:64px 48px; border-top:1px solid var(--line); margin-top:48px}
+footer h2{font-size:clamp(32px,5vw,56px)}
+footer .row{margin-top:24px; gap:32px}
+footer .row span{display:block}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .orbit .ring,.modal-svg .wire.on,.agent-svg .reflect.on,.a2a-svg .a2a{animation:none}
+  .chip.new,.log div,.maya-view .swap{animation:fadeOnly .2s ease}
+  @keyframes fadeOnly{from{opacity:0}}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top"><i>A</i><span>Generative AI · Field Guide</span></a>
+    <nav class="parts" aria-label="Parts">
+      <a href="#part-1">I · What is this?</a>
+      <a href="#part-2">II · Working with it</a>
+      <a href="#part-3">III · Accurate &amp; safe</a>
+      <a href="#part-4">IV · Systems</a>
+      <a href="#part-5">V · Real world</a>
+      <a href="#part-6">VI · Future</a>
+      <a href="#part-7">VII · Your move</a>
+      <a href="#glossary">Glossary</a>
+    </nav>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" style="color:var(--blue)">Generative AI · The beginner's field guide</div>
+      <h1>A mental model for <em class="acc">thinking</em> with machines that think.</h1>
+      <p class="lede">A complete beginner's path, from <b>what a model is</b> to <b>building with agents</b>, in seven parts. Written for non-technical readers. The diagrams are live: click, drag and run them as you read.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Level</span><span class="v">Beginner → Builder</span></div>
+        <div><span class="eyebrow">Scope</span><span class="v">27 chapters · 7 parts</span></div>
+        <div><span class="eyebrow">Read time</span><span class="v">~20 minutes</span></div>
+        <div><span class="eyebrow">Edition</span><span class="v">v2.0 · 2026</span></div>
+      </div>
+    </div>
+    <svg class="orbit" viewBox="0 0 300 300" aria-hidden="true">
+      <defs><radialGradient id="g"><stop offset="0" stop-color="#2F5BEA" stop-opacity=".35"/><stop offset="1" stop-color="#7447F0" stop-opacity="0"/></radialGradient></defs>
+      <circle class="glow" cx="150" cy="150" r="140"/>
+      <ellipse class="ring r1" cx="150" cy="150" rx="140" ry="140"/>
+      <ellipse class="ring r2" cx="150" cy="150" rx="140" ry="62"/>
+      <ellipse class="ring r3" cx="150" cy="150" rx="58" ry="140"/>
+      <ellipse class="ring r1" cx="150" cy="150" rx="118" ry="90" transform="rotate(35 150 150)"/>
+      <circle cx="150" cy="150" r="8" fill="none" stroke="currentColor"/>
+      <circle class="core" cx="150" cy="150" r="3.5"/>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="foreword">
+      <div><span class="eyebrow">Who it's for</span><h3>The curious</h3><p>Managers, founders, marketers, students: anyone who doesn't write code. No technical background assumed.</p></div>
+      <div><span class="eyebrow">What you'll get</span><h3>The handful of ideas</h3><p>The mental models that make every headline, tool and demo make sense, and a plan to put them to work.</p></div>
+      <div><span class="eyebrow">The promise</span><h3>You'll build</h3><p>By the end you won't just understand AI. You'll have built something small with it. Three years ago this needed a PhD. Today it needs an afternoon.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART I ================= -->
+<section class="part" id="part-1" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">I</span><h2>What is this?</h2><p>Start from zero. What a model actually is, the intuition for how it works, and the shapes it can speak in.</p></div>
+
+  <article class="ch" id="ch1"><div class="ch-num">01</div><div class="ch-body">
+    <div class="eyebrow">Foundations · What is a model?</div>
+    <h2>What is a model?</h2>
+    <p class="lede">Three nested ideas. Machine learning writes software by example. Deep learning is one technique inside it. Generative models are a specific use of deep learning: ones that produce new content instead of just labels.</p>
+    <div class="nest">
+      <figure>
+        <svg class="diagram" viewBox="0 0 400 360" role="img" aria-label="Generative models sit inside deep learning, which sits inside machine learning">
+          <g class="ring-btn ml" data-k="ml" tabindex="0"><circle cx="200" cy="185" r="165"/><text x="200" y="52" text-anchor="middle">MACHINE LEARNING</text></g>
+          <g class="ring-btn dl" data-k="dl" tabindex="0"><circle cx="200" cy="230" r="118"/><text x="200" y="142" text-anchor="middle">DEEP LEARNING</text></g>
+          <g class="ring-btn gen on" data-k="gen" tabindex="0"><circle cx="200" cy="275" r="70"/><text x="200" y="270" text-anchor="middle">GENERATIVE</text><text x="200" y="286" text-anchor="middle">MODELS</text></g>
+        </svg>
+        <figcaption>Click a ring. Generative AI is one slice of deep learning, which is one slice of machine learning.</figcaption>
+      </figure>
+      <div class="nest-list">
+        <button class="nest-item" data-k="ml"><span class="eyebrow">Machine learning</span><h3>Learns from data</h3><p>Software that learns from examples. Instead of writing rules, you show examples; the model finds patterns and predicts on new inputs.</p></button>
+        <button class="nest-item" data-k="dl"><span class="eyebrow">Deep learning</span><h3>Neural networks</h3><p>ML built on neural networks. Many layers learn rich features from raw pixels, audio and text. The unlock behind modern AI.</p></button>
+        <button class="nest-item on" data-k="gen"><span class="eyebrow">Generative models</span><h3>Models that create</h3><p>Deep models trained to predict the next token, pixel or frame, so they produce new text, images, audio and video.</p></button>
+      </div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch2"><div class="ch-num">02</div><div class="ch-body">
+    <div class="eyebrow">Intuition · How it works</div>
+    <h2>It's just really good <em class="acc">autocomplete.</em></h2>
+    <p class="lede">The single most useful intuition: a generative model predicts the next token, one at a time, then feeds its own guess back in and predicts again. Try it below.</p>
+    <div class="panel">
+      <div class="tok-stage">
+        <div style="display:flex; flex-direction:column; gap:14px">
+          <div class="eyebrow">Token stream <span style="color:var(--faint)">· ␣ marks a leading space</span></div>
+          <div class="stream" id="stream" aria-live="polite"></div>
+          <div class="temp"><label for="temp">Temperature</label><input id="temp" type="range" min="0.1" max="2" step="0.1" value="1"><span id="tempv" class="tnum">1.0</span></div>
+          <div class="row">
+            <button class="btn" id="predict">Predict next token</button>
+            <button class="btn ghost" id="auto">Auto-complete</button>
+            <button class="btn ghost" id="reset">Reset</button>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px">
+          <div class="eyebrow">Model's guesses for the next token</div>
+          <div class="probs" id="probs"></div>
+          <p style="font-size:13px; color:var(--muted)" id="tokhint">Low temperature almost always picks the top bar. High temperature flattens the bars, so rarer tokens get picked.</p>
+        </div>
+      </div>
+    </div>
+    <div class="loop-steps">
+      <div class="plain"><span class="eyebrow">Idea 01</span><h3>A token is a chunk</h3><p>Models don't read whole words. They work in tokens, little pieces of text ("cat", " sat", "ing"). Everything in and out is a stream of these chunks.</p></div>
+      <div class="plain"><span class="eyebrow">Idea 02</span><h3>It guesses, then loops</h3><p>Given everything so far, it predicts the most likely next token, adds it, and predicts again, hundreds of times a second. That loop is the whole trick.</p></div>
+      <div class="plain"><span class="eyebrow">Idea 03</span><h3>Creativity = sampling</h3><p>It doesn't always pick the top choice. Raising "temperature" lets it sample less-likely tokens, which is why the same prompt can give different answers.</p></div>
+    </div>
+    <p class="note"><b>Hallucination</b> is the same machinery: confidently guessing a plausible next token, even when there's no fact behind it. "The cat sat on the moon" is fluent, and false.</p>
+  </div></article>
+
+  <article class="ch" id="ch3"><div class="ch-num">03</div><div class="ch-body">
+    <div class="eyebrow">Foundation · Modalities</div>
+    <h2>From LLMs to multimodality.</h2>
+    <p class="lede">Generative AI began as text. Today a single foundation model can read, see, hear and speak: the same intelligence, pointed at different kinds of input and output.</p>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <div class="seg" id="modeSeg" role="group" aria-label="Output modality">
+          <button aria-pressed="true" data-m="0">Text</button><button aria-pressed="false" data-m="1">Image</button><button aria-pressed="false" data-m="2">Audio</button><button aria-pressed="false" data-m="3">Video</button>
+        </div>
+      </div>
+      <div class="scroll-x" style="margin-top:14px">
+      <svg class="diagram modal-svg" viewBox="0 0 900 250" style="min-width:600px" role="img" aria-label="One prompt goes into one foundation model, which can produce text, image, audio or video">
+        <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--faint)"/></marker></defs>
+        <g><rect x="20" y="100" width="150" height="50" rx="8" style="fill:var(--surface-2)"/><text x="95" y="122" text-anchor="middle">YOUR PROMPT</text><text x="95" y="139" text-anchor="middle" class="lbl-s" id="promptTxt">"a haiku about rain"</text></g>
+        <line x1="170" y1="125" x2="318" y2="125" style="stroke:var(--faint); stroke-width:1.5" marker-end="url(#ah3)"/>
+        <text x="244" y="115" text-anchor="middle" class="lbl-s">tokens in</text>
+        <g class="core"><rect x="322" y="80" width="190" height="90" rx="12"/><text x="417" y="120" text-anchor="middle">FOUNDATION</text><text x="417" y="138" text-anchor="middle">MODEL</text></g>
+        <path class="wire" data-w="0" d="M512 125 C 590 125, 600 35, 680 35"/>
+        <path class="wire" data-w="1" d="M512 125 C 590 125, 600 95, 680 95"/>
+        <path class="wire" data-w="2" d="M512 125 C 590 125, 600 155, 680 155"/>
+        <path class="wire" data-w="3" d="M512 125 C 590 125, 600 215, 680 215"/>
+        <g class="out" data-m="0"><rect x="680" y="14" width="200" height="42" rx="8"/><text x="694" y="32">TEXT</text><text x="694" y="47" class="lbl-s">code, prose, structured data</text></g>
+        <g class="out" data-m="1"><rect x="680" y="74" width="200" height="42" rx="8"/><text x="694" y="92">IMAGE</text><text x="694" y="107" class="lbl-s">photos, diagrams, design</text></g>
+        <g class="out" data-m="2"><rect x="680" y="134" width="200" height="42" rx="8"/><text x="694" y="152">AUDIO</text><text x="694" y="167" class="lbl-s">speech, music, voice</text></g>
+        <g class="out" data-m="3"><rect x="680" y="194" width="200" height="42" rx="8"/><text x="694" y="212">VIDEO</text><text x="694" y="227" class="lbl-s">scenes, motion, 3D</text></g>
+      </svg>
+      </div>
+      <p style="margin-top:12px; font-size:14px" id="modeDesc"></p>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch4"><div class="ch-num">04</div><div class="ch-body">
+    <div class="eyebrow">Context · A short history</div>
+    <h2>How we got here.</h2>
+    <p class="lede">A one-line map: the Transformer (2017), the ChatGPT moment (2022), the agent turn (2024–26). Enough to place every other chapter in time.</p>
+    <div class="timeline">
+      <div class="era"><span class="yrs">2017 – 2021</span><h3>Foundations</h3><ul class="ticks"><li>The Transformer makes scale possible</li><li>Bigger models gain general skills</li><li>Mostly a research-lab story</li></ul></div>
+      <div class="era"><span class="yrs">2022 – 2023</span><h3>The boom</h3><ul class="ticks"><li>ChatGPT makes it everyone's tool</li><li>Images, audio and open models arrive</li><li>Every company scrambles to adopt</li></ul></div>
+      <div class="era"><span class="yrs">2024 – 2026</span><h3>The agent era</h3><ul class="ticks"><li>Tools, memory and reasoning</li><li>AI that acts, not just answers</li><li>Where the rest of this guide lives</li></ul></div>
+    </div>
+    <p class="takeaway">Three years took AI from research paper to acting on your behalf. Knowing the order is the whole map.</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART II ================= -->
+<section class="part" id="part-2" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">II</span><h2>Working with it</h2><p>The mindset and the moves. How to think about AI, how to ask, and the four relationships you can have with it.</p></div>
+
+  <article class="ch" id="ch5"><div class="ch-num">05</div><div class="ch-body">
+    <div class="eyebrow">Mindset · Working with AI</div>
+    <h2>The AI mindset.</h2>
+    <p class="lede">The biggest unlock isn't a new model; it's a new way of working. Treat AI like a brilliant, fast, fallible collaborator.</p>
+    <div class="grid g3">
+      <div class="plain"><span class="eyebrow">Principle 01</span><h3>Think in iterations</h3><p>Not perfection. The first draft is the start of the conversation, not the end of it.</p></div>
+      <div class="plain"><span class="eyebrow">Principle 02</span><h3>Guide &amp; refine</h3><p>Steer the model with examples, critiques and counter-prompts. Collaborate, don't command.</p></div>
+      <div class="plain"><span class="eyebrow">Principle 03</span><h3>Build, don't just use</h3><p>Wire models into your tools, your data and your workflows, not just the chat box.</p></div>
+    </div>
+    <p class="takeaway">AI is a thinking partner, not just a tool.</p>
+  </div></article>
+
+  <article class="ch" id="ch6"><div class="ch-num">06</div><div class="ch-body">
+    <div class="eyebrow">Practice · Prompting</div>
+    <h2>A simple prompting framework.</h2>
+    <p class="lede">Treat every prompt as a contract. Four parts, in order, and the same model gives you a different, usually better, result. Toggle the parts to see the prompt change.</p>
+    <div class="contract" id="contract">
+      <button class="part-btn c1" aria-pressed="false" data-p="0"><span class="eyebrow"><span>Step 01</span><span class="st">off</span></span><h3>Context</h3><p>Who you are, what you're doing, what already happened.</p></button>
+      <button class="part-btn c2" aria-pressed="false" data-p="1"><span class="eyebrow"><span>Step 02</span><span class="st">off</span></span><h3>Task</h3><p>The single, specific outcome you want.</p></button>
+      <button class="part-btn c3" aria-pressed="false" data-p="2"><span class="eyebrow"><span>Step 03</span><span class="st">off</span></span><h3>Constraints</h3><p>Tone, length, format, what to avoid.</p></button>
+      <button class="part-btn c4" aria-pressed="false" data-p="3"><span class="eyebrow"><span>Step 04</span><span class="st">off</span></span><h3>Output</h3><p>The shape: JSON, list, table, story, code.</p></button>
+    </div>
+    <div class="prompt-out">
+      <div><div class="eyebrow" style="margin-bottom:8px">Your prompt</div><div class="code" id="promptCode"></div></div>
+      <div class="meter">
+        <div class="eyebrow">What you'll likely get back</div>
+        <div class="meter-row"><span>On-topic</span><div class="track"><div class="fill" data-m="0"></div></div></div>
+        <div class="meter-row"><span>Specific</span><div class="track"><div class="fill" data-m="1"></div></div></div>
+        <div class="meter-row"><span>On-tone</span><div class="track"><div class="fill" data-m="2"></div></div></div>
+        <div class="meter-row"><span>Usable shape</span><div class="track"><div class="fill" data-m="3"></div></div></div>
+        <p class="verdict" id="verdict"></p>
+        <div class="row"><button class="btn ghost" id="allParts">Add all four</button><button class="btn ghost" id="noParts">Back to vague</button></div>
+      </div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch7"><div class="ch-num">07</div><div class="ch-body">
+    <div class="eyebrow">Practice · Recipe cards</div>
+    <h2>Prompts you can steal.</h2>
+    <p class="lede">Every recipe is the same four-part contract. Copy one, fill the blanks, make it yours.</p>
+    <div class="grid g3" id="recipes"></div>
+  </div></article>
+
+  <article class="ch" id="ch8"><div class="ch-num">08</div><div class="ch-body">
+    <div class="eyebrow">Roles · Four modes</div>
+    <h2>Four modes of AI.</h2>
+    <p class="lede">The same model plays different roles depending on how you frame the relationship. Know which mode you're in, and switch deliberately.</p>
+    <div class="modes" id="modes"></div>
+    <div class="panel mode-detail" id="modeDetail"></div>
+    <p class="takeaway">Pick the mode before you pick the prompt.</p>
+  </div></article>
+
+  <article class="ch" id="ch9"><div class="ch-num">09</div><div class="ch-body">
+    <div class="eyebrow">Worked example · A day with AI</div>
+    <h2>One day, one task, end to end.</h2>
+    <p class="lede">Meet Maya. She runs a neighbourhood bakery and is opening a second location, with no marketing team, just a laptop and one free afternoon. Step through her day.</p>
+    <div class="panel">
+      <div class="steps-track" id="mayaTrack"></div>
+      <div class="maya-view" id="mayaView"></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mayaPrev">Back</button><button class="btn" id="mayaNext">Next step</button></div>
+    </div>
+    <p class="takeaway">Prompting, modes, iteration, grounding, in one ordinary afternoon. That's the whole guide, applied.</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART III ================= -->
+<section class="part" id="part-3" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">III</span><h2>Accurate &amp; safe</h2><p>AI you can trust. Grounding answers in your facts, giving it memory, and knowing where it breaks.</p></div>
+
+  <article class="ch" id="ch10"><div class="ch-num">10</div><div class="ch-body">
+    <div class="eyebrow">Grounding · Retrieval</div>
+    <h2>Retrieval-Augmented Generation.</h2>
+    <p class="lede">A model alone only knows what it was trained on. Give it a search step over your documents, and it answers from facts you trust.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:16px">
+      <div class="row" style="justify-content:space-between"><span class="eyebrow">Follow one question through the pipeline</span><button class="btn" id="ragRun">Run the question</button></div>
+      <div class="scroll-x">
+      <svg class="diagram rag-svg" viewBox="0 0 1000 170" style="min-width:720px" role="img" aria-label="Question goes to a retriever, which searches a vector database of your documents, then the LLM composes a grounded answer with citations">
+        <defs><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+        <g class="node" data-s="0"><rect x="20" y="50" width="150" height="70" rx="10"/><text x="95" y="80" text-anchor="middle">USER QUESTION</text><text x="95" y="98" text-anchor="middle" class="lbl-s">01 · ask</text></g>
+        <g class="node" data-s="1"><rect x="222" y="50" width="150" height="70" rx="10"/><text x="297" y="80" text-anchor="middle">RETRIEVER</text><text x="297" y="98" text-anchor="middle" class="lbl-s">02 · embed + rank</text></g>
+        <g class="node db" data-s="2"><rect x="424" y="50" width="150" height="70" rx="10"/><text x="499" y="80" text-anchor="middle">VECTOR DB</text><text x="499" y="98" text-anchor="middle" class="lbl-s">03 · your docs</text></g>
+        <g class="node" data-s="3"><rect x="626" y="50" width="150" height="70" rx="10"/><text x="701" y="80" text-anchor="middle">LLM</text><text x="701" y="98" text-anchor="middle" class="lbl-s">04 · generate</text></g>
+        <g class="node" data-s="4"><rect x="828" y="50" width="150" height="70" rx="10"/><text x="903" y="80" text-anchor="middle">GROUNDED REPLY</text><text x="903" y="98" text-anchor="middle" class="lbl-s">05 · answer</text></g>
+        <line class="edge" x1="170" y1="85" x2="218" y2="85" marker-end="url(#ahr)"/>
+        <line class="edge" x1="372" y1="85" x2="420" y2="85" marker-end="url(#ahr)"/>
+        <line class="edge" x1="574" y1="85" x2="622" y2="85" marker-end="url(#ahr)"/>
+        <line class="edge" x1="776" y1="85" x2="824" y2="85" marker-end="url(#ahr)"/>
+        <text x="196" y="40" text-anchor="middle" class="lbl-s">query</text>
+        <text x="398" y="40" text-anchor="middle" class="lbl-s">vector</text>
+        <text x="600" y="40" text-anchor="middle" class="lbl-s">top-k chunks</text>
+        <text x="802" y="40" text-anchor="middle" class="lbl-s">+ citations</text>
+        <g class="packet" id="packet" transform="translate(95 145)"><circle class="halo" r="11"/><circle r="5"/></g>
+      </svg>
+      </div>
+      <div class="rag-stages" id="ragStages">
+        <div class="stage" data-s="0"><b>01 · ASK</b>"What is our refund policy?"</div>
+        <div class="stage" data-s="1"><b>02 · RETRIEVE</b>Embed the query, find the top-k chunks, rank by similarity.</div>
+        <div class="stage" data-s="2"><b>03 · INDEX</b>Your knowledge base, stored as embeddings.</div>
+        <div class="stage" data-s="3"><b>04 · GENERATE</b>Compose an answer from the chunks. Cite sources. Stay grounded.</div>
+        <div class="stage" data-s="4"><b>05 · ANSWER</b>Answer plus citations you can check.</div>
+      </div>
+      <div class="qa">
+        <div class="bubble"><span class="eyebrow">Model alone</span>"Most companies offer 30-day refunds." <span style="color:var(--warn)">A plausible guess, not your policy.</span></div>
+        <div class="bubble ans"><span class="eyebrow">Model + your docs (example)</span>"Refunds are available within 14 days with a receipt; digital goods are exchange-only."<cite>source · refund-policy.pdf §2</cite></div>
+      </div>
+    </div>
+    <p class="takeaway">AI plus your data equals grounded, accurate answers.</p>
+  </div></article>
+
+  <article class="ch" id="ch11"><div class="ch-num">11</div><div class="ch-body">
+    <div class="eyebrow">State · Context &amp; memory</div>
+    <h2>Context fills up. <em class="acc">Memory doesn't.</em></h2>
+    <p class="lede">Every LLM has a finite context window: a working desk. Stuff too much on it and earlier facts fall off the edge. Drag the slider to keep chatting.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:12px">
+      <div class="ctx-head"><span class="eyebrow">Context window · 200K tokens</span><span class="ctx-status tnum" id="ctxStatus"></span></div>
+      <div class="ctx-bar" id="ctxBar">
+        <div class="ctx-sys" data-c="sys">SYSTEM</div><div class="ctx-tool" data-c="tool">TOOL DEFS</div><div class="ctx-prior" data-c="prior">PRIOR TURNS</div><div class="ctx-docs" data-c="docs">RETRIEVED DOCS</div><div class="ctx-last" data-c="last">LATEST</div>
+      </div>
+      <div class="ctx-scale tnum"><span>0</span><span>50K</span><span>100K</span><span>150K</span><span>200K</span></div>
+      <div class="temp"><label for="turns">Conversation turns</label><input id="turns" type="range" min="0" max="45" step="1" value="30"><span id="turnsv" class="tnum">30</span></div>
+      <div class="dropped tnum" id="dropped"></div>
+    </div>
+    <div class="grid g3 mem">
+      <div class="card"><span class="eyebrow">Type 01 · Working</span><h3>Working memory</h3><p>The live context window. Cheap and fast, but ephemeral: it dies with the chat session.</p><div class="code">user → "draft the email"
+tool → search_results.json
+assistant → "Here's a draft…"</div></div>
+      <div class="card"><span class="eyebrow">Type 02 · Episodic</span><h3>Episodic memory</h3><p>Specific past events the agent can recall. "Last Tuesday we tried X and it failed because Y."</p><div class="code">2026-03-18 · trip_planning
+→ prefers aisle seats
+→ avoid United after JFK</div></div>
+      <div class="card"><span class="eyebrow">Type 03 · Persistent</span><h3>Persistent memory</h3><p>Long-lived facts and preferences, stored in a vector or key-value store. Survives across sessions.</p><div class="code">profile.role = "founder"
+profile.tone = "concise"
+habits.morning_brief = true</div></div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch12"><div class="ch-num">12</div><div class="ch-body">
+    <div class="eyebrow">Trust · Limits &amp; risk</div>
+    <h2>When not to trust it.</h2>
+    <p class="lede">Hallucinations, bias, privacy and confident wrongness, plus a simple checklist for when a human must stay in the loop.</p>
+    <div class="grid g4">
+      <div class="plain"><span class="eyebrow" style="color:var(--warn)">Risk</span><h3>Hallucination</h3><p>It can invent things (a quote, a statistic, a fake source) confidently.</p></div>
+      <div class="plain"><span class="eyebrow" style="color:var(--warn)">Risk</span><h3>Bias</h3><p>It mirrors its training data, including stereotypes and blind spots.</p></div>
+      <div class="plain"><span class="eyebrow" style="color:var(--warn)">Risk</span><h3>Privacy</h3><p>What you paste may be stored or trained on. No secrets in public tools.</p></div>
+      <div class="plain"><span class="eyebrow" style="color:var(--warn)">Risk</span><h3>Over-reliance</h3><p>Fluent is not correct. Polished writing earns unearned trust. You own the output.</p></div>
+    </div>
+    <div class="panel" style="display:flex; flex-direction:column; gap:14px">
+      <div class="ship"><h3>Verify before you ship</h3><span class="pill w" id="shipPill">6 checks left</span></div>
+      <div class="checks" id="checks"></div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch13"><div class="ch-num">13</div><div class="ch-body">
+    <div class="eyebrow">Responsibility · Principles in practice</div>
+    <h2>Responsible AI in practice.</h2>
+    <p class="lede">Powerful isn't the same as trustworthy. Responsible AI is a set of habits anyone, technical or not, can hold themselves to every time they use it.</p>
+    <div class="grid g3">
+      <div class="card"><span class="eyebrow">Habit 01</span><h3>Disclose it</h3><ul class="ticks"><li>Say when AI helped make something</li><li>Hidden AI erodes trust faster than visible AI</li><li>Label, don't pretend: people forgive the tool, not the deception</li></ul></div>
+      <div class="card"><span class="eyebrow">Habit 02</span><h3>Keep a human in the loop</h3><ul class="ticks"><li>For decisions that affect a person: hiring, lending, health</li><li>A human makes the final call, every time</li><li>AI advises; people are accountable</li></ul></div>
+      <div class="card"><span class="eyebrow">Habit 03</span><h3>Guard the data</h3><ul class="ticks"><li>Never feed secrets into tools you don't control</li><li>Assume anything you paste could be stored</li><li>When unsure, leave it out</li></ul></div>
+    </div>
+    <p class="takeaway">Responsibility isn't a brake on AI. It's what lets you use it boldly, because you always know where the lines are.</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART IV ================= -->
+<section class="part" id="part-4" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">IV</span><h2>From prompts to systems</h2><p>When AI stops being a chat box. Agents that act, the standards that connect them, and who is building them.</p></div>
+
+  <article class="ch" id="ch14"><div class="ch-num">14</div><div class="ch-body">
+    <div class="eyebrow">Systems · Autonomy</div>
+    <h2>AI agents &amp; systems.</h2>
+    <p class="lede">An agent is a model with hands: it can plan steps, call tools, remember, and decide what to do next. The unit of work goes from prompt to process.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:16px">
+      <div class="row" style="justify-content:space-between"><span class="eyebrow">Watch an agent work (example task)</span><button class="btn" id="agentRun">Run the agent</button></div>
+      <div class="scroll-x">
+      <svg class="diagram agent-svg" viewBox="0 0 1000 190" style="min-width:720px" role="img" aria-label="Agent loop: goal, plan, tools, memory, MCP servers, result, with a reflect and iterate loop back to plan">
+        <defs>
+          <marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="rah" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <g class="n" data-n="0"><rect x="10" y="30" width="130" height="56" rx="10"/><text x="75" y="63" text-anchor="middle">GOAL</text></g>
+        <g class="n" data-n="1"><rect x="182" y="30" width="130" height="56" rx="10"/><text x="247" y="63" text-anchor="middle">PLAN</text></g>
+        <g class="n" data-n="2"><rect x="354" y="30" width="130" height="56" rx="10"/><text x="419" y="63" text-anchor="middle">TOOLS</text></g>
+        <g class="n" data-n="3"><rect x="526" y="30" width="130" height="56" rx="10"/><text x="591" y="63" text-anchor="middle">MEMORY</text></g>
+        <g class="n" data-n="4"><rect x="698" y="30" width="130" height="56" rx="10"/><text x="763" y="63" text-anchor="middle">MCP SERVERS</text></g>
+        <g class="n" data-n="5"><rect x="870" y="30" width="120" height="56" rx="10"/><text x="930" y="63" text-anchor="middle">RESULT ✓</text></g>
+        <line class="e" x1="140" y1="58" x2="178" y2="58" marker-end="url(#aha)"/>
+        <line class="e" x1="312" y1="58" x2="350" y2="58" marker-end="url(#aha)"/>
+        <line class="e" x1="484" y1="58" x2="522" y2="58" marker-end="url(#aha)"/>
+        <line class="e" x1="656" y1="58" x2="694" y2="58" marker-end="url(#aha)"/>
+        <line class="e" x1="828" y1="58" x2="866" y2="58" marker-end="url(#aha)"/>
+        <path class="reflect" id="reflect" d="M930 86 C 930 170, 247 170, 247 92" marker-end="url(#ahv)"/>
+        <text x="588" y="160" text-anchor="middle" style="fill:var(--violet)">↻ REFLECT · ITERATE</text>
+      </svg>
+      </div>
+      <div class="log" id="agentLog" aria-live="polite"><div style="color:var(--faint)">Press "Run the agent" to watch one goal become a process.</div></div>
+    </div>
+    <h3 style="font-size:28px">Don't just use AI. <em class="acc">Build software with it.</em></h3>
+    <p class="lede">Agents are the moment AI stops being a chat box and becomes a system you ship. The job shifts from writing prompts to designing autonomous, reliable software around them.</p>
+    <div class="layers">
+      <div><span class="eyebrow" style="color:var(--blue)">Layer 01 · Reason</span><h3>Models as the runtime</h3><p>Foundation models become the engine of your app: like a database or server, but for thinking.</p></div>
+      <div><span class="eyebrow" style="color:var(--violet)">Layer 02 · Act</span><h3>Tools, MCP, integrations</h3><p>Wire the model into your APIs, browsers and code. The intelligence reaches out and changes the world.</p></div>
+      <div><span class="eyebrow" style="color:var(--teal)">Layer 03 · Operate</span><h3>Memory, evals, guardrails</h3><p>Real software needs state, tests and limits. Design agents like products, not demos.</p></div>
+    </div>
+    <p class="takeaway">From "what can I prompt?" to "what can I build?"</p>
+  </div></article>
+
+  <article class="ch" id="ch15"><div class="ch-num">15</div><div class="ch-body">
+    <div class="eyebrow">Plumbing · MCP servers</div>
+    <h2>MCP: one plug, <em class="acc">many tools.</em></h2>
+    <p class="lede">The Model Context Protocol is a standard way to plug AI apps into your tools and data, like USB-C for AI. Build an integration once as a "server", and any MCP-aware client can use it. Flip the switch to see what it removes.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:14px">
+      <div class="row" style="justify-content:space-between">
+        <div class="seg" id="mcpSeg" role="group" aria-label="Integration approach"><button aria-pressed="false" data-v="without">Without MCP</button><button aria-pressed="true" data-v="with">With MCP</button></div>
+        <div class="count tnum" id="mcpCount"></div>
+      </div>
+      <div class="scroll-x">
+      <svg class="diagram mcp-svg mode-with" id="mcpSvg" viewBox="0 0 900 300" style="min-width:620px" role="img" aria-label="Without MCP every client needs a custom integration to every tool; with MCP each client and each tool connects once to the shared protocol">
+        <g class="direct" id="mcpDirect"></g>
+        <g class="via" id="mcpVia"></g>
+        <g class="hub"><rect x="370" y="95" width="160" height="110" rx="14"/><text x="450" y="140" text-anchor="middle">MCP</text><text x="450" y="158" text-anchor="middle" style="font-size:10.5px">JSON-RPC</text><text x="450" y="174" text-anchor="middle" style="font-size:10.5px">tools · resources</text><text x="450" y="188" text-anchor="middle" style="font-size:10.5px">prompts · auth</text></g>
+        <text x="90" y="20" text-anchor="middle" class="lbl-s">AI CLIENTS</text>
+        <text x="810" y="20" text-anchor="middle" class="lbl-s">YOUR TOOLS</text>
+        <g id="mcpNodes"></g>
+      </svg>
+      </div>
+      <figcaption id="mcpCap" style="margin:0"></figcaption>
+    </div>
+    <div class="grid g4">
+      <div class="plain"><span class="eyebrow">01</span><h3>Tools</h3><p>Actions the model can take: query a DB, send mail, run a script. Name, schema, handler.</p></div>
+      <div class="plain"><span class="eyebrow">02</span><h3>Resources</h3><p>Read-only data the model can fetch: files, rows, docs. Pulled into context on demand.</p></div>
+      <div class="plain"><span class="eyebrow">03</span><h3>Prompts</h3><p>Reusable, parameterised templates the server exposes: saved workflows any client can invoke.</p></div>
+      <div class="plain"><span class="eyebrow">04</span><h3>Sampling</h3><p>Servers can ask the client to call its model, so servers can themselves use AI.</p></div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch16"><div class="ch-num">16</div><div class="ch-body">
+    <div class="eyebrow">Coordination · Agent-to-agent</div>
+    <h2>A2A: agents that talk to agents.</h2>
+    <p class="lede">If MCP connects an agent to tools, A2A connects agents to each other: an open protocol so agents from different vendors, frameworks and clouds can discover, negotiate and delegate work.</p>
+    <figure class="panel">
+      <div class="scroll-x">
+      <svg class="diagram a2a-svg" viewBox="0 0 900 250" style="min-width:620px" role="img" aria-label="Three agents from different vendors delegate tasks to each other over A2A, while each one reaches its own tools over MCP">
+        <path class="a2a" d="M235 70 L 385 70"/><path class="a2a" d="M515 70 L 665 70"/>
+        <path class="a2a" d="M170 50 C 250 -10, 650 -10, 730 50"/>
+        <text x="310" y="60" text-anchor="middle" class="lbl-s">delegates task</text>
+        <text x="590" y="60" text-anchor="middle" class="lbl-s">streams updates</text>
+        <text x="450" y="18" text-anchor="middle" class="lbl-s">reads agent card</text>
+        <g class="ag"><rect x="105" y="45" width="130" height="50" rx="10"/><text x="170" y="68" text-anchor="middle">TRIP AGENT</text><text x="170" y="84" text-anchor="middle" class="lbl-s">vendor A</text></g>
+        <g class="ag"><rect x="385" y="45" width="130" height="50" rx="10"/><text x="450" y="68" text-anchor="middle">BOOKING AGENT</text><text x="450" y="84" text-anchor="middle" class="lbl-s">vendor B</text></g>
+        <g class="ag"><rect x="665" y="45" width="130" height="50" rx="10"/><text x="730" y="68" text-anchor="middle">EXPENSE AGENT</text><text x="730" y="84" text-anchor="middle" class="lbl-s">vendor C</text></g>
+        <path class="mcpl" d="M140 95 L 110 170"/><path class="mcpl" d="M200 95 L 230 170"/>
+        <path class="mcpl" d="M450 95 L 450 170"/>
+        <path class="mcpl" d="M700 95 L 670 170"/><path class="mcpl" d="M760 95 L 790 170"/>
+        <g class="tl"><rect x="55" y="170" width="110" height="36" rx="8"/><text x="110" y="193" text-anchor="middle">Calendar</text></g>
+        <g class="tl"><rect x="175" y="170" width="110" height="36" rx="8"/><text x="230" y="193" text-anchor="middle">Maps</text></g>
+        <g class="tl"><rect x="395" y="170" width="110" height="36" rx="8"/><text x="450" y="193" text-anchor="middle">Flights API</text></g>
+        <g class="tl"><rect x="615" y="170" width="110" height="36" rx="8"/><text x="670" y="193" text-anchor="middle">Receipts</text></g>
+        <g class="tl"><rect x="735" y="170" width="110" height="36" rx="8"/><text x="790" y="193" text-anchor="middle">Ledger</text></g>
+        <text x="450" y="238" text-anchor="middle" class="lbl-s">each agent keeps its own tools · agents collaborate without sharing internals</text>
+      </svg>
+      </div>
+      <div class="legend" style="margin-top:10px"><span><i class="d"></i>A2A · agent ↔ agent</span><span><i></i>MCP · agent ↔ tools</span></div>
+    </figure>
+    <div class="grid g4">
+      <div class="plain"><span class="eyebrow">Concept 01</span><h3>Agent Cards</h3><p>Every agent publishes a card describing what it can do, how to talk to it, and what auth it needs.</p></div>
+      <div class="plain"><span class="eyebrow">Concept 02</span><h3>Tasks &amp; messages</h3><p>Work is exchanged as long-running, stateful tasks, with streaming updates, not one-shot calls.</p></div>
+      <div class="plain"><span class="eyebrow">Concept 03</span><h3>Multimodal &amp; secure</h3><p>Pass text, files, forms, even live media. Built on HTTPS + OAuth, so it works across orgs and clouds.</p></div>
+      <div class="plain"><span class="eyebrow">Concept 04</span><h3>MCP × A2A</h3><p>MCP = agent ↔ tools. A2A = agent ↔ agent. Together they turn isolated bots into a network.</p></div>
+    </div>
+    <p class="takeaway">When agents can find and work with each other, swarms beat solos.</p>
+  </div></article>
+
+  <article class="ch" id="ch17"><div class="ch-num">17</div><div class="ch-body">
+    <div class="eyebrow">Landscape · Players &amp; trends</div>
+    <h2>The agent landscape.</h2>
+    <p class="lede">Every major lab is racing to ship agents. The center of gravity is moving from "model release" to "agent platform".</p>
+    <div class="grid g2">
+      <div class="card lab"><span class="mark">M</span><h3>Microsoft</h3><span class="eyebrow">Copilot · M365 · Azure AI</span><p>Embedding agents into Word, Teams and Excel, and tooling the enterprise stack to build custom ones.</p></div>
+      <div class="card lab"><span class="mark">O</span><h3>OpenAI</h3><span class="eyebrow">GPT · Operator · Agents API</span><p>Pushing browser-using agents and the platform layer: ChatGPT as a workflow runtime, not a chat box.</p></div>
+      <div class="card lab"><span class="mark">A</span><h3>Anthropic</h3><span class="eyebrow">Claude · Computer use · MCP</span><p>Originated MCP, the standard for plugging models into tools, and leads on safety-first agents.</p></div>
+      <div class="card lab"><span class="mark">G</span><h3>Google</h3><span class="eyebrow">Gemini · Mariner · Vertex</span><p>Bundling agents into Search, Workspace and Android, plus enterprise building inside Vertex AI.</p></div>
+    </div>
+    <div class="grid g4">
+      <div class="plain"><span class="eyebrow">Trend</span><h3>Multi-agent systems</h3><p>Crews of specialist agents that coordinate, critique and delegate, beating single-model setups.</p></div>
+      <div class="plain"><span class="eyebrow" style="color:var(--warn)">Trend</span><h3>Security risks</h3><p>Prompt injection, data exfiltration, runaway tool calls. Agents need sandboxes and least-privilege auth.</p></div>
+      <div class="plain"><span class="eyebrow">Trend</span><h3>Governance</h3><p>Policy, audit logs, eval suites, model cards: making agents accountable when they act for you.</p></div>
+      <div class="plain"><span class="eyebrow">Trend</span><h3>Next frontier</h3><p>Long-horizon planning, embodied agents, world models, scientific discovery.</p></div>
+    </div>
+    <p class="takeaway">The platform war isn't models anymore. It's agents.</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART V ================= -->
+<section class="part" id="part-5" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">V</span><h2>In the real world</h2><p>Where it already works. Production case studies, the tools to try now, robots, and what it means for your job.</p></div>
+
+  <article class="ch" id="ch18"><div class="ch-num">18</div><div class="ch-body">
+    <div class="eyebrow">Enterprise · Case studies</div>
+    <h2>AI at work.</h2>
+    <p class="lede">How large companies actually deploy generative AI today: not pilots, but production. Reported numbers; results vary by team and use case.</p>
+    <div class="stats">
+      <div class="stat"><span class="eyebrow">Klarna · Customer service</span><span class="n">2/3</span><p>of all customer-service chats handled by an AI assistant: the work of ~700 full-time agents.</p><q>Resolution time dropped from 11 minutes to under 2.</q><span class="src">SOURCE · KLARNA PRESS · 2024–25</span></div>
+      <div class="stat"><span class="eyebrow">JPMorgan · Research</span><span class="n">~140K</span><p>employees with the internal LLM Suite, saving analysts hours per week on review and drafting.</p><span class="src">SOURCE · JPMC REPORTING · 2024</span></div>
+      <div class="stat"><span class="eyebrow">GitHub · Copilot</span><span class="n">55%</span><p>faster task completion in coding studies. Adopted by 90%+ of Fortune 100 dev orgs.</p><span class="src">SOURCE · GITHUB RESEARCH · 2023–24</span></div>
+      <div class="stat"><span class="eyebrow">Moderna · Drug discovery</span><span class="n">750+</span><p>internal GPTs deployed across R&amp;D, legal and ops via an OpenAI enterprise partnership.</p><span class="src">SOURCE · MODERNA × OPENAI · 2024</span></div>
+      <div class="stat"><span class="eyebrow">Walmart · Retail ops</span><span class="n">50K+</span><p>associates using "My Assistant" for summarising, drafting and creative work.</p><span class="src">SOURCE · WALMART CORP · 2024</span></div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch19"><div class="ch-num">19</div><div class="ch-body">
+    <div class="eyebrow">Toolkit · Agentic tools today</div>
+    <h2>The agentic toolkit.</h2>
+    <p class="lede">Pick one per category. Use it for a real project. Then pick the next. The toolkit changes monthly; the mental model does not.</p>
+    <div class="seg" id="toolSeg" role="group" aria-label="Filter tools"><button aria-pressed="true" data-c="ALL">All</button><button aria-pressed="false" data-c="CODING">Coding</button><button aria-pressed="false" data-c="WORK">Work</button><button aria-pressed="false" data-c="CREATE">Create</button><button aria-pressed="false" data-c="LEARN">Learn</button></div>
+    <div class="grid g3" id="tools"></div>
+  </div></article>
+
+  <article class="ch" id="ch20"><div class="ch-num">20</div><div class="ch-body">
+    <div class="eyebrow">Toolkit · Decision guide</div>
+    <h2>Which tool for which job?</h2>
+    <p class="lede">Match the job you have to the right category and a starting pick. Start from the job, not the hype.</p>
+    <div class="scroll-x">
+    <table class="guide">
+      <thead><tr><th>The job you have</th><th>Best category</th><th>Starter pick</th><th>The one gotcha</th></tr></thead>
+      <tbody>
+        <tr><td>Draft a document</td><td>Chat assistant</td><td>ChatGPT · Claude</td><td>Verify any facts; it sounds sure even when wrong.</td></tr>
+        <tr><td>Research a topic</td><td>Answer engine</td><td>Perplexity · NotebookLM</td><td>Great for sources; still read the originals.</td></tr>
+        <tr><td>Build an app</td><td>AI coder / builder</td><td>Cursor · Claude Code · v0</td><td>Review the code; it can ship confident bugs.</td></tr>
+        <tr><td>Make a deck</td><td>AI presentations</td><td>Gamma</td><td>On-brand is the hard part; expect to restyle.</td></tr>
+        <tr><td>Create images</td><td>Image generation</td><td>Midjourney · Ideogram</td><td>Text and hands still need a careful eye.</td></tr>
+        <tr><td>Make a video</td><td>Video generation</td><td>Runway · Sora · Veo</td><td>Costly and slow; storyboard before you generate.</td></tr>
+        <tr><td>Automate a workflow</td><td>Agent platform</td><td>Manus · Genspark</td><td>Give it limits; autonomy needs guardrails.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch21"><div class="ch-num">21</div><div class="ch-body">
+    <div class="eyebrow">World · Embodiment</div>
+    <h2>Physical AI.</h2>
+    <p class="lede">The same intelligence that lives behind a chat window is moving into wheels, arms, sensors and homes, closing the loop between bits and atoms.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:10px">
+      <div class="sda" id="sda" aria-hidden="true"><span class="s">Sense</span><span class="arr">→</span><span class="s">Decide</span><span class="arr">→</span><span class="s">Act</span><span class="arr">↻</span></div>
+      <span class="eyebrow">The loop now runs in the physical world</span>
+    </div>
+    <div class="grid g2">
+      <div class="plain"><span class="eyebrow">Context 01</span><h3>Factories &amp; warehouses</h3><p>Robotic arms learn from examples instead of being programmed line by line. Pickers, packers and inspectors that adapt on the job: slow today, common tomorrow.</p></div>
+      <div class="plain"><span class="eyebrow">Context 02</span><h3>Homes &amp; daily life</h3><p>Helpers that fold laundry, prep meals and care for the elderly. Awkward today; capable and ordinary within the decade.</p></div>
+    </div>
+  </div></article>
+
+  <article class="ch" id="ch22"><div class="ch-num">22</div><div class="ch-body">
+    <div class="eyebrow">People · Work &amp; careers</div>
+    <h2>What about my job?</h2>
+    <p class="lede">What changes, what doesn't, which skills compound, and how to position yourself as someone who directs AI rather than competes with it.</p>
+    <div class="jobs">
+      <div class="card"><span class="eyebrow" style="color:var(--muted)">AI takes over</span><h3>The grunt work</h3><ul class="ticks"><li>First drafts and boilerplate</li><li>Summarising long documents</li><li>Reformatting and data entry</li><li>Routine code and lookups</li></ul></div>
+      <div class="card"><span class="eyebrow">Stays human</span><h3>The judgement</h3><ul class="ticks"><li>Taste, ethics and the final call</li><li>Relationships and trust</li><li>Knowing which problem matters</li><li>Accountability for the result</li></ul></div>
+      <div class="card"><span class="eyebrow" style="color:var(--teal)">Newly valuable</span><h3>The new roles</h3><ul class="ticks"><li>Directing and reviewing AI work</li><li>Designing AI-powered workflows</li><li>Domain experts who can prompt</li><li>"AI-fluent" in every function</li></ul></div>
+    </div>
+    <div class="skills"><span class="eyebrow" style="align-self:center; margin-right:6px">Skills that compound</span><span class="pill">Clear communication</span><span class="pill">Critical thinking</span><span class="pill">Domain depth</span><span class="pill">Taste &amp; judgement</span><span class="pill">Adaptability</span></div>
+    <p class="takeaway">The people who win aren't the ones who resist AI. They're the ones who learn to direct it.</p>
+  </div></article>
+
+  <article class="ch" id="ch23"><div class="ch-num">23</div><div class="ch-body">
+    <div class="eyebrow">Governance · State of the world</div>
+    <h2>How the world is writing the rules.</h2>
+    <p class="lede">As AI moved from the lab into daily life, governments started legislating. Three broad philosophies are emerging, and they don't agree on how tightly to hold the reins.</p>
+    <div class="grid g3">
+      <div class="card"><span class="eyebrow">Europe</span><h3>Comprehensive law</h3><ul class="ticks"><li>The EU AI Act: the world's first broad AI law</li><li>Sorts uses by risk: some banned, high-risk tightly controlled, most left free</li><li>A global template, as GDPR was for privacy</li></ul></div>
+      <div class="card"><span class="eyebrow">United States</span><h3>Market-led &amp; sectoral</h3><ul class="ticks"><li>No single federal law: agencies, states, executive action</li><li>Leans pro-innovation; existing laws still apply</li><li>A fast-moving, uneven patchwork</li></ul></div>
+      <div class="card"><span class="eyebrow">China</span><h3>State-directed</h3><ul class="ticks"><li>Early, binding rules on algorithms and generative AI</li><li>Strong emphasis on content control and state priorities</li><li>Models reviewed before public release</li></ul></div>
+    </div>
+    <div class="plain"><span class="eyebrow">The global layer</span><p>Above any single country, voluntary efforts knit a loose consensus: the OECD AI Principles, the G7 Hiroshima Process, UN advisory work, and the international AI Safety Summits (Bletchley → Seoul → Paris). None binding, but where shared norms take shape.</p></div>
+    <p class="takeaway">The direction is one-way: toward "show your work."</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART VI ================= -->
+<section class="part" id="part-6" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">VI</span><h2>Where it's going</h2><p>The horizon: what the next models will do and the long road toward general intelligence.</p></div>
+
+  <article class="ch" id="ch24"><div class="ch-num">24</div><div class="ch-body">
+    <div class="eyebrow">Future · Frontier models</div>
+    <h2>What the next models will do.</h2>
+    <p class="lede">Frontier models are getting longer, deeper and more agentic. The next wave is defined less by parameter count and more by what models can sustain: long-horizon reasoning, real tool use, and reliability under autonomy.</p>
+    <div class="grid g3">
+      <div class="plain"><span class="eyebrow">Direction 01</span><h3>Reasoning-native models</h3><p>Inference-time compute (chain-of-thought, search, self-verification) becomes the default. Models think before they speak.</p></div>
+      <div class="plain"><span class="eyebrow">Direction 02</span><h3>Long-horizon agents</h3><p>From minutes to days of autonomous work. Plans spanning thousands of steps that recover from failure.</p></div>
+      <div class="plain"><span class="eyebrow">Direction 03</span><h3>Multimodal generalists</h3><p>One model that sees, hears, codes and acts, closing the gap between perception, language and motor output.</p></div>
+      <div class="plain"><span class="eyebrow">Direction 04</span><h3>World models &amp; simulation</h3><p>Models that internally simulate the world to plan: the basis for embodied AI and scientific discovery.</p></div>
+      <div class="plain"><span class="eyebrow">Direction 05</span><h3>Evals, safety, alignment</h3><p>Benchmarks for autonomy, deception and capability uplift: infrastructure for trusting capable systems.</p></div>
+      <div class="plain"><span class="eyebrow">Direction 06</span><h3>Specialization &amp; efficiency</h3><p>Smaller, faster, domain-tuned models for the edge, alongside frontier giants. Deployment widens.</p></div>
+    </div>
+    <p class="takeaway">Scale is no longer the only axis. Reasoning and autonomy are.</p>
+  </div></article>
+
+  <article class="ch" id="ch25"><div class="ch-num">25</div><div class="ch-body">
+    <div class="eyebrow">Horizon · Trajectory</div>
+    <h2>The future <em class="acc">→ AGI.</em></h2>
+    <p class="lede">A widening capability curve, from narrow to general. Each step generalises across more tasks, more contexts, more autonomy. Click a milestone.</p>
+    <figure class="panel">
+      <div class="scroll-x">
+      <svg class="diagram agi-svg" id="agiSvg" viewBox="0 0 1000 360" style="min-width:640px" role="img" aria-label="Capability rises over time from narrow AI to foundation models, agents, embodied AI and finally AGI">
+        <defs>
+          <linearGradient id="agiFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7447F0" stop-opacity=".28"/><stop offset="1" stop-color="#7447F0" stop-opacity=".02"/></linearGradient>
+          <linearGradient id="agiLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2F5BEA"/><stop offset=".7" stop-color="#7447F0"/><stop offset="1" stop-color="#14A38B"/></linearGradient>
+        </defs>
+        <line class="axis" x1="40" y1="320" x2="970" y2="320"/><line class="axis" x1="40" y1="30" x2="40" y2="320"/>
+        <text x="50" y="42" class="lbl-s">CAPABILITY ↑</text><text x="965" y="340" text-anchor="end" class="lbl-s">TIME →</text>
+        <path class="area" d="M40 312 C 400 305, 640 210, 950 60 L 950 320 L 40 320 Z"/>
+        <path class="curve" id="agiCurve" d="M40 312 C 400 305, 640 210, 950 60"/>
+        <g id="agiMs"></g>
+      </svg>
+      </div>
+      <p style="margin-top:10px" id="agiDesc"></p>
+    </figure>
+    <p class="takeaway">Toward general, human-level intelligence.</p>
+  </div></article>
+ </div>
+</section>
+
+<!-- ================= PART VII ================= -->
+<section class="part" id="part-7" data-part>
+ <div class="wrap">
+  <div class="part-head"><span class="roman">VII</span><h2>Your move</h2><p>From reader to builder. A 90-day plan and a workbook to turn everything here into a skill.</p></div>
+
+  <article class="ch" id="ch26"><div class="ch-num">26</div><div class="ch-body">
+    <div class="eyebrow">Plan · For professionals</div>
+    <h2>A 90-day plan to master applied AI.</h2>
+    <p class="lede">Four pillars, one quarter. Build a portfolio, not a certificate; each pillar reinforces the next. The pillars overlap on purpose. Click a bar.</p>
+    <div class="panel" style="display:flex; flex-direction:column; gap:20px">
+      <div class="scroll-x"><div class="gantt" id="gantt"></div></div>
+      <div class="pillar-detail" id="pillarDetail"></div>
+    </div>
+    <p class="takeaway">Master AI by building, shipping and teaching, in that order.</p>
+  </div></article>
+
+  <article class="ch" id="ch27"><div class="ch-num">27</div><div class="ch-body">
+    <div class="eyebrow">Workbook · Try this</div>
+    <h2>Don't just read it. <em class="acc">Do it.</em></h2>
+    <p class="lede">One small, concrete exercise for each part, so you finish by building instead of just nodding. Tick them off; this browser remembers your progress.</p>
+    <div class="wb" id="wb"></div>
+    <div class="finish"><span class="eyebrow" id="wbCount">0 of 7 done</span><div class="track"><div class="fill" id="wbFill" style="transform:scaleX(0)"></div></div><span style="font-size:14px; color:var(--muted)" id="wbMsg">Do all seven and you've built the habit of working with AI.</span></div>
+    <p class="takeaway">Reading gives the map. Doing gives the muscle.</p>
+  </div></article>
+ </div>
+</section>
+
+<section class="part" id="glossary">
+ <div class="wrap">
+  <div class="part-head"><span class="roman" style="font-size:56px">Ref</span><h2>Every word, demystified.</h2><p>Plain-language definitions of the terms used in this guide.</p></div>
+  <div style="margin-top:24px; display:flex; flex-direction:column; gap:16px">
+    <input class="search" id="glossQ" type="search" placeholder="Filter terms, e.g. token" aria-label="Filter glossary">
+    <dl class="gloss" id="gloss" style="margin:0"></dl>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="eyebrow" style="color:var(--blue)">School of Applied AI · Beginner's field guide</div>
+    <h2 style="margin-top:12px">Learn AI by <em class="acc">building</em>, not just consuming.</h2>
+    <p class="lede" style="margin-top:14px">You have the mental model. Now pick one idea, one tool, one task, and build something small with it this week.</p>
+    <div class="row">
+      <div><span class="eyebrow">School of Applied AI</span><span>schoolofappliedai.com</span></div>
+      <div><span class="eyebrow">Get in touch</span><span style="user-select:all">altafr@weekendai.com</span></div>
+      <div><span class="eyebrow">Edition</span><span>v2.0 · 2026</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* progress + active part */
+const prog = $('#progress'), links = $$('.parts a');
+const secs = $$('[data-part], #glossary');
+function onScroll(){
+  const h = document.documentElement;
+  prog.style.transform = `scaleX(${Math.min(1, h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight))})`;
+  let cur = null;
+  for (const s of secs) if (s.getBoundingClientRect().top < 120) cur = s.id;
+  links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + cur));
+}
+addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+/* ch01 nested */
+function setNest(k){
+  $$('.ring-btn').forEach(g => g.classList.toggle('on', g.dataset.k === k));
+  $$('.nest-item').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+}
+$$('.ring-btn, .nest-item').forEach(el => {
+  el.addEventListener('click', e => { e.stopPropagation(); setNest(el.dataset.k); });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setNest(el.dataset.k); } });
+});
+
+/* ch02 autocomplete */
+const START = ['The',' cat',' sat',' on',' the'];
+const NEXT = {
+  ' the': [[' mat',.46],[' sofa',.2],[' floor',.14],[' roof',.09],[' keyboard',.07],[' moon',.04]],
+  noun: [['.',.52],[' and',.24],[',',.14],[' again',.1]],
+  ' and': [[' purred',.42],[' slept',.3],[' waited',.18],[' sang',.1]],
+  ',': [[' purring',.45],[' watching',.33],[' dreaming',.22]],
+  verb: [['.',.68],[' softly',.2],[' loudly',.12]],
+  adv: [['.',1]]
+};
+const cls = t => NEXT[t] ? t : [' mat',' sofa',' floor',' roof',' keyboard',' moon'].includes(t) ? 'noun' : [' purred',' slept',' waited',' sang',' purring',' watching',' dreaming'].includes(t) ? 'verb' : [' again',' softly',' loudly'].includes(t) ? 'adv' : null;
+let toks = [...START], lastNew = -1, picked = null, autoT = null;
+const tempEl = $('#temp');
+function dist(){
+  const last = toks[toks.length-1];
+  if (last === '.') return null;
+  const base = NEXT[cls(last)]; if (!base) return null;
+  const T = +tempEl.value;
+  const w = base.map(([,p]) => Math.pow(p, 1/T)); const s = w.reduce((a,b)=>a+b,0);
+  return base.map(([t],i) => [t, w[i]/s]);
+}
+const show = t => esc(t).replace(/^ /, '<span class="sp">␣</span>');
+function renderTok(){
+  $('#stream').innerHTML = toks.map((t,i) => `<span class="chip${i===lastNew?' new':''}">${show(t)}</span>`).join('');
+  const d = dist(), pr = $('#probs');
+  if (!d){ pr.innerHTML = `<p style="font-size:14px;color:var(--muted)">Sentence finished. The model predicted an end token. Press Reset to try again at a different temperature.</p>`; $('#predict').disabled = true; stopAuto(); return; }
+  $('#predict').disabled = false;
+  pr.innerHTML = d.map(([t,p]) => `<div class="prob${t===picked?' pick':''}"><span>${show(t)}</span><div class="track"><div class="fill" style="transform:scaleX(${p.toFixed(3)})"></div></div><span class="pc tnum">${Math.round(p*100)}%</span></div>`).join('');
+}
+function step(){
+  const d = dist(); if (!d) return;
+  let r = Math.random(), t = d[d.length-1][0];
+  for (const [tk,p] of d){ if ((r -= p) <= 0){ t = tk; break; } }
+  picked = null; toks.push(t); lastNew = toks.length-1; renderTok();
+}
+function stopAuto(){ clearInterval(autoT); autoT = null; $('#auto').textContent = 'Auto-complete'; }
+$('#predict').onclick = step;
+$('#auto').onclick = () => { if (autoT) return stopAuto(); if (!dist()) return; $('#auto').textContent = 'Stop'; step(); autoT = setInterval(() => dist() ? step() : stopAuto(), 700); };
+$('#reset').onclick = () => { stopAuto(); toks = [...START]; lastNew = -1; renderTok(); };
+tempEl.oninput = () => { $('#tempv').textContent = (+tempEl.value).toFixed(1); renderTok(); };
+renderTok();
+
+/* ch03 modalities */
+const MODES = [
+  ['"a haiku about rain"','Text: tokens, code, prose and structured data. The original modality.'],
+  ['"a watercolor of a rainy street"','Image: photos, diagrams, illustration and design, from a text description.'],
+  ['"the sound of rain on a tin roof"','Audio: speech, music, sound effects, and voice cloning at scale.'],
+  ['"a slow pan across a rainy city"','Video: scenes, motion and 3D. Cinematic clips from a single prompt.']
+];
+function setMode(m){
+  $$('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.m == m));
+  $$('.modal-svg .out').forEach(g => g.classList.toggle('on', g.dataset.m == m));
+  $$('.modal-svg .wire').forEach(w => w.classList.toggle('on', w.dataset.w == m));
+  $('#promptTxt').textContent = MODES[m][0]; $('#modeDesc').textContent = MODES[m][1];
+}
+$$('#modeSeg button').forEach(b => b.onclick = () => setMode(+b.dataset.m));
+$$('.modal-svg .out').forEach(g => g.onclick = () => setMode(+g.dataset.m));
+setMode(0);
+
+/* ch06 prompt contract */
+const PARTS = [
+  ['k1','[CONTEXT]','B2B SaaS, devs as users.'],
+  ['k2','[TASK]','Draft a 5-step onboarding email.'],
+  ['k3','[CONSTRAINTS]','≤120 words, friendly, no jargon.'],
+  ['k4','[OUTPUT]','JSON: subject, preview, body.']
+];
+const on = [false,false,false,false];
+function renderPrompt(){
+  const n = on.filter(Boolean).length;
+  $('#promptCode').innerHTML = n === 0 ? '"write something about onboarding"' :
+    PARTS.map(([k,l,t],i) => on[i] ? `<span class="${k}">${l}</span> ${esc(t)}` : '').filter(Boolean).join('\n');
+  $$('.part-btn').forEach((b,i) => { b.setAttribute('aria-pressed', on[i]); b.querySelector('.st').textContent = on[i] ? 'on' : 'off'; });
+  const score = [on[0]||on[1] ? (on[0]&&on[1]?1:.65) : .35, on[1] ? (on[0]?.95:.7) : .2, on[2] ? (on[0]?1:.8) : on[0] ? .45 : .2, on[3] ? 1 : on[2] ? .4 : .15];
+  $$('.meter .fill').forEach((f,i) => f.style.transform = `scaleX(${score[i]})`);
+  $('#verdict').innerHTML = n === 0 ? '<b>Vague prompt.</b> Generic, off-tone, wrong length, unusable shape.' :
+    n === 4 ? '<b>Structured prompt.</b> Specific, on-brand, ready to ship.' : `<b>${n} of 4 parts.</b> Better, but the model is still guessing about ${PARTS.filter((_,i)=>!on[i]).map(p=>p[1].slice(1,-1).toLowerCase()).join(' and ')}.`;
+}
+$$('.part-btn').forEach((b,i) => b.onclick = () => { on[i] = !on[i]; renderPrompt(); });
+$('#allParts').onclick = () => { on.fill(true); renderPrompt(); };
+$('#noParts').onclick = () => { on.fill(false); renderPrompt(); };
+renderPrompt();
+
+/* ch07 recipes */
+const RECIPES = [
+  ['Distill','Summarise anything','[CONTEXT] <paste the text> [TASK] Summarise the key points. [CONSTRAINTS] 5 bullets, no jargon. [OUTPUT] A bulleted list.','Naming the shape (5 bullets) stops it from rambling.'],
+  ['Revise','Rewrite & improve','[CONTEXT] <paste your draft> [TASK] Make it clearer and warmer. [CONSTRAINTS] Keep my meaning, cut 20%. [OUTPUT] The revised version only.','"Keep my meaning" guards against invented claims.'],
+  ['Ideate','Brainstorm options','[CONTEXT] I\'m launching <thing>. [TASK] Give 10 angles I haven\'t tried. [CONSTRAINTS] Range from safe to wild. [OUTPUT] Numbered list, one line each.','Asking for a range pushes past the obvious first three.'],
+  ['Teach','Explain it simply','[CONTEXT] I\'m new to <topic>. [TASK] Explain it like I\'m smart but busy. [CONSTRAINTS] One analogy, no acronyms. [OUTPUT] 3 short paragraphs.','Setting your level gets the right depth, not a lecture.'],
+  ['Write','Draft an email','[CONTEXT] Writing to <who, why>. [TASK] Draft the email. [CONSTRAINTS] Friendly, <120 words, one ask. [OUTPUT] Subject + body.','"One ask" keeps the message focused enough to get a reply.'],
+  ['Structure','Mess into a table','[CONTEXT] <paste messy notes> [TASK] Organise into a table. [CONSTRAINTS] Columns: item, owner, due. [OUTPUT] A Markdown table.','Specifying columns turns a pile into something usable.']
+];
+const colorize = s => esc(s).replace(/\[CONTEXT\]/g,'<span class="k1">[CONTEXT]</span>').replace(/\[TASK\]/g,'<span class="k2">[TASK]</span>').replace(/\[CONSTRAINTS\]/g,'<span class="k3">[CONSTRAINTS]</span>').replace(/\[OUTPUT\]/g,'<span class="k4">[OUTPUT]</span>').replace(/ (<span class="k)/g,'\n$1');
+$('#recipes').innerHTML = RECIPES.map(([tag,t,p,w],i) => `<div class="card recipe"><div class="top"><span class="eyebrow">${tag}</span><button class="copy" data-i="${i}">Copy</button></div><h3>${t}</h3><div class="code">${colorize(p)}</div><p class="why"><b>Why it works:</b> ${esc(w)}</p></div>`).join('');
+$$('#recipes .copy').forEach(b => b.onclick = async () => {
+  const txt = RECIPES[b.dataset.i][2];
+  try { await navigator.clipboard.writeText(txt); b.textContent = 'Copied'; b.classList.add('done'); }
+  catch { const r = document.createRange(); r.selectNodeContents(b.closest('.recipe').querySelector('.code')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+  setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('done'); }, 1600);
+});
+
+/* ch08 modes */
+const MODESX = [
+  ['Assistant','You decide; AI does.','Executes well-defined tasks fast.','Drafts, summaries, edits.','→'],
+  ['Collaborator','You think out loud; AI thinks back.','Works alongside you on the same canvas.','Strategy, code review, decisions.','⇄'],
+  ['Creative partner','AI widens; you choose.','Generates options you wouldn\'t have thought of.','Brainstorming, naming, visual exploration.','⇇'],
+  ['Coach','AI asks; you grow.','Asks the right questions and gives feedback.','Learning, practice, deliberate improvement.','←']
+];
+let modeI = 0;
+function renderModes(){
+  $('#modes').innerHTML = MODESX.map(([n,,,,r],i) => `<button class="mode" aria-pressed="${i===modeI}" data-i="${i}"><span class="eyebrow">Mode 0${i+1}</span><h3>${n}</h3><span class="rel"><span class="dot you">You</span>${r}<span class="dot ai">AI</span></span></button>`).join('');
+  const [n,rel,what,best] = MODESX[modeI];
+  $('#modeDetail').innerHTML = `<span class="big">0${modeI+1}</span><div><h3>${n}</h3><p style="margin-top:6px"><b>${rel}</b> ${what}</p><p style="margin-top:4px"><b>Best for:</b> ${best}</p></div>`;
+  $$('#modes .mode').forEach(b => b.onclick = () => { modeI = +b.dataset.i; renderModes(); $(`#modes .mode[data-i="${modeI}"]`).focus(); });
+}
+renderModes();
+
+/* ch09 maya */
+const MAYA = [
+  ['The messy goal','"Get 100 people to my opening on the 14th." Vague, but it\'s a start. She doesn\'t need the perfect prompt yet.','Just begin',''],
+  ['A real prompt','The four-part contract: who she is, draft a flyer, friendly and local, give her the copy.','Assistant','v'],
+  ['Iterate','"Warmer. Shorter. Mention the sourdough." Three rounds, ten seconds each, not one perfect ask.','Collaborator','v'],
+  ['Add her data','She pastes last year\'s best flyer and her customer list. Now it writes in her voice, grounded in what worked.','Grounding','t'],
+  ['Shipped','Flyer, five social posts and an email to regulars, done before her coffee\'s cold. She edits, then sends.','Result','t']
+];
+let mi = 0;
+function renderMaya(){
+  $('#mayaTrack').innerHTML = MAYA.map(([t],i) => `<button class="${i<=mi?'done':''} ${i===mi?'cur':''}" data-i="${i}" aria-label="Step ${i+1}: ${t}"><span class="bar-s"><i></i></span><span class="t">STEP 0${i+1}</span></button>`).join('');
+  const [t,d,tag,c] = MAYA[mi];
+  $('#mayaView').innerHTML = `<div class="swap"><span class="eyebrow">Step 0${mi+1} of 05</span><h3>${t}</h3><p>${esc(d)}</p></div><span class="pill ${c} swap">${tag}</span>`;
+  $('#mayaPrev').disabled = mi === 0; $('#mayaNext').textContent = mi === 4 ? 'Start over' : 'Next step';
+  $$('#mayaTrack button').forEach(b => b.onclick = () => { mi = +b.dataset.i; renderMaya(); });
+}
+$('#mayaPrev').onclick = () => { if (mi > 0){ mi--; renderMaya(); } };
+$('#mayaNext').onclick = () => { mi = mi === 4 ? 0 : mi + 1; renderMaya(); };
+renderMaya();
+
+/* ch10 RAG */
+const RAGX = [95, 297, 499, 701, 903];
+const packet = $('#packet');
+let ragBusy = false, ragAnim = null;
+function ragStage(s){
+  $$('.rag-svg .node').forEach(n => n.classList.toggle('on', +n.dataset.s === s));
+  $$('#ragStages .stage').forEach(n => n.classList.toggle('on', +n.dataset.s === s));
+}
+function movePacket(from, to){
+  const kf = [{transform:`translate(${RAGX[from]}px, 145px)`},{transform:`translate(${RAGX[to]}px, 145px)`}];
+  if (reduce || !packet.animate){ packet.setAttribute('transform', `translate(${RAGX[to]} 145)`); return Promise.resolve(); }
+  packet.removeAttribute('transform');
+  if (ragAnim) ragAnim.cancel();
+  const a = ragAnim = packet.animate(kf, {duration:600, easing:'cubic-bezier(0.77,0,0.175,1)', fill:'forwards'});
+  return a.finished;
+}
+const wait = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 400) : ms));
+$('#ragRun').onclick = async () => {
+  if (ragBusy) return; ragBusy = true; $('#ragRun').disabled = true;
+  ragStage(0); await movePacket(4, 0).catch(()=>{}); await wait(500);
+  for (let s = 1; s < 5; s++){ await movePacket(s-1, s).catch(()=>{}); ragStage(s); await wait(700); }
+  ragBusy = false; $('#ragRun').disabled = false; $('#ragRun').textContent = 'Run it again';
+};
+ragStage(4); packet.setAttribute('transform', `translate(${RAGX[4]} 145)`);
+
+/* ch11 context */
+const CAP = 200, SYS = 4, TOOL = 12, DOCS = 40, LAST = 3, PER = 4.3;
+function renderCtx(){
+  const n = +$('#turns').value; $('#turnsv').textContent = n;
+  let prior = n * PER; const total = SYS + TOOL + prior + DOCS + LAST;
+  const over = Math.max(0, total - CAP); const priorKept = Math.max(0, prior - over);
+  const seg = {sys:SYS, tool:TOOL, prior:priorKept, docs:DOCS, last:LAST};
+  $$('#ctxBar div').forEach(d => { d.style.flex = `0 0 ${(seg[d.dataset.c]/CAP*100).toFixed(2)}%`; });
+  const used = Math.min(total, CAP), pct = Math.round(used / CAP * 100);
+  const st = $('#ctxStatus');
+  st.textContent = over > 0 ? `100% FULL · EARLY TOKENS DROPPING` : pct >= 90 ? `${pct}% FULL · NEARLY OUT OF ROOM` : `${pct}% FULL`;
+  st.classList.toggle('warn', pct >= 90);
+  $('#dropped').textContent = over > 0 ? `${over.toFixed(1)}K tokens of the earliest turns fell off the desk. The model can no longer see them.` : '';
+}
+$('#turns').oninput = renderCtx; renderCtx();
+
+/* ch12 checklist */
+const CHECKS = ['Are the facts and numbers independently checked?','Do the cited sources actually exist and say this?','Would I be comfortable if this were public?','Is there any private or sensitive data in here?','Did a human make the final call?','Could being wrong here actually hurt someone?'];
+$('#checks').innerHTML = CHECKS.map((c,i) => `<label class="check" for="chk${i}"><input type="checkbox" id="chk${i}"><span>${c}</span></label>`).join('');
+function renderShip(){
+  const left = $$('#checks input').filter(i => !i.checked).length, p = $('#shipPill');
+  p.textContent = left ? `${left} check${left>1?'s':''} left` : 'Ready to ship';
+  p.className = 'pill ' + (left ? 'w' : 't');
+}
+$$('#checks input').forEach(i => i.onchange = renderShip); renderShip();
+
+/* ch14 agent */
+const AGENT = [
+  [0,'goal','Summarise this week\'s customer tickets and post them to the team channel.'],
+  [1,'plan','fetch tickets → group by theme → draft summary → post'],
+  [2,'tools','search_tickets(since="7d") → 142 tickets'],
+  [3,'memory','recall: team prefers 5 bullets, flag refunds first'],
+  [4,'mcp','slack.post_message(draft) … held for review'],
+  [-1,'reflect','draft missed 12 refund tickets → revise the plan'],
+  [1,'plan','regroup with a refund filter first'],
+  [2,'tools','search_tickets(tag="refund") → 12 tickets'],
+  [4,'mcp','slack.post_message(summary) → ok'],
+  [5,'result','Summary posted: 5 bullets, refunds on top ✓']
+];
+let agentBusy = false;
+$('#agentRun').onclick = async () => {
+  if (agentBusy) return; agentBusy = true; $('#agentRun').disabled = true;
+  const log = $('#agentLog'); log.innerHTML = '';
+  const nodes = $$('.agent-svg .n'), refl = $('#reflect');
+  nodes.forEach(n => n.classList.remove('on','ok'));
+  for (const [i,k,t] of AGENT){
+    nodes.forEach(n => n.classList.remove('on'));
+    refl.classList.toggle('on', i === -1);
+    if (i >= 0) nodes[i].classList.add(i === 5 ? 'ok' : 'on');
+    const d = document.createElement('div');
+    d.innerHTML = `<span class="${k==='result'?'ok':'k'}">${k.padEnd(8,' ')}</span> ${esc(t)}`;
+    log.appendChild(d);
+    await wait(k === 'reflect' ? 1100 : 750);
+  }
+  refl.classList.remove('on');
+  agentBusy = false; $('#agentRun').disabled = false; $('#agentRun').textContent = 'Run it again';
+};
+
+/* ch15 MCP */
+const NS = 'http://www.w3.org/2000/svg';
+const CL = ['Claude','Cursor','IDE','Custom agent'], TL = ['GitHub','Postgres','Slack','Drive','Custom'];
+const cy = i => 50 + i * (220 / (CL.length - 1)), ty = i => 45 + i * (230 / (TL.length - 1));
+let nodesSvg = '', direct = '', via = '';
+CL.forEach((c,i) => { nodesSvg += `<g class="box"><rect x="20" y="${cy(i)-17}" width="140" height="34" rx="8"/><text x="90" y="${cy(i)+4}" text-anchor="middle">${c}</text></g>`; });
+TL.forEach((t,i) => { nodesSvg += `<g class="box"><rect x="740" y="${ty(i)-17}" width="140" height="34" rx="8"/><text x="810" y="${ty(i)+4}" text-anchor="middle">${t}</text></g>`; });
+CL.forEach((c,i) => TL.forEach((t,j) => { direct += `<path class="l" d="M160 ${cy(i)} C 450 ${cy(i)}, 450 ${ty(j)}, 740 ${ty(j)}"/>`; }));
+CL.forEach((c,i) => { via += `<path class="l" d="M160 ${cy(i)} C 270 ${cy(i)}, 270 150, 370 150"/>`; });
+TL.forEach((t,j) => { via += `<path class="l" d="M530 150 C 630 150, 630 ${ty(j)}, 740 ${ty(j)}"/>`; });
+$('#mcpNodes').innerHTML = nodesSvg; $('#mcpDirect').innerHTML = direct; $('#mcpVia').innerHTML = via;
+function setMcp(v){
+  $$('#mcpSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  $('#mcpSvg').setAttribute('class', `diagram mcp-svg mode-${v}`);
+  const n = v === 'with' ? CL.length + TL.length : CL.length * TL.length;
+  $('#mcpCount').innerHTML = `${n}<small>integrations to build</small>`;
+  $('#mcpCap').textContent = v === 'with'
+    ? `With MCP: each of the ${CL.length} clients speaks MCP once, and each of the ${TL.length} tools is wrapped once as a server. ${CL.length} + ${TL.length} = ${n}. Add a tool and every client gets it.`
+    : `Without MCP: every client needs its own custom connector to every tool. ${CL.length} × ${TL.length} = ${n}, and each new tool multiplies the work.`;
+}
+$$('#mcpSeg button').forEach(b => b.onclick = () => setMcp(b.dataset.v));
+setMcp('with');
+
+/* ch19 tools */
+const TOOLS = [
+  ['CODING','Claude Code','Terminal agent: reads your repo, edits files, runs tests, opens PRs.'],
+  ['CODING','Cursor','AI-native IDE built around chat, inline edits and agentic workflows.'],
+  ['CODING','v0 · Lovable · Bolt','Describe an app; get a working web prototype with deploy in minutes.'],
+  ['WORK','Manus','General autonomous agent: plans, browses, codes, files, ships.'],
+  ['WORK','Genspark','A swarm of specialist agents that research, build and orchestrate tasks.'],
+  ['WORK','Claude Cowork','A shared workspace where teams collaborate with Claude in real time.'],
+  ['CREATE','Gamma','Type a topic; get a polished, editable, exportable deck in seconds.'],
+  ['CREATE','Midjourney · Ideogram','High-fidelity image generation with strong aesthetic defaults.'],
+  ['CREATE','Runway · Sora · Veo','Text to cinematic video, with consistency tooling that finally works.'],
+  ['CREATE','HeyGen','Talking-head video from a script in 40+ languages; clone voice and avatar.'],
+  ['LEARN','NotebookLM','Upload sources; chat with them, brief, and make surprisingly good podcasts.'],
+  ['LEARN','Perplexity','Search that cites: traceable, up-to-date sources, not vibes.']
+];
+$('#tools').innerHTML = TOOLS.map(([c,n,d]) => `<div class="card tool" data-c="${c}"><span class="eyebrow c-${c}">${c}</span><h3>${n}</h3><p>${d}</p></div>`).join('');
+$$('#toolSeg button').forEach(b => b.onclick = () => {
+  $$('#toolSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $$('#tools .tool').forEach(t => t.hidden = b.dataset.c !== 'ALL' && t.dataset.c !== b.dataset.c);
+});
+
+/* ch21 sense-decide-act pulse */
+const sda = $$('#sda .s'); let si = 0;
+if (!reduce) setInterval(() => { sda.forEach((s,i) => s.classList.toggle('on', i === si)); si = (si + 1) % 3; }, 1100);
+else sda.forEach(s => s.classList.add('on'));
+
+/* ch25 AGI */
+const MS = [
+  [.08,'NARROW AI','single-task models','Narrow AI: single-task models. A spam filter or a chess engine is brilliant at one thing and useless at anything else.'],
+  [.33,'FOUNDATION MODELS','general capabilities','Foundation models: one model, many tasks. The same system writes, translates, codes and reasons across domains.'],
+  [.57,'AGENTS','autonomous systems','Agents: models that plan, use tools and act across many steps. Where the industry is today.'],
+  [.80,'EMBODIED AI','acts in the world','Embodied AI: the same intelligence in robots and devices, sensing and acting in the physical world.'],
+  [.985,'AGI','human-level, general','AGI: general, human-level intelligence that transfers across tasks, contexts and levels of autonomy.']
+];
+const curve = $('#agiCurve'), L = curve.getTotalLength();
+$('#agiMs').innerHTML = MS.map(([f,n,s],i) => {
+  const p = curve.getPointAtLength(f * L); const below = i < 3;
+  const ty = below ? p.y + 26 : p.y - 30;
+  return `<g class="ms${i===4?' last':''}" data-i="${i}" tabindex="0" role="button" aria-label="${n}"><circle class="ringc" cx="${p.x}" cy="${p.y}" r="13" stroke-width="2"/><circle class="dot" cx="${p.x}" cy="${p.y}" r="6"/><text x="${p.x}" y="${ty}" text-anchor="${i===4?'end':'middle'}" ${i===4?'dx="10"':''}>${n}</text><text class="sub" x="${p.x}" y="${ty+15}" text-anchor="${i===4?'end':'middle'}" ${i===4?'dx="10"':''}>${s}</text></g>`;
+}).join('');
+function setMs(i){ $$('#agiMs .ms').forEach(g => g.classList.toggle('on', +g.dataset.i === i)); $('#agiDesc').textContent = MS[i][3]; }
+$$('#agiMs .ms').forEach(g => { g.onclick = () => setMs(+g.dataset.i); g.onkeydown = e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); setMs(+g.dataset.i); } }; });
+setMs(2);
+
+/* ch26 gantt */
+const PILLARS = [
+  ['p1','Productivity',1,3,'The foundation. Every other pillar is faster once your daily workflow runs on AI.',['Replace search with deep-research prompts','Draft, summarize, review in your editor','Voice notes → structured docs','Build a personal prompt library']],
+  ['p2','Agents',4,7,'Move from prompts to processes. Build small agents that do real, repeatable work.',['Pick one workflow you do weekly','Wire tools via MCP / function calls','Add memory: short-term + persistent','Evals + guardrails before shipping']],
+  ['p3','Coding with AI',5,10,'Learn to architect, debug and ship with AI as a collaborator.',['Copilot / Cursor / Claude Code daily','Spec-driven prompts, not snippets','Test generation + code review loops','Ship a small product end-to-end']],
+  ['p4','Content creation',6,12,'Compound your learning in public. Writing, video and design earn the returns.',['Write 1 essay/week on what you build','Generate image, audio, video assets','Publish to one platform consistently','Repurpose: long-form → posts → talks']],
+  ['p5','Review',13,13,'Week 13: review and double down. Pick the pillar giving the most leverage. Go deeper next quarter.',['Which pillar gave the most leverage?','What did you build, ship and teach?','Pick one pillar to go deeper on next quarter']]
+];
+let pi = 0;
+let g = '<span></span>' + Array.from({length:13},(_,i)=>`<span class="wk tnum">W${i+1}</span>`).join('');
+PILLARS.forEach(([c,n,a,b],i) => {
+  g += `<span class="nm">${n}</span>`;
+  if (a > 1) g += `<span style="grid-column:span ${a-1}"></span>`;
+  g += `<button class="gb ${c}" data-i="${i}" style="grid-column:span ${b-a+1}" aria-pressed="false">${a===b?'W'+a:'W'+a+'–'+b}</button>`;
+  if (b < 13) g += `<span style="grid-column:span ${13-b}"></span>`;
+});
+$('#gantt').innerHTML = g;
+function setPillar(i){
+  pi = i; $$('#gantt .gb').forEach(b => b.setAttribute('aria-pressed', +b.dataset.i === i));
+  const [,n,a,b,d,items] = PILLARS[i];
+  $('#pillarDetail').innerHTML = `<div class="swap" style="animation:fadeUp .26s var(--ease-out)"><span class="eyebrow">${i<4?'Pillar 0'+(i+1):'Wrap-up'} · Weeks ${a===b?a:a+'–'+b}</span><h3 style="font-size:28px; margin-top:4px">${n}</h3><p style="color:var(--muted); margin-top:6px">${d}</p></div><ul class="ticks" style="align-self:center">${items.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+$$('#gantt .gb').forEach(b => b.onclick = () => setPillar(+b.dataset.i));
+setPillar(0);
+
+/* ch27 workbook */
+const WB = [
+  'Ask a chatbot to explain "tokens" using a metaphor you\'d use with a child. Judge the answer.',
+  'Write a real email with the Context · Task · Constraints · Output contract.',
+  'Ask about a document you paste in. Then ask the same with no document. Compare.',
+  'Map one weekly task into steps an agent could run: goal, tools, what "done" looks like.',
+  'Pick one tool from the decision table; use it for a real job this week. Note what surprised you.',
+  'Write three sentences on how your work might change in two years. Specific, not scared.',
+  'Block 30 min/day for a week. Replace one routine task with AI. That\'s the habit; start it.'
+];
+const ROMAN = ['I','II','III','IV','V','VI','VII'];
+let saved = [];
+try { saved = JSON.parse(localStorage.getItem('genai-wb') || '[]'); } catch {}
+$('#wb').innerHTML = WB.map((t,i) => `<label for="wb${i}"><input type="checkbox" id="wb${i}" ${saved[i]?'checked':''}><span class="pn">PART ${ROMAN[i]}</span><span class="tx">${esc(t)}</span></label>`).join('');
+function renderWb(){
+  const v = $$('#wb input').map(i => i.checked), n = v.filter(Boolean).length;
+  try { localStorage.setItem('genai-wb', JSON.stringify(v)); } catch {}
+  $('#wbCount').textContent = `${n} of 7 done`;
+  $('#wbFill').style.transform = `scaleX(${n/7})`;
+  $('#wbMsg').textContent = n === 7 ? 'Finish line. You haven\'t just read about AI; you\'ve built the habit.' : 'Do all seven and you\'ve built the habit of working with AI.';
+}
+$$('#wb input').forEach(i => i.onchange = renderWb); renderWb();
+
+/* glossary */
+const GLOSS = [
+  ['Token','The chunk a model reads and writes, roughly a word-piece. Models predict one at a time.'],
+  ['Parameter','A learned number inside the model. "Billions of parameters" = the size of its learned memory.'],
+  ['Prompt','The instruction you give the model. Better prompts → better outputs.'],
+  ['Context window','The model\'s working desk: how much text it can hold at once. Overflow falls off.'],
+  ['Inference','The act of the model generating an answer (as opposed to training).'],
+  ['Hallucination','A confident, fluent answer that is simply wrong. The same machinery that makes it useful.'],
+  ['Embedding','Turning text into numbers that capture meaning, so similar ideas sit close together.'],
+  ['Fine-tuning','Further training a base model on your own examples to specialise it.'],
+  ['RAG','Retrieval-Augmented Generation: letting the model search your documents before answering.'],
+  ['Agent','A model given tools, memory, and the ability to plan and act across steps.'],
+  ['MCP','Model Context Protocol: a standard plug between AI apps and your tools and data.'],
+  ['Multimodal','A model that handles more than text (images, audio, video) in and out.']
+];
+function renderGloss(){
+  const q = $('#glossQ').value.trim().toLowerCase();
+  const rows = GLOSS.filter(([t,d]) => !q || t.toLowerCase().includes(q) || d.toLowerCase().includes(q));
+  $('#gloss').innerHTML = rows.length ? rows.map(([t,d]) => `<div class="term"><dt>${t.toUpperCase()}</dt><dd>${d}</dd></div>`).join('') : `<p style="color:var(--muted)">No term matches "${esc(q)}".</p>`;
+}
+$('#glossQ').oninput = renderGloss; renderGloss();
+})();
+</script>
+</body>
+</html>
