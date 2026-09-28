@@ -55,7 +55,7 @@ a{color:var(--blue)}
 .bar .wrap{display:flex; align-items:center; gap:16px; height:52px}
 .brand{display:flex; align-items:center; gap:10px; font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; color:var(--ink); text-decoration:none}
 .brand i{display:grid; place-items:center; width:22px; height:22px; border-radius:6px; background:var(--violet); color:#fff; font:italic 15px var(--serif)}
-.parts{display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; margin-left:auto}
+.parts{display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; margin-left:auto; min-width:0}
 .parts::-webkit-scrollbar{display:none}
 .parts a{font:500 11px var(--mono); letter-spacing:.06em; color:var(--muted); text-decoration:none; padding:6px 10px; border-radius:6px; white-space:nowrap; transition:color .2s ease, background-color .2s ease}
 .parts a.on{color:var(--blue); background:var(--blue-soft)}
@@ -445,6 +445,13 @@ table.guide tr{transition:background-color .15s ease}
 .term dt{font:500 11px var(--mono); letter-spacing:.1em; color:var(--blue)}
 .term dd{margin:4px 0 0; font-size:14px; color:var(--muted)}
 
+.byline{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-top:32px!important; padding-top:12px; border-top:1px dashed var(--line); font:500 11px var(--mono); letter-spacing:.06em; color:var(--faint)}
+.byline a{color:var(--blue); text-decoration:none; border-bottom:1px solid transparent; transition:border-color .2s ease}
+@media (hover:hover) and (pointer:fine){.byline a:hover{border-bottom-color:currentColor}}
+.part-head .byline{grid-column:1 / -1; margin-top:8px!important; border-top:0; padding-top:0}
+.bar .by{font:500 11px var(--mono); white-space:nowrap; color:var(--muted)}
+.bar .by a{color:var(--blue); text-decoration:none}
+@media (max-width:900px){.bar .by{display:none}}
 footer{padding-block:64px 48px; border-top:1px solid var(--line); margin-top:48px}
 footer h2{font-size:clamp(32px,5vw,56px)}
 footer .row{margin-top:24px; gap:32px}
@@ -463,6 +470,7 @@ footer .row span{display:block}
 <header class="bar">
   <div class="wrap">
     <a class="brand" href="#top"><i>A</i><span>Generative AI · Field Guide</span></a>
+    <span class="by">by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span>
     <nav class="parts" aria-label="Parts">
       <a href="#part-1">I · What is this?</a>
       <a href="#part-2">II · Working with it</a>
@@ -484,6 +492,7 @@ footer .row span{display:block}
       <div class="eyebrow" style="color:var(--blue)">Generative AI · The beginner's field guide</div>
       <h1>A mental model for <em class="acc">thinking</em> with machines that think.</h1>
       <p class="lede">A complete beginner's path, from <b>what a model is</b> to <b>building with agents</b>, in seven parts. Written for non-technical readers. The diagrams are live: click, drag and run them as you read.</p>
+      <p class="byline" style="border-top:0; padding-top:0; margin-top:20px!important; justify-content:flex-start"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p>
       <div class="meta">
         <div><span class="eyebrow">Level</span><span class="v">Beginner → Builder</span></div>
         <div><span class="eyebrow">Scope</span><span class="v">27 chapters · 7 parts</span></div>
@@ -514,7 +523,7 @@ footer .row span{display:block}
 <!-- ================= PART I ================= -->
 <section class="part" id="part-1" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">I</span><h2>What is this?</h2><p>Start from zero. What a model actually is, the intuition for how it works, and the shapes it can speak in.</p></div>
+  <div class="part-head"><span class="roman">I</span><h2>What is this?</h2><p>Start from zero. What a model actually is, the intuition for how it works, and the shapes it can speak in.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch1"><div class="ch-num">01</div><div class="ch-body">
     <div class="eyebrow">Foundations · What is a model?</div>
@@ -535,6 +544,7 @@ footer .row span{display:block}
         <button class="nest-item on" data-k="gen"><span class="eyebrow">Generative models</span><h3>Models that create</h3><p>Deep models trained to predict the next token, pixel or frame, so they produce new text, images, audio and video.</p></button>
       </div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">01 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch2"><div class="ch-num">02</div><div class="ch-body">
@@ -566,6 +576,7 @@ footer .row span{display:block}
       <div class="plain"><span class="eyebrow">Idea 03</span><h3>Creativity = sampling</h3><p>It doesn't always pick the top choice. Raising "temperature" lets it sample less-likely tokens, which is why the same prompt can give different answers.</p></div>
     </div>
     <p class="note"><b>Hallucination</b> is the same machinery: confidently guessing a plausible next token, even when there's no fact behind it. "The cat sat on the moon" is fluent, and false.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">02 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch3"><div class="ch-num">03</div><div class="ch-body">
@@ -597,6 +608,7 @@ footer .row span{display:block}
       </div>
       <p style="margin-top:12px; font-size:14px" id="modeDesc"></p>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">03 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch4"><div class="ch-num">04</div><div class="ch-body">
@@ -609,6 +621,7 @@ footer .row span{display:block}
       <div class="era"><span class="yrs">2024 – 2026</span><h3>The agent era</h3><ul class="ticks"><li>Tools, memory and reasoning</li><li>AI that acts, not just answers</li><li>Where the rest of this guide lives</li></ul></div>
     </div>
     <p class="takeaway">Three years took AI from research paper to acting on your behalf. Knowing the order is the whole map.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">04 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -616,7 +629,7 @@ footer .row span{display:block}
 <!-- ================= PART II ================= -->
 <section class="part" id="part-2" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">II</span><h2>Working with it</h2><p>The mindset and the moves. How to think about AI, how to ask, and the four relationships you can have with it.</p></div>
+  <div class="part-head"><span class="roman">II</span><h2>Working with it</h2><p>The mindset and the moves. How to think about AI, how to ask, and the four relationships you can have with it.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch5"><div class="ch-num">05</div><div class="ch-body">
     <div class="eyebrow">Mindset · Working with AI</div>
@@ -628,6 +641,7 @@ footer .row span{display:block}
       <div class="plain"><span class="eyebrow">Principle 03</span><h3>Build, don't just use</h3><p>Wire models into your tools, your data and your workflows, not just the chat box.</p></div>
     </div>
     <p class="takeaway">AI is a thinking partner, not just a tool.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">05 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch6"><div class="ch-num">06</div><div class="ch-body">
@@ -652,6 +666,7 @@ footer .row span{display:block}
         <div class="row"><button class="btn ghost" id="allParts">Add all four</button><button class="btn ghost" id="noParts">Back to vague</button></div>
       </div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">06 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch7"><div class="ch-num">07</div><div class="ch-body">
@@ -659,6 +674,7 @@ footer .row span{display:block}
     <h2>Prompts you can steal.</h2>
     <p class="lede">Every recipe is the same four-part contract. Copy one, fill the blanks, make it yours.</p>
     <div class="grid g3" id="recipes"></div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">07 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch8"><div class="ch-num">08</div><div class="ch-body">
@@ -668,6 +684,7 @@ footer .row span{display:block}
     <div class="modes" id="modes"></div>
     <div class="panel mode-detail" id="modeDetail"></div>
     <p class="takeaway">Pick the mode before you pick the prompt.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">08 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch9"><div class="ch-num">09</div><div class="ch-body">
@@ -680,6 +697,7 @@ footer .row span{display:block}
       <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mayaPrev">Back</button><button class="btn" id="mayaNext">Next step</button></div>
     </div>
     <p class="takeaway">Prompting, modes, iteration, grounding, in one ordinary afternoon. That's the whole guide, applied.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">09 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -687,7 +705,7 @@ footer .row span{display:block}
 <!-- ================= PART III ================= -->
 <section class="part" id="part-3" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">III</span><h2>Accurate &amp; safe</h2><p>AI you can trust. Grounding answers in your facts, giving it memory, and knowing where it breaks.</p></div>
+  <div class="part-head"><span class="roman">III</span><h2>Accurate &amp; safe</h2><p>AI you can trust. Grounding answers in your facts, giving it memory, and knowing where it breaks.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch10"><div class="ch-num">10</div><div class="ch-body">
     <div class="eyebrow">Grounding · Retrieval</div>
@@ -727,6 +745,7 @@ footer .row span{display:block}
       </div>
     </div>
     <p class="takeaway">AI plus your data equals grounded, accurate answers.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">10 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch11"><div class="ch-num">11</div><div class="ch-body">
@@ -753,6 +772,7 @@ assistant → "Here's a draft…"</div></div>
 profile.tone = "concise"
 habits.morning_brief = true</div></div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">11 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch12"><div class="ch-num">12</div><div class="ch-body">
@@ -769,6 +789,7 @@ habits.morning_brief = true</div></div>
       <div class="ship"><h3>Verify before you ship</h3><span class="pill w" id="shipPill">6 checks left</span></div>
       <div class="checks" id="checks"></div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">12 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch13"><div class="ch-num">13</div><div class="ch-body">
@@ -781,6 +802,7 @@ habits.morning_brief = true</div></div>
       <div class="card"><span class="eyebrow">Habit 03</span><h3>Guard the data</h3><ul class="ticks"><li>Never feed secrets into tools you don't control</li><li>Assume anything you paste could be stored</li><li>When unsure, leave it out</li></ul></div>
     </div>
     <p class="takeaway">Responsibility isn't a brake on AI. It's what lets you use it boldly, because you always know where the lines are.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">13 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -788,7 +810,7 @@ habits.morning_brief = true</div></div>
 <!-- ================= PART IV ================= -->
 <section class="part" id="part-4" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">IV</span><h2>From prompts to systems</h2><p>When AI stops being a chat box. Agents that act, the standards that connect them, and who is building them.</p></div>
+  <div class="part-head"><span class="roman">IV</span><h2>From prompts to systems</h2><p>When AI stops being a chat box. Agents that act, the standards that connect them, and who is building them.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch14"><div class="ch-num">14</div><div class="ch-body">
     <div class="eyebrow">Systems · Autonomy</div>
@@ -827,6 +849,7 @@ habits.morning_brief = true</div></div>
       <div><span class="eyebrow" style="color:var(--teal)">Layer 03 · Operate</span><h3>Memory, evals, guardrails</h3><p>Real software needs state, tests and limits. Design agents like products, not demos.</p></div>
     </div>
     <p class="takeaway">From "what can I prompt?" to "what can I build?"</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">14 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch15"><div class="ch-num">15</div><div class="ch-body">
@@ -856,6 +879,7 @@ habits.morning_brief = true</div></div>
       <div class="plain"><span class="eyebrow">03</span><h3>Prompts</h3><p>Reusable, parameterised templates the server exposes: saved workflows any client can invoke.</p></div>
       <div class="plain"><span class="eyebrow">04</span><h3>Sampling</h3><p>Servers can ask the client to call its model, so servers can themselves use AI.</p></div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">15 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch16"><div class="ch-num">16</div><div class="ch-body">
@@ -893,6 +917,7 @@ habits.morning_brief = true</div></div>
       <div class="plain"><span class="eyebrow">Concept 04</span><h3>MCP × A2A</h3><p>MCP = agent ↔ tools. A2A = agent ↔ agent. Together they turn isolated bots into a network.</p></div>
     </div>
     <p class="takeaway">When agents can find and work with each other, swarms beat solos.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">16 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch17"><div class="ch-num">17</div><div class="ch-body">
@@ -912,6 +937,7 @@ habits.morning_brief = true</div></div>
       <div class="plain"><span class="eyebrow">Trend</span><h3>Next frontier</h3><p>Long-horizon planning, embodied agents, world models, scientific discovery.</p></div>
     </div>
     <p class="takeaway">The platform war isn't models anymore. It's agents.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">17 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -919,7 +945,7 @@ habits.morning_brief = true</div></div>
 <!-- ================= PART V ================= -->
 <section class="part" id="part-5" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">V</span><h2>In the real world</h2><p>Where it already works. Production case studies, the tools to try now, robots, and what it means for your job.</p></div>
+  <div class="part-head"><span class="roman">V</span><h2>In the real world</h2><p>Where it already works. Production case studies, the tools to try now, robots, and what it means for your job.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch18"><div class="ch-num">18</div><div class="ch-body">
     <div class="eyebrow">Enterprise · Case studies</div>
@@ -932,6 +958,7 @@ habits.morning_brief = true</div></div>
       <div class="stat"><span class="eyebrow">Moderna · Drug discovery</span><span class="n">750+</span><p>internal GPTs deployed across R&amp;D, legal and ops via an OpenAI enterprise partnership.</p><span class="src">SOURCE · MODERNA × OPENAI · 2024</span></div>
       <div class="stat"><span class="eyebrow">Walmart · Retail ops</span><span class="n">50K+</span><p>associates using "My Assistant" for summarising, drafting and creative work.</p><span class="src">SOURCE · WALMART CORP · 2024</span></div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">18 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch19"><div class="ch-num">19</div><div class="ch-body">
@@ -940,6 +967,7 @@ habits.morning_brief = true</div></div>
     <p class="lede">Pick one per category. Use it for a real project. Then pick the next. The toolkit changes monthly; the mental model does not.</p>
     <div class="seg" id="toolSeg" role="group" aria-label="Filter tools"><button aria-pressed="true" data-c="ALL">All</button><button aria-pressed="false" data-c="CODING">Coding</button><button aria-pressed="false" data-c="WORK">Work</button><button aria-pressed="false" data-c="CREATE">Create</button><button aria-pressed="false" data-c="LEARN">Learn</button></div>
     <div class="grid g3" id="tools"></div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">19 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch20"><div class="ch-num">20</div><div class="ch-body">
@@ -960,6 +988,7 @@ habits.morning_brief = true</div></div>
       </tbody>
     </table>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">20 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch21"><div class="ch-num">21</div><div class="ch-body">
@@ -974,6 +1003,7 @@ habits.morning_brief = true</div></div>
       <div class="plain"><span class="eyebrow">Context 01</span><h3>Factories &amp; warehouses</h3><p>Robotic arms learn from examples instead of being programmed line by line. Pickers, packers and inspectors that adapt on the job: slow today, common tomorrow.</p></div>
       <div class="plain"><span class="eyebrow">Context 02</span><h3>Homes &amp; daily life</h3><p>Helpers that fold laundry, prep meals and care for the elderly. Awkward today; capable and ordinary within the decade.</p></div>
     </div>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">21 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch22"><div class="ch-num">22</div><div class="ch-body">
@@ -987,6 +1017,7 @@ habits.morning_brief = true</div></div>
     </div>
     <div class="skills"><span class="eyebrow" style="align-self:center; margin-right:6px">Skills that compound</span><span class="pill">Clear communication</span><span class="pill">Critical thinking</span><span class="pill">Domain depth</span><span class="pill">Taste &amp; judgement</span><span class="pill">Adaptability</span></div>
     <p class="takeaway">The people who win aren't the ones who resist AI. They're the ones who learn to direct it.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">22 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch23"><div class="ch-num">23</div><div class="ch-body">
@@ -1000,6 +1031,7 @@ habits.morning_brief = true</div></div>
     </div>
     <div class="plain"><span class="eyebrow">The global layer</span><p>Above any single country, voluntary efforts knit a loose consensus: the OECD AI Principles, the G7 Hiroshima Process, UN advisory work, and the international AI Safety Summits (Bletchley → Seoul → Paris). None binding, but where shared norms take shape.</p></div>
     <p class="takeaway">The direction is one-way: toward "show your work."</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">23 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -1007,7 +1039,7 @@ habits.morning_brief = true</div></div>
 <!-- ================= PART VI ================= -->
 <section class="part" id="part-6" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">VI</span><h2>Where it's going</h2><p>The horizon: what the next models will do and the long road toward general intelligence.</p></div>
+  <div class="part-head"><span class="roman">VI</span><h2>Where it's going</h2><p>The horizon: what the next models will do and the long road toward general intelligence.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch24"><div class="ch-num">24</div><div class="ch-body">
     <div class="eyebrow">Future · Frontier models</div>
@@ -1022,6 +1054,7 @@ habits.morning_brief = true</div></div>
       <div class="plain"><span class="eyebrow">Direction 06</span><h3>Specialization &amp; efficiency</h3><p>Smaller, faster, domain-tuned models for the edge, alongside frontier giants. Deployment widens.</p></div>
     </div>
     <p class="takeaway">Scale is no longer the only axis. Reasoning and autonomy are.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">24 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch25"><div class="ch-num">25</div><div class="ch-body">
@@ -1045,6 +1078,7 @@ habits.morning_brief = true</div></div>
       <p style="margin-top:10px" id="agiDesc"></p>
     </figure>
     <p class="takeaway">Toward general, human-level intelligence.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">25 / 27</span></p>
   </div></article>
  </div>
 </section>
@@ -1052,7 +1086,7 @@ habits.morning_brief = true</div></div>
 <!-- ================= PART VII ================= -->
 <section class="part" id="part-7" data-part>
  <div class="wrap">
-  <div class="part-head"><span class="roman">VII</span><h2>Your move</h2><p>From reader to builder. A 90-day plan and a workbook to turn everything here into a skill.</p></div>
+  <div class="part-head"><span class="roman">VII</span><h2>Your move</h2><p>From reader to builder. A 90-day plan and a workbook to turn everything here into a skill.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
 
   <article class="ch" id="ch26"><div class="ch-num">26</div><div class="ch-body">
     <div class="eyebrow">Plan · For professionals</div>
@@ -1063,6 +1097,7 @@ habits.morning_brief = true</div></div>
       <div class="pillar-detail" id="pillarDetail"></div>
     </div>
     <p class="takeaway">Master AI by building, shipping and teaching, in that order.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">26 / 27</span></p>
   </div></article>
 
   <article class="ch" id="ch27"><div class="ch-num">27</div><div class="ch-body">
@@ -1072,13 +1107,14 @@ habits.morning_brief = true</div></div>
     <div class="wb" id="wb"></div>
     <div class="finish"><span class="eyebrow" id="wbCount">0 of 7 done</span><div class="track"><div class="fill" id="wbFill" style="transform:scaleX(0)"></div></div><span style="font-size:14px; color:var(--muted)" id="wbMsg">Do all seven and you've built the habit of working with AI.</span></div>
     <p class="takeaway">Reading gives the map. Doing gives the muscle.</p>
+    <p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span><span class="tnum">27 / 27</span></p>
   </div></article>
  </div>
 </section>
 
 <section class="part" id="glossary">
  <div class="wrap">
-  <div class="part-head"><span class="roman" style="font-size:56px">Ref</span><h2>Every word, demystified.</h2><p>Plain-language definitions of the terms used in this guide.</p></div>
+  <div class="part-head"><span class="roman" style="font-size:56px">Ref</span><h2>Every word, demystified.</h2><p>Plain-language definitions of the terms used in this guide.</p><p class="byline"><span>Created by <a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a> · <a href="https://weekendai.com" target="_blank" rel="noopener">WeekendAI</a></span></p></div>
   <div style="margin-top:24px; display:flex; flex-direction:column; gap:16px">
     <input class="search" id="glossQ" type="search" placeholder="Filter terms, e.g. token" aria-label="Filter glossary">
     <dl class="gloss" id="gloss" style="margin:0"></dl>
@@ -1093,7 +1129,9 @@ habits.morning_brief = true</div></div>
     <h2 style="margin-top:12px">Learn AI by <em class="acc">building</em>, not just consuming.</h2>
     <p class="lede" style="margin-top:14px">You have the mental model. Now pick one idea, one tool, one task, and build something small with it this week.</p>
     <div class="row">
-      <div><span class="eyebrow">School of Applied AI</span><span>schoolofappliedai.com</span></div>
+      <div><span class="eyebrow">Created by</span><span><a href="https://www.linkedin.com/in/altafrehmani/" target="_blank" rel="noopener">Altaf Rehmani</a></span></div>
+      <div><span class="eyebrow">WeekendAI</span><span><a href="https://weekendai.com" target="_blank" rel="noopener">weekendai.com</a></span></div>
+      <div><span class="eyebrow">School of Applied AI</span><span><a href="https://schoolofappliedai.com" target="_blank" rel="noopener">schoolofappliedai.com</a></span></div>
       <div><span class="eyebrow">Get in touch</span><span style="user-select:all">altafr@weekendai.com</span></div>
       <div><span class="eyebrow">Edition</span><span>v2.0 · 2026</span></div>
     </div>
