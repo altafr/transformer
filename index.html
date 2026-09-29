@@ -453,6 +453,10 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .er .ev{width:44px;color:var(--muted);font-variant-numeric:tabular-nums}
 .ei-out{display:grid;gap:4px;border:1px solid var(--line);border-radius:10px;padding:6px;min-height:40px}
 @media (max-width:1000px){.ei-grid{grid-template-columns:minmax(0,1fr)}}
+.tldr{font-size:18px;line-height:1.5;color:var(--ink);max-width:64ch;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tldr b{font:600 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--on-strong);background:var(--accent);padding:3px 8px;border-radius:6px;flex:none}
+.example{padding:12px 16px;border-left:3px solid var(--pos);background:color-mix(in srgb,var(--pos) 8%,var(--surface));border-radius:0 10px 10px 0;max-width:64ch;font-size:15px}
+.example b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);display:block;margin-bottom:2px}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -535,7 +539,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Overview 1 of 4</div>
         <h2>Attention Is All You Need</h2>
-        <p class="lede">In 2017 a team at Google (Vaswani and seven co-authors) published a new architecture for <strong>machine translation</strong>. Earlier translation systems read a sentence one word at a time with recurrent networks. The <strong>transformer</strong> dropped recurrence and relied on <strong>attention</strong> alone, letting every word look at every other word at once. That made it both more accurate and much faster to train on GPUs.</p>
+        <p class="tldr"><b>In short</b>A 2017 Google paper showed that a model built only on “attention” translates better than older designs and trains much faster.</p>
+        <p class="lede">In 2017 a team at Google (Vaswani and seven co-authors) published a new design for <strong>machine translation</strong>. Earlier systems read a sentence one word at a time. The <strong>transformer</strong> dropped that and used <strong>attention</strong> alone, letting every word look at every other word at once. It translated more accurately and trained much faster.</p>
+        <div class="example"><b>Example</b>Older systems read “The cat sat on the mat” like someone reading aloud: one word, then the next, so a 40-word sentence needed 40 steps in a row. The transformer takes in all six words at the same moment, which suits GPUs that do thousands of calculations in parallel.</div>
         <div class="hero-cta" style="margin-top:4px"><a class="btn primary" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Read the paper on arXiv ↗</a></div>
       </div>
       <div class="viz">
@@ -558,7 +564,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Overview 2 of 4</div>
         <h2>Two halves: an encoder that reads, a decoder that writes</h2>
+        <p class="tldr"><b>In short</b>The encoder reads the whole English sentence; the decoder writes the French one word at a time, checking the encoder’s notes as it goes.</p>
         <p class="lede">The original transformer has two stacks. The <strong>encoder</strong> reads the whole source sentence at once and turns each word into a vector that captures its meaning in context. The <strong>decoder</strong> writes the translation one word at a time. At every step it looks back at what it has already written (<strong>masked self-attention</strong>) and across at the encoder’s output (<strong>cross-attention</strong>) to decide the next word. Click any block to see what it does.</p>
+        <div class="example"><b>Example</b>Translating “The cat sat on the mat”: the encoder turns the six English words into six context-aware vectors. The decoder writes “Le”, then “chat”, and when it needs the verb it looks across at the encoder’s vector for “sat”.</div>
       </div>
       <div class="viz">
         <div class="ov-grid">
@@ -576,6 +584,7 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Overview 3 of 4</div>
         <h2>Translation, one word at a time</h2>
+        <p class="tldr"><b>In short</b>Read the whole source at once, then write one word at a time while glancing back at the source.</p>
         <p class="lede">Watch the transformer translate an English sentence into French. The encoder processes all the English words <strong>in parallel</strong>. Then the decoder starts from a start token and writes one French word per step. At each step, cross-attention shows which English words the decoder is focusing on. When it writes the end token, the translation is finished.</p>
       </div>
       <div class="viz">
@@ -604,7 +613,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Overview 4 of 4</div>
         <h2>One paper, three families of models</h2>
+        <p class="tldr"><b>In short</b>BERT kept the reader, GPT kept the writer. Chatbots are writers: they continue your text.</p>
         <p class="lede">Researchers soon found that each half is powerful on its own. Keep only the encoder and you get models that <strong>understand</strong> text. Keep only the decoder and you get models that <strong>generate</strong> text. Chat models like GPT and Claude are <strong>decoder-only</strong>: there is no separate source sentence, so there is no encoder and no cross-attention. Your prompt plays the role of “what has been written so far”, and the decoder keeps predicting the next word.</p>
+        <div class="example"><b>Example</b>Ask a chatbot “What is the capital of France?”. Your question becomes the text so far, and the model simply continues it: “The capital of France is Paris.”</div>
       </div>
       <div class="viz">
         <div class="fams">
@@ -674,7 +685,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 0 · before the journey</div>
         <h2>Where the numbers come from: training</h2>
-        <p class="lede">Every matrix in the steps ahead (the embedding table, W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, the MLP weights, the output layer) <strong>starts as random numbers</strong>. Training is what turns them into a language model. The model reads a huge amount of text and, at every position, guesses the next token. Each guess is scored, and <strong>backpropagation</strong> works out, for every single number in the model, which direction would have made the right answer a little more likely. Every number takes a tiny step in that direction. Repeat this billions of times.</p>
+        <p class="tldr"><b>In short</b>Training means: guess the next word, see how wrong the guess was, nudge every number slightly, repeat billions of times.</p>
+        <p class="lede">Every number in the model (the embedding table, W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, the MLP weights, the output layer) <strong>starts as a random number</strong>. Training shows the model real text and, at every position, asks it to <strong>guess the next word</strong>. After each guess, a method called <strong>backpropagation</strong> works out, for every single number, whether nudging it up or down would have made the right word a little more likely. Every number takes a tiny step in that direction, and the process repeats billions of times.</p>
+        <div class="example"><b>Example</b>Training text: “the cat sat on the mat”. The model sees “the cat sat on the” and must guess the next word. Untrained, it gives “mat” about 0.002% (one chance in 50,000). The loss is high, so every number shifts a little toward making “mat” more likely. After millions of similar sentences it gives “mat”, “floor” and “sofa” high probabilities.</div>
         <div class="formula">loss = −log p(actual next token) &nbsp;&nbsp; every weight w ← w − η · ∂loss/∂w</div>
         <div class="key"><b>Key idea</b>Nobody designs the embeddings or W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub> by hand. They are whatever numbers made next-token prediction work best on the training text. When you use the model (steps 1 to 9), they are frozen and only read.</div>
       </div>
@@ -739,7 +752,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 1 of 9</div>
         <h2>Tokenization: text becomes numbers</h2>
+        <p class="tldr"><b>In short</b>Chop the text into pieces (tokens) and replace each piece with its number in a fixed list.</p>
         <p class="lede">A neural network cannot read letters. The tokenizer cuts the text into <strong>tokens</strong> (whole words, pieces of words, or punctuation) and swaps each one for its ID in a fixed vocabulary. Each ID then picks out one row of the <strong>embedding table</strong>: a learned list of numbers that stands for that token’s meaning.</p>
+        <div class="example"><b>Example</b>A common word such as “cat” is one token. A rare word such as “unbelievably” may be split into pieces like “un” + “believ” + “ably”. Each piece gets an ID number, like a page number in a dictionary, and that number is what the model actually receives.</div>
         <div class="key"><b>Key idea</b>From here on, every token is a vector. This demo uses 16 numbers per token; GPT‑2 small uses 768. The table itself was learned in step 0: training kept adjusting each row until the vectors were useful for predicting the next word.</div>
       </div>
       <div class="viz" id="v1">
@@ -768,7 +783,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 1b of 9 · embeddings up close</div>
         <h2>Embeddings: meaning you can measure</h2>
+        <p class="tldr"><b>In short</b>Every token gets a list of numbers. Training makes similar words get similar lists; using the model just looks them up.</p>
         <p class="lede">An embedding is a list of numbers that stands for a token. The whole vocabulary lives in one big <strong>embedding table</strong>: one row per token. Nobody writes those numbers. They are <strong>learned in training</strong> from how words are used, following the idea that <em>you shall know a word by the company it keeps</em>. Words used in similar places end up with similar numbers, so closeness in the table means closeness in meaning. When the model runs (<strong>inference</strong>), the table is frozen and simply looked up.</p>
+        <div class="example"><b>Example</b>After training, “cat” and “dog” end up with almost the same pair of numbers, while “paris” sits far away near “rome”. The model never read a definition of any of them; it only saw that “cat” and “dog” follow words like “feed” and “pet”.</div>
         <div class="key"><b>Two phases</b><strong>Training</strong> moves each word’s row a little every time the word is used, until words with similar neighbours sit together. <strong>Inference</strong> is a plain lookup: token ID → row number → copy that row out. No arithmetic, and the same token always gets the same starting vector.</div>
       </div>
 
@@ -838,7 +855,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 2 of 9</div>
         <h2>Positional encoding: where is each word?</h2>
+        <p class="tldr"><b>In short</b>Add a unique “seat number” signal to each word so the model knows the word order.</p>
         <p class="lede">Attention looks at all tokens at once, so on its own it has no sense of order: “dog bites man” and “man bites dog” would look identical. We fix that by <strong>adding a position signal</strong> to each embedding. The original transformer uses sine and cosine waves of different wavelengths, so every position gets a unique fingerprint.</p>
+        <div class="example"><b>Example</b>“dog bites man” and “man bites dog” contain exactly the same three word vectors. Only the added position signals (seat 0, seat 1, seat 2) tell the model who bit whom.</div>
         <div class="formula">PE(pos, 2i) = sin(pos / 10000^(2i/d)) &nbsp;&nbsp; PE(pos, 2i+1) = cos(pos / 10000^(2i/d))</div>
       </div>
       <div class="viz" id="v2">
@@ -861,7 +880,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 3a of 9</div>
         <h2>Where Q, K and V come from</h2>
-        <p class="lede">Queries, keys and values are not extra inputs. Each one is the token’s vector <strong>x</strong> (from step 2) multiplied by a learned weight matrix. The same three matrices W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are applied to every token at every position; only x changes. Each output number is a weighted sum of all 16 input numbers, with the weights taken from one column of W.</p>
+        <p class="tldr"><b>In short</b>Each word’s vector is turned into three new vectors: what it is looking for, what it offers, and what it will pass on.</p>
+        <p class="lede">Before attention can happen, each word’s vector x (from step 2) is multiplied by three learned tables of numbers, W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub>. That gives three new vectors: a <strong>query</strong> (what am I looking for?), a <strong>key</strong> (what do I contain?) and a <strong>value</strong> (what will I pass on?). The same three tables are used for every word; only x changes. Each output number is a weighted sum of all 16 input numbers.</p>
+        <div class="example"><b>Example</b>In “The cat sat on the mat”, the query of “sat” roughly asks “who is doing the sitting?”. The key of “cat” roughly says “I am a thing that can act”. They match well, so “sat” takes in a lot of “cat”’s value. (Real queries and keys are learned numbers, not words; this is the intuition.)</div>
         <div class="formula">q = x · W<sub>Q</sub> &nbsp;&nbsp; k = x · W<sub>K</sub> &nbsp;&nbsp; v = x · W<sub>V</sub> &nbsp;&nbsp; (x is 1 × 16, each W is 16 × 16, learned in step 0)</div>
         <div class="key"><b>Analogy</b>Think of a library. The <em>query</em> is what you are looking for, each book’s <em>key</em> is the label on its spine, and its <em>value</em> is what is written inside. W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are three different learned ways of reading the same token.</div>
         <div class="key"><b>Or think of an image search</b>You type a search (the <em>query</em>). It is matched against each photo’s caption (the <em>key</em>). What you get back is the photo itself (the <em>value</em>), and only the photos whose captions match best. In self-attention every token runs this kind of search over the tokens before it.</div>
@@ -944,7 +965,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 3b of 9</div>
         <h2>Masked self-attention: each word looks back</h2>
-        <p class="lede">Every token asks a question (its <strong>query</strong>), advertises what it contains (its <strong>key</strong>), and carries information to share (its <strong>value</strong>). A query is compared with every key; the best matches get the most weight. The <strong>mask</strong> hides future tokens, because when the model writes text, the future does not exist yet.</p>
+        <p class="tldr"><b>In short</b>Each word looks back at the earlier words and borrows information from the ones that matter most to it.</p>
+        <p class="lede">Each word compares its <strong>query</strong> with the <strong>key</strong> of every earlier word. Good matches get a high score, the scores are turned into percentages, and the word takes that share of each earlier word’s <strong>value</strong>. The <strong>mask</strong> hides later words, because when the model writes text, the future has not been written yet.</p>
+        <div class="example"><b>Example</b>In “The animal didn’t cross the street because it was too tired”, attention lets “it” look back and find “animal” rather than “street”. Because of the mask, “it” cannot peek at “tired”, which comes later.</div>
         <div class="formula">Attention(Q, K, V) = softmax( Q·Kᵀ / √d<sub>k</sub> + mask ) · V</div>
       </div>
       <div class="viz" id="v3">
@@ -985,7 +1008,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 4 of 9</div>
         <h2>Add &amp; Norm: keep the original, keep it steady</h2>
+        <p class="tldr"><b>In short</b>Add the change to the original, then rescale the numbers so they stay in a sensible range.</p>
         <p class="lede">Attention’s output is not used on its own. It is <strong>added back</strong> to the vector that went in (a residual connection), so the model only has to learn what to change. Then <strong>layer normalization</strong> rescales each token’s vector to mean 0 and standard deviation 1, which keeps numbers stable through dozens of stacked layers.</p>
+        <div class="example"><b>Example</b>Think of track changes in a document. Attention proposes edits, and the residual keeps the original text so nothing is lost. Normalising is like evening out the volume: the numbers [3, 9, 6] become [−1.22, 1.22, 0], with average 0 and spread 1.</div>
         <div class="formula">x₁ = LayerNorm( x + Attention(x) ) &nbsp;&nbsp; LayerNorm(v) = γ · (v − mean) / std + β</div>
       </div>
       <div class="viz" id="v4">
@@ -1007,7 +1032,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 5 of 9</div>
         <h2>Multi-head: many ways of looking, in parallel</h2>
+        <p class="tldr"><b>In short</b>Several attention “heads” read the sentence in different ways at the same time; their findings are then combined.</p>
         <p class="lede">One attention pattern cannot capture everything. So the model runs several <strong>heads</strong> side by side, each with its own Q, K and V weights and a slice of the vector. One head may track the previous word, another the subject of the sentence. Their outputs are <strong>concatenated</strong> and mixed by one more matrix, W<sub>O</sub>.</p>
+        <div class="example"><b>Example</b>For the word “mat” in “The cat sat on the mat”: one head looks at the word just before it (“the”), another at the verb (“sat”), another at the start of the sentence. It is like several people reading the same sentence, each with a different question in mind.</div>
         <div class="formula">MultiHead(x) = Concat(head₁, head₂, head₃, head₄) · W<sub>O</sub> &nbsp;&nbsp; 4 heads × 4 dims = 16 &nbsp;&nbsp; (GPT‑2: 12 heads × 64 dims = 768)</div>
         <div class="key"><b>Heads work in parallel and never talk to each other</b>Head 1’s queries only meet head 1’s keys and values; head 2 only meets head 2, and so on. Each head is free to specialise, for example one in grammar and another in meaning. Steps 3a to 5 together form one <em>self-attention unit</em>: a T × C matrix goes in and a T × C matrix comes out.</div>
       </div>
@@ -1028,7 +1055,8 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 6 of 9</div>
         <h2>The MLP: each word thinks on its own</h2>
-        <p class="lede">Attention moves information <strong>between</strong> tokens; the MLP is where the model <strong>recalls what it knows</strong>. The feed-forward network (MLP) then processes each token <strong>separately</strong>: it expands the vector to 4× its width, applies a non-linearity (GELU), and projects it back. Much of the model’s factual knowledge is thought to be stored in these weights. Then comes a second Add &amp; Norm.</p>
+        <p class="tldr"><b>In short</b>Attention gathers information from other words; the MLP then works on each word alone and adds what the model knows.</p>
+        <p class="lede">Attention lets words share information with each other. The <strong>MLP</strong> (also called the feed-forward network) then works on <strong>each word separately</strong>: it widens the word’s vector to 4× its size, applies a bend called GELU, and shrinks it back. Research suggests much of a model’s factual knowledge is stored in these weights. A second Add &amp; Norm follows.</p>
         <div class="formula">MLP(x) = W₂ · GELU( W₁·x + b₁ ) + b₂ &nbsp;&nbsp; 16 → 64 → 16</div>
         <div class="key"><b>Why a non-linearity?</b>Making Q, K, V and mixing the heads with W<sub>O</sub> are all plain matrix multiplications, and a chain of matrix multiplications is still just one matrix multiplication, however long it is. The GELU bend in the MLP breaks that, and it is what lets stacked layers learn complicated relationships instead of straight-line ones. (The same squash you tuned by hand in the basics tab.)</div>
       </div>
@@ -1094,7 +1122,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 7 of 9</div>
         <h2>Linear + softmax: a score for every word</h2>
-        <p class="lede">Only the <strong>last token’s</strong> vector is needed to predict what comes next. A final linear layer multiplies it by the unembedding matrix, producing one raw score (a <strong>logit</strong>) per vocabulary entry. <strong>Softmax</strong> turns those scores into probabilities that sum to 100%. Temperature controls how sharp that distribution is.</p>
+        <p class="tldr"><b>In short</b>Turn the last word’s vector into a probability for every word in the vocabulary.</p>
+        <p class="lede">Only the <strong>last word’s</strong> vector is used to predict what comes next. It is multiplied by one more learned table, giving one raw score (a <strong>logit</strong>) for every word in the vocabulary. <strong>Softmax</strong> turns those scores into percentages that add up to 100%. <strong>Temperature</strong> decides how confident the result looks: low temperature favours the top word, high temperature spreads the chances.</p>
+        <div class="example"><b>Example</b>After “The cat sat on the”, the scores might be mat 3.6, sofa 3.0, floor 2.7, and so on. Softmax turns them into about mat 30%, sofa 16%, floor 12%, with everything adding up to 100%. Temperature 0.5 makes “mat” dominate; temperature 1.5 spreads the chances out.</div>
         <div class="formula">p(word) = exp(logit / T) / Σ exp(logit / T)</div>
       </div>
       <div class="viz" id="v7">
@@ -1124,7 +1154,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 8 of 9</div>
         <h2>Next-word prediction: pick one token</h2>
+        <p class="tldr"><b>In short</b>Pick one word from those probabilities: always the top one (greedy) or a weighted random pick (sampling).</p>
         <p class="lede">The model does not output a word. It outputs a probability distribution, and a <strong>decoding strategy</strong> chooses from it. <strong>Greedy</strong> always takes the most likely token: predictable, but it can get repetitive. <strong>Sampling</strong> rolls weighted dice among the top candidates, which gives more varied and natural text.</p>
+        <div class="example"><b>Example</b>With mat 30%, sofa 16% and floor 12%: greedy writes “mat” every single time. Sampling writes “mat” most often, but sometimes “sofa” or “floor”, which is why the same prompt can give different answers.</div>
       </div>
       <div class="viz" id="v8">
         <div class="viz-bar">
@@ -1152,7 +1184,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Step 9 of 9</div>
         <h2>The loop: append, repeat, write</h2>
+        <p class="tldr"><b>In short</b>Add the chosen word to the text and run the whole model again, one new token per pass.</p>
         <p class="lede">Generation is just steps 1 to 8 on repeat. The chosen token is <strong>appended</strong> to the input and the whole decoder runs again, now with one more token of context. This is called <strong>autoregressive</strong> generation. It continues until the model emits an end token or hits a length limit.</p>
+        <div class="example"><b>Example</b>“The cat sat on the” → “mat” → “The cat sat on the mat” → “.” → “The cat sat on the mat.” → “It” → … Each arrow is one full pass through the model. A 100-word reply takes roughly 130 passes, because 100 English words are about 130 tokens.</div>
         <div class="key"><b>The context window</b>A model can only read a fixed maximum number of tokens at once: 1,024 for GPT‑2, and hundreds of thousands for some modern models. Every generated token uses up one more slot. When the window is full, the oldest tokens must be dropped or the conversation summarised, which is why very long chats can “forget” their beginning.</div>
       </div>
       <div class="viz" id="v9">
@@ -1201,6 +1235,7 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 1 of 6</div>
         <h2>A neural network is a machine full of dials</h2>
+        <p class="tldr"><b>In short</b>A neural network is a box of adjustable dials. Training finds good dial settings from examples.</p>
         <p class="lede">A neural network is a function: numbers go in, a number comes out. Inside are many small <strong>dials</strong> (called weights). How the dials are set decides what the network does. <strong>Deep learning</strong> means we do not set the dials by hand. We show the network examples with known answers, and a procedure turns every dial a little at a time until the answers come out right.</p>
         <div class="key"><b>Our running example</b>Is a fruit good to eat? We describe each fruit with two numbers between 0 and 1: how <em>sweet</em> it is and how <em>soft</em> it is. Good fruit is sweet and a little soft, but not mushy. We never write that rule down. The network has to discover it from 60 example fruits.</div>
       </div>
@@ -1246,7 +1281,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 2 of 6</div>
         <h2>One neuron: multiply, add, squash</h2>
+        <p class="tldr"><b>In short</b>A neuron multiplies each input by a dial, adds them up, and squashes the result into a number between 0 and 1.</p>
         <p class="lede">A neuron takes its inputs, multiplies each by a dial (its <strong>weight</strong>), adds them up with one more dial (the <strong>bias</strong>), and squashes the total into a number between 0 and 1 (the <strong>activation</strong>). A big weight means “this input matters a lot”; a negative weight means “this input counts against”. Turn the dials and watch the neuron respond.</p>
+        <div class="example"><b>Example</b>Sweetness 0.8 and softness 0.5 with dials 6, 0 and −3: 6 × 0.8 + 0 × 0.5 − 3 = 1.8. Squashed, that becomes 0.86, so this neuron “fires” for a sweet fruit.</div>
         <div class="formula">output = σ( w₁ × sweetness + w₂ × softness + b ) &nbsp;&nbsp; σ(z) = 1 / (1 + e<sup>−z</sup>)</div>
       </div>
       <div class="viz" id="nv">
@@ -1283,7 +1320,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 3 of 6 · training phase</div>
         <h2>Training: let the examples turn the dials</h2>
+        <p class="tldr"><b>In short</b>Guess, check the answer, nudge every dial a little, repeat.</p>
         <p class="lede">Our network has 3 hidden neurons (A, B, C) feeding one output neuron: <strong>13 dials</strong> in total. They start random, so its guesses are random. Training repeats one simple loop for every example fruit: <strong>guess</strong>, <strong>measure the error</strong>, work out which way each dial should turn to shrink that error (<strong>backpropagation</strong>), and <strong>turn every dial a little</strong> (gradient descent). The shaded map shows what the network currently believes about every possible fruit.</p>
+        <div class="example"><b>Example</b>A fruit with sweetness 0.2 is not good to eat (answer 0). If the network says “36% good”, the error is 0.36. Every dial is nudged a little so that next time this fruit gets a lower score.</div>
         <div class="formula">loss = −ln(probability given to the correct answer) &nbsp;&nbsp; dial ← dial − learning rate × (how much that dial increased the loss)</div>
       </div>
       <div class="viz" id="labv">
@@ -1322,7 +1361,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 4 of 6 · inference phase</div>
         <h2>Inference: freeze the dials, ask a new question</h2>
+        <p class="tldr"><b>In short</b>Use the trained dials to answer a new question. Nothing inside changes.</p>
         <p class="lede">Training is over, so the dials are <strong>locked</strong>. Now give the network a fruit it has never seen. The numbers flow forward once, from the inputs, through the hidden neurons, to the output, and out comes an answer. Nothing is learned here and no correct answer is needed. This is what happens every time you use an AI model.</p>
+        <div class="example"><b>Example</b>A fruit the network has never seen, sweetness 0.7 and softness 0.55, goes in. One pass through the frozen dials, and out comes something like “good to eat, 94%”.</div>
       </div>
       <div class="viz" id="infv">
         <div class="banner" id="infBanner" hidden>These dials have not been trained yet, so the answers will be poor. <button class="btn" id="infQuick" type="button">Train instantly</button> or go back to step 3.</div>
@@ -1356,6 +1397,7 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 5 of 6</div>
         <h2>From 13 dials to 175 billion</h2>
+        <p class="tldr"><b>In short</b>Large language models use the same parts: far more dials, and the task is “what comes next?”.</p>
         <p class="lede">Large language models are built from exactly these parts: neurons that multiply, add and squash, stacked in many layers. The task changes from “good fruit?” to “what is the next word?”, and the dial count grows enormously. Training is the same loop: guess the next word in real text, measure the error, turn every dial a little. Inference is the same forward pass, repeated once per generated word.</p>
       </div>
       <div class="viz">
@@ -1388,7 +1430,9 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Basics 6 of 6</div>
         <h2>The shape of the network is a design choice</h2>
+        <p class="tldr"><b>In short</b>How the neurons are wired is chosen by researchers to fit the data, and it keeps evolving.</p>
         <p class="lede">Every network on this page uses the same parts: dials, weighted sums, squashes, and training by gradient descent. What changes is <strong>how the neurons are wired together</strong>, which is called the <strong>architecture</strong>. There is no single correct shape. Researchers design an architecture to match the structure of what the network has to learn, test it, and keep what works. New architectures are an active area of research, and many modern systems combine several.</p>
+        <div class="example"><b>Example</b>In photos, a cat in the top-left corner and a cat in the bottom-right corner should both count as “cat”. A convolutional network builds that in by sliding the same small filter over every part of the image.</div>
         <div class="key"><b>Key idea</b>An architecture is a built-in assumption about the data. If nearby pixels matter, use filters that look at small neighbourhoods. If order matters, read one step at a time. If any word can relate to any other word, let every word look at every other word. Choosing that assumption well often matters as much as having more data.</div>
       </div>
       <div class="viz">
@@ -1469,6 +1513,7 @@ body.present footer{display:none}
       <div class="sec-head">
         <div class="eyebrow">Demo 1 · real GPT‑2 in your browser</div>
         <h2>Transformer Explainer</h2>
+        <p class="tldr"><b>In short</b>The same steps you just learned, running in a real, trained GPT‑2.</p>
         <p class="lede">An interactive tool from the <strong>Polo Club of Data Science at Georgia Tech</strong> that runs a real <strong>GPT‑2 small</strong> model live in the browser. Type your own text and watch it flow through embeddings, Q/K/V, masked attention, the MLP and the final softmax, with the real numbers of a trained model. Everything you learned in the decoder tab appears here at full scale: 768 numbers per token, 12 heads, 12 blocks.</p>
         <div class="key"><b>Things to try during the demo</b>Type “The cat sat on the” and compare its predictions with our decoder tab. Change the temperature slider and watch the probabilities sharpen or flatten (step 7). Click into an attention block to see the masked Q·Kᵀ matrix (step 3b).</div>
       </div>
