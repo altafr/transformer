@@ -155,7 +155,7 @@ button.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--acc
 .mblock{min-width:0}
 #peTrio .mblock,#concatViz .mblock,#qkvAll .mblock{flex:none}
 .op{font-family:var(--display);font-size:32px;font-weight:600;color:var(--muted);align-self:center;padding-top:20px}
-.strip{display:flex;gap:2px}
+.strip{display:flex;flex-wrap:wrap;gap:2px}
 .legend{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend i{width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--neg),var(--cell),var(--pos))}
 
@@ -258,7 +258,7 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .gen-status{font-size:14px;color:var(--muted);min-height:1.6em}
 
 /* ---------- tabs ---------- */
-.tabs{flex:none}
+.tabs{flex:0 1 auto;max-width:100%}
 .tabs .btn{font-size:13px;padding:6px 12px}
 /* ---------- basics tab ---------- */
 .bigpic{width:100%;height:auto;max-width:760px}
@@ -457,6 +457,42 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .tldr b{font:600 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--on-strong);background:var(--accent);padding:3px 8px;border-radius:6px;flex:none}
 .example{padding:12px 16px;border-left:3px solid var(--pos);background:color-mix(in srgb,var(--pos) 8%,var(--surface));border-radius:0 10px 10px 0;max-width:64ch;font-size:15px}
 .example b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);display:block;margin-bottom:2px}
+.goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.goal{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;align-content:start}
+.goal b{font:600 14px var(--sans)}
+.goal p{margin:0;font-size:14px;color:var(--muted)}
+.goal p em{color:var(--ink)}
+.eqwrap{display:grid;gap:8px}
+.eq{background:var(--surface-2);border-radius:14px;padding:18px 20px;display:grid;gap:14px;overflow-x:auto}
+.eqline{font:500 clamp(15px,2vw,21px)/1.9 var(--mono);white-space:nowrap}
+.eqline.sub{font-size:clamp(14px,1.8vw,18px)}
+.eqline sub,.eqline sup{font-size:.62em}
+.eop{color:var(--muted);padding:0 .2em}
+.ep{padding:2px 6px;border-radius:7px;cursor:pointer;transition:background .25s,box-shadow .25s;box-shadow:inset 0 -2px 0 var(--line)}
+.ep:hover{box-shadow:inset 0 -2px 0 var(--accent)}
+.ep.on{background:var(--accent-weak);box-shadow:inset 0 -2px 0 var(--accent);color:var(--ink)}
+.eqsteps{display:flex;flex-wrap:wrap;gap:6px}
+.eqsteps .btn b{font-family:var(--mono);font-weight:500;color:var(--muted)}
+.asm{display:grid;gap:8px;min-width:640px;font-size:13px}
+.ahead,.ar{display:grid;grid-template-columns:90px minmax(120px,1fr) minmax(170px,1.3fr) minmax(120px,1fr);gap:12px;align-items:center}
+.ahead{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ar{padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.hn{display:flex;gap:6px;align-items:center;font:600 13px var(--sans)}
+.hn i{width:10px;height:10px;border-radius:50%;background:var(--hc,var(--accent))}
+.ac{display:grid;gap:3px;transition:opacity .4s}
+.ac small,.acat small{color:var(--muted);font-size:11px}
+.ac b{font-family:var(--mono)}
+.dim{opacity:.18}
+.asm .strip{display:flex;gap:2px}
+.asm .strip .c{width:16px;height:16px}
+.asm .strip.grp{gap:1px}
+.acat{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px;border:1px dashed var(--accent);border-radius:10px;transition:opacity .4s}
+.acat .hn{width:90px}
+.dictionary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 24px;font-size:14px}
+.dictionary div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:baseline}
+.dictionary b{font-family:var(--mono);font-size:13px}
+.dictionary span{color:var(--muted)}
+@media (max-width:1000px){.goals,.dictionary{grid-template-columns:minmax(0,1fr)}}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -1035,8 +1071,41 @@ body.present footer{display:none}
         <p class="tldr"><b>In short</b>Several attention “heads” read the sentence in different ways at the same time; their findings are then combined.</p>
         <p class="lede">One attention pattern cannot capture everything. So the model runs several <strong>heads</strong> side by side, each with its own Q, K and V weights and a slice of the vector. One head may track the previous word, another the subject of the sentence. Their outputs are <strong>concatenated</strong> and mixed by one more matrix, W<sub>O</sub>.</p>
         <div class="example"><b>Example</b>For the word “mat” in “The cat sat on the mat”: one head looks at the word just before it (“the”), another at the verb (“sat”), another at the start of the sentence. It is like several people reading the same sentence, each with a different question in mind.</div>
-        <div class="formula">MultiHead(x) = Concat(head₁, head₂, head₃, head₄) · W<sub>O</sub> &nbsp;&nbsp; 4 heads × 4 dims = 16 &nbsp;&nbsp; (GPT‑2: 12 heads × 64 dims = 768)</div>
         <div class="key"><b>Heads work in parallel and never talk to each other</b>Head 1’s queries only meet head 1’s keys and values; head 2 only meets head 2, and so on. Each head is free to specialise, for example one in grammar and another in meaning. Steps 3a to 5 together form one <em>self-attention unit</em>: a T × C matrix goes in and a T × C matrix comes out.</div>
+      </div>
+      <div class="viz" id="v5eq">
+        <div style="display:grid;gap:10px;max-width:780px">
+          <span class="label">The main equation, and what it is trying to achieve</span>
+          <h3 class="subh">One sentence, several ways of reading it, one combined answer</h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">A single attention pass gives each word <em>one</em> set of percentages over the earlier words, so it has to blend everything it needs into one blurry average. Multi-head attention fixes that with three moves: <strong>split</strong> the word’s vector into slices, let every slice run its <strong>own</strong> attention, then <strong>glue the results back together</strong> into one vector of the original size.</p>
+        </div>
+        <div class="goals">
+          <div class="goal"><b>1 · Look several ways at once</b><p>For “mat” in “The cat sat on the mat”: one head reads <em>“which article goes with me?”</em> (“the”), another <em>“what happened?”</em> (“sat”), another <em>“where does the sentence start?”</em>. One head would have to split its percentages (say 40/30/30) and blur all three.</p></div>
+          <div class="goal"><b>2 · Cost the same as one big head</b><p>Splitting 16 numbers into 4 heads of 4 (GPT‑2: 768 into 12 heads of 64) uses the same amount of computation as a single wide head, but gives 4 (or 12) independent attention patterns.</p></div>
+          <div class="goal"><b>3 · Hand back one clean vector</b><p>The heads’ answers are concatenated and mixed by W<sub>O</sub>, so the output has exactly the size of the input. That is what lets blocks be stacked one on top of another.</p></div>
+        </div>
+        <div class="eqwrap">
+          <div class="eq" id="eqBox" aria-label="Multi-head attention equation">
+            <div class="eqline"><span class="ep s5" data-s="5">MultiHead(X)</span> <span class="eop">=</span> <span class="ep s4" data-s="4">Concat( head<sub>1</sub>, …, head<sub>h</sub> )</span> <span class="eop">·</span> <span class="ep s4b" data-s="4">W<sup>O</sup></span></div>
+            <div class="eqline sub"><span class="eop">where</span> <span class="ep s3" data-s="3">head<sub>i</sub></span> <span class="eop">=</span> <span class="ep s2" data-s="2">softmax(</span> <span class="ep s1" data-s="1">(X W<sub>i</sub><sup>Q</sup>)(X W<sub>i</sub><sup>K</sup>)<sup>T</sup></span> <span class="eop">/</span> <span class="ep s1b" data-s="1">√d<sub>k</sub></span> <span class="eop">+</span> <span class="ep s2" data-s="2">mask )</span> <span class="eop">·</span> <span class="ep s3" data-s="3">(X W<sub>i</sub><sup>V</sup>)</span></div>
+          </div>
+          <p class="note" id="eqSizes"></p>
+        </div>
+        <div class="viz-bar">
+          <div class="left"><span class="label">Follow the word</span><div class="tokpick" id="eqTok"></div></div>
+          <button class="btn primary" id="eqPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Walk through it</button>
+        </div>
+        <div class="eqsteps" id="eqSteps"></div>
+        <p class="stage-note" id="eqNote"></p>
+        <div class="scroll-x"><div class="asm" id="eqAsm"></div></div>
+        <div class="dictionary">
+          <div><b>X</b><span>the sentence’s vectors, one row per word (T × C)</span></div>
+          <div><b>W<sub>i</sub><sup>Q</sup>, W<sub>i</sub><sup>K</sup>, W<sub>i</sub><sup>V</sup></b><span>head <em>i</em>’s own learned tables. Multiplying X by them gives that head’s queries, keys and values (T × d<sub>k</sub>)</span></div>
+          <div><b>d<sub>k</sub></b><span>numbers per head, C ÷ h. Dividing by √d<sub>k</sub> keeps the scores from growing with head size</span></div>
+          <div><b>mask</b><span>−∞ on future words, so their weight becomes 0</span></div>
+          <div><b>softmax( … ) · V</b><span>turn scores into percentages, then take that share of each value: this is the single-head attention from step 3b</span></div>
+          <div><b>Concat, W<sup>O</sup></b><span>glue the h outputs side by side (T × C), then one more learned table lets the heads’ findings mix</span></div>
+        </div>
       </div>
       <div class="viz" id="v5">
         <div class="viz-bar"><span class="label">Attention pattern of each head (rows attend to columns)</span><button class="btn play" data-play="s5" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button></div>
@@ -1045,6 +1114,7 @@ body.present footer{display:none}
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>The four patterns here are deliberately shaped to resemble head types that researchers have found in trained models: previous-token heads, heads that park on the first token, and content-matching heads.</li>
+        <li>Walk the equation left to right using the “Walk through it” button: score, mask + softmax, take values, concat + W<sup>O</sup>, output. The pieces of the equation light up as you go, and you can click any piece.</li>
         <li>Heads are cheap: splitting 16 dims into 4 × 4 costs the same compute as one big head.</li>
         <li>GPT‑2 small has 12 heads in each of its 12 layers, 144 heads in total.</li>
       </ul></details>
@@ -1662,9 +1732,9 @@ const Wq=randMat(D,D,0.38,11), Wk=randMat(D,D,0.38,12), Wv=randMat(D,D,0.38,13),
 for(let r=0;r<D;r++)for(let c=12;c<16;c++)Wk[r][c]=Wq[r][c]; // head 4: queries match similar keys
 const W1=randMat(D,FF,0.32,15), b1=randMat(1,FF,0.25,17)[0], W2=randMat(FF,D,0.16,16);
 const HEADS=[
-  {name:'Previous word',desc:'Looks one step back.',bias:(i,j)=>j===i-1?3.0:0},
-  {name:'Sentence start',desc:'Parks attention on the first token.',bias:(i,j)=>j===0?2.6:0},
-  {name:'Self',desc:'Mostly keeps its own information.',bias:(i,j)=>i===j?2.6:0},
+  {name:'Previous word',desc:'Looks one step back.',noise:.2,bias:(i,j)=>j===i-1?4.5:0},
+  {name:'Sentence start',desc:'Parks attention on the first token.',noise:.2,bias:(i,j)=>j===0?4.5:0},
+  {name:'Self',desc:'Mostly keeps its own information.',noise:.2,bias:(i,j)=>i===j?4.5:0},
   {name:'Content match',desc:'Finds tokens with similar vectors.',bias:()=>0}
 ];
 const embedVec=key=>{const r=mulberry32(hashStr(key.replace(/^##/,'')));return Array.from({length:D},()=>randn(r)*0.85)};
@@ -1685,7 +1755,7 @@ function compute(){
   const Q=matmul(X0,Wq),K=matmul(X0,Wk),V=matmul(X0,Wv);
   const heads=HEADS.map((h,hi)=>{
     const q=colsOf(Q,hi*DK,hi*DK+DK),k=colsOf(K,hi*DK,hi*DK+DK),v=colsOf(V,hi*DK,hi*DK+DK);
-    const raw=q.map((qi,i)=>k.map((kj,j)=>dot(qi,kj)/Math.sqrt(DK)+h.bias(i,j)));
+    const raw=q.map((qi,i)=>k.map((kj,j)=>dot(qi,kj)/Math.sqrt(DK)*(h.noise??1)+h.bias(i,j)));
     const masked=raw.map((r,i)=>r.map((x,j)=>j>i?-Infinity:x));
     const P=masked.map(softmax);
     return {q,k,v,raw,P,out:matmul(P,v)};
@@ -2194,6 +2264,49 @@ async function play5(){
   await stagger(aRows,90);
 }
 
+/* ================= STEP 5: the multi-head equation, piece by piece ================= */
+const EQ={tok:null,stage:5};
+const EQ_STEPS=[
+  ['1','Score','Each head builds queries and keys from its own tables W<sub>i</sub><sup>Q</sup>, W<sub>i</sub><sup>K</sup> and compares them: (XW<sup>Q</sup>)(XW<sup>K</sup>)<sup>T</sup>/√d<sub>k</sub>.'],
+  ['2','Mask + softmax','Future words are hidden and each row of scores becomes percentages.'],
+  ['3','Take values','Each head takes its percentage share of its own values: head<sub>i</sub> = softmax(…) · XW<sub>i</sub><sup>V</sup>.'],
+  ['4','Concat + W<sup>O</sup>','The heads’ outputs are placed side by side and mixed by W<sup>O</sup>.'],
+  ['5','Output','One vector per word, the same size as the input, ready for Add &amp; Norm.']
+];
+function renderEq(){
+  if(!$('#eqTok'))return;
+  const N=S.N;if(EQ.tok===null||EQ.tok>=N)EQ.tok=N-1;
+  $('#eqTok').innerHTML=S.toks.map((t,i)=>`<button type="button" class="chip" data-i="${i}" aria-pressed="${i===EQ.tok}"><span class="t">${esc(t.text)}</span></button>`).join('');
+  $('#eqSizes').innerHTML=`Sizes in this demo: X is T × C = ${N} × 16; h = 4 heads, d<sub>k</sub> = C ÷ h = 4; each head’s output is ${N} × 4; Concat gives ${N} × 16; W<sup>O</sup> is 16 × 16; the result is ${N} × 16 again. In GPT‑2: C = 768, h = 12, d<sub>k</sub> = 64.`;
+  $('#eqSteps').innerHTML=EQ_STEPS.map(([n,t],i)=>`<button type="button" class="btn" data-st="${n}" aria-pressed="${+n===EQ.stage}"><b>${n}</b> ${t}</button>`).join('');
+  eqDraw();
+}
+function eqDraw(){
+  const st=EQ.stage,i=EQ.tok,N=S.N,lab=esc(S.labels[i].trim());
+  $$('#eqSteps .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.st===st));
+  $$('#eqBox .ep').forEach(e=>e.classList.toggle('on',+e.dataset.s===st||(st===5&&+e.dataset.s===5)));
+  $('#eqNote').innerHTML=`<b>${EQ_STEPS[st-1][1]}.</b> ${EQ_STEPS[st-1][2]} <span class="muted">Shown for the word “${lab}”.</span>`;
+  const mx=Math.max(maxAbs(S.concat),maxAbs(S.A));
+  const strip=(v,cls='')=>`<span class="strip ${cls}">${v.map(x=>`<i class="c" style="background:${divColor(x,mx)}" data-tip="${x.toFixed(3)}"></i>`).join('')}</span>`;
+  let rows='';
+  S.heads.forEach((h,hi)=>{
+    const P=h.P[i],best=P.map((p,j)=>[p,j]).sort((a,b)=>b[0]-a[0])[0];
+    rows+=`<div class="ar" style="--hc:var(--h${hi})"><span class="hn"><i></i>head ${hi+1}</span>
+      <span class="ac s1 ${st>=1?'':'dim'}">${strip(h.q[i])}<small>query slice (${h.q[i].length} numbers)</small></span>
+      <span class="ac s2 ${st>=2?'':'dim'}"><b>${Math.round(best[0]*100)}%</b> on “${esc(S.labels[best[1]].trim())}”<small>${esc(HEADS[hi].name)}</small></span>
+      <span class="ac s3 ${st>=3?'':'dim'}">${strip(h.out[i])}<small>head ${hi+1} output</small></span></div>`;
+  });
+  const asm=`<div class="ahead"><span></span><span>1 · own query</span><span>2 · where it looks</span><span>3 · head output</span></div>${rows}
+    <div class="acat ${st>=4?'':'dim'}"><span class="hn">Concat</span>${strip(S.concat[i],'grp')}<small>4 heads × 4 numbers = 16</small><span class="eop">× W<sup>O</sup> →</span>${strip(S.A[i])}<small class="${st>=5?'':'dim'}">output for “${lab}”: 16 numbers, same size as the input</small></div>`;
+  $('#eqAsm').innerHTML=asm;
+}
+let eqRun=0;
+async function playEq(){const run=++eqRun;for(let s=1;s<=5;s++){if(run!==eqRun)return;EQ.stage=s;eqDraw();await sleep(1500)}}
+$('#eqTok').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(!b)return;EQ.tok=+b.dataset.i;renderEq()});
+$('#eqSteps').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(!b)return;eqRun++;EQ.stage=+b.dataset.st;eqDraw()});
+$('#eqBox').addEventListener('click',e=>{const p=e.target.closest('[data-s]');if(!p)return;eqRun++;EQ.stage=+p.dataset.s;eqDraw()});
+$('#eqPlay').addEventListener('click',playEq);
+
 /* ================= STEP 6 ================= */
 function render6(){
   tokPicker($('#s6Tok'),()=>{render4();render6();renderQKV();play6()});
@@ -2535,11 +2648,11 @@ function renderAll(predDelay=800){
   const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
-  render1();render2();renderQKV();renderCmp();renderBlocks();render3();render4();render5();render6();render7();render8();resetGen();renderMeta();
+  render1();render2();renderQKV();renderCmp();renderBlocks();render3();render4();render5();renderEq();render6();render7();render8();resetGen();renderMeta();
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
