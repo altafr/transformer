@@ -437,6 +437,22 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .clip-link .pl{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-strong);flex:none}
 .clip-link small{display:block;color:var(--muted);font-size:12px}
 @media (max-width:760px){.clips{grid-template-columns:minmax(0,1fr)}}
+#etMap{width:100%;height:360px;display:block;border-radius:12px;background:var(--surface-2)}
+.ei-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.ei-toks{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.ei-toks .chip{flex-direction:row;gap:10px;transition:background .2s,border-color .2s,transform .2s}
+.chip.hot{background:var(--accent-weak);border-color:var(--accent);transform:translateX(4px)}
+.ei-table{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px}
+.er{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:6px;font:500 12px var(--mono);cursor:pointer;transition:background .2s}
+.er:hover{background:var(--surface-2)}
+.er.hot{background:var(--accent);color:var(--on-strong)}
+.er.hot .ew,.er.hot .eid,.er.hot .ev{color:var(--on-strong)!important}
+.er.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.er .eid{width:30px;color:var(--muted)}
+.er .ew{width:64px;font-weight:600}
+.er .ev{width:44px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ei-out{display:grid;gap:4px;border:1px solid var(--line);border-radius:10px;padding:6px;min-height:40px}
+@media (max-width:1000px){.ei-grid{grid-template-columns:minmax(0,1fr)}}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -744,6 +760,76 @@ body.present footer{display:none}
         <li>The vocabulary is fixed before training: GPT‑2 has 50,257 tokens.</li>
         <li id="tokEngineNote"></li>
         <li>The embedding numbers start random and are learned during training, so similar words end up with similar vectors.</li>
+      </ul></details>
+    </section>
+
+    <!-- ============ 1b EMBEDDINGS ============ -->
+    <section id="se" data-name="Embeddings up close" data-num="1b">
+      <div class="sec-head">
+        <div class="eyebrow">Step 1b of 9 · embeddings up close</div>
+        <h2>Embeddings: meaning you can measure</h2>
+        <p class="lede">An embedding is a list of numbers that stands for a token. The whole vocabulary lives in one big <strong>embedding table</strong>: one row per token. Nobody writes those numbers. They are <strong>learned in training</strong> from how words are used, following the idea that <em>you shall know a word by the company it keeps</em>. Words used in similar places end up with similar numbers, so closeness in the table means closeness in meaning. When the model runs (<strong>inference</strong>), the table is frozen and simply looked up.</p>
+        <div class="key"><b>Two phases</b><strong>Training</strong> moves each word’s row a little every time the word is used, until words with similar neighbours sit together. <strong>Inference</strong> is a plain lookup: token ID → row number → copy that row out. No arithmetic, and the same token always gets the same starting vector.</div>
+      </div>
+
+      <div class="viz" id="veTrain">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Phase 1 · Training</span>
+            <button class="btn primary" id="etPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Train embeddings</button>
+            <button class="btn" id="etStep" type="button">One example</button>
+            <button class="btn" id="etReset" type="button">Scramble</button>
+          </div>
+          <span class="mono muted" id="etStats" style="font-size:12px"></span>
+        </div>
+        <div class="tr-grid">
+          <div style="display:grid;gap:8px;min-width:0">
+            <div class="mhead"><span class="label">Each word’s 2 numbers, drawn as x and y</span><span class="legend2" id="etLegend"></span></div>
+            <canvas id="etMap" aria-label="Word embeddings moving during training"></canvas>
+          </div>
+          <div style="display:grid;gap:12px;align-content:start;min-width:0">
+            <span class="label">What training does, one example at a time</span>
+            <ol class="explain" id="etExplain"><li>Press <strong>One example</strong> to see a single update, or <strong>Train embeddings</strong> to run thousands.</li></ol>
+            <div style="display:grid;gap:6px"><div class="mhead"><span class="label">Loss</span><span class="dim mono" id="etLossv"></span></div><canvas id="etLoss" style="width:100%;height:90px;display:block"></canvas></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:6px"><span class="label">Training sentences (64 short sentences built from these patterns)</span><div class="corpus" id="etCorpus"></div></div>
+        <p class="note">Colours are only for you. The model never sees the groups; it only sees which words appear near which. This is how word2vec (2013) learned embeddings. In a GPT, the embedding table is trained together with the rest of the model by the next-token loss, but the effect is the same: words that behave alike get similar rows.</p>
+      </div>
+
+      <div class="viz" id="veInfer">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Phase 2 · Inference</span><div class="seg" id="eiPick"></div></div>
+          <button class="btn primary" id="eiPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Look up</button>
+        </div>
+        <div class="ei-grid">
+          <div style="display:grid;gap:8px;align-content:start"><span class="label">1 · Tokens and IDs</span><div class="ei-toks" id="eiToks"></div></div>
+          <div style="display:grid;gap:8px;align-content:start;min-width:0"><span class="label">2 · The frozen embedding table (the rows you just trained)</span><div class="ei-table" id="eiTable"></div></div>
+          <div style="display:grid;gap:8px;align-content:start"><span class="label">3 · Output: one row per token</span><div class="ei-out" id="eiOut"></div><p class="calc" id="eiNN"></p></div>
+        </div>
+        <p class="note">Click any row of the table to see its nearest neighbours by cosine similarity (the angle between two vectors). If the table was trained, neighbours come from the same group.</p>
+      </div>
+
+      <div class="viz" id="veDir">
+        <span class="label">What the directions mean (illustrative)</span>
+        <div class="two">
+          <div style="display:grid;gap:10px;min-width:0">
+            <h3 class="subh" style="font-size:20px">Directions carry meaning</h3>
+            <svg id="edAnalogy" viewBox="0 0 360 300" style="width:100%;max-width:420px" aria-label="king minus man plus woman lands near queen"></svg>
+            <div class="left" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="edA1" type="button">king − man + woman</button><button class="btn" id="edA2" type="button">prince − boy + girl</button></div>
+            <p class="note" id="edNote">The step from “man” to “woman” points in roughly the same direction as “king” to “queen”. Word2vec famously showed that king − man + woman lands closest to queen.</p>
+          </div>
+          <div style="display:grid;gap:10px;min-width:0">
+            <h3 class="subh" style="font-size:20px">Context moves the vector later</h3>
+            <svg id="edBank" viewBox="0 0 360 300" style="width:100%;max-width:420px" aria-label="the word bank moving toward river or money"></svg>
+            <div class="left" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="edB1" type="button">“I sat on the river bank”</button><button class="btn" id="edB2" type="button">“I paid money into the bank”</button></div>
+            <p class="note">The table gives “bank” one starting vector for both meanings. The attention layers after it (steps 3 to 5) mix in the surrounding words, so by the later layers the two “bank”s point to different places.</p>
+          </div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Press Train and ask the room to predict which words will end up together. The model is never told about animals or cities; the groups appear only because those words share neighbours such as “feed”, “eat”, “drive” and “visit”.</li>
+        <li>Then run the lookup: at inference time nothing is calculated, a row is just copied out of the table. In GPT‑2 that table has 50,257 rows of 768 numbers (38.6 million learned numbers).</li>
+        <li>The analogy and “bank” panels are drawn by hand to show the idea; real embeddings have hundreds of dimensions and are only approximately this tidy.</li>
       </ul></details>
     </section>
 
@@ -1776,6 +1862,137 @@ async function playQKV(){
   await stagger($$('#qkvAll .mrow'),40);
 }
 
+
+/* ================= STEP 1b: embeddings up close ================= */
+const EM_CAT={animal:['cat','dog','horse','cow'],food:['apple','bread','rice','cheese'],vehicle:['car','bus','train','bike'],city:['paris','london','rome','tokyo']};
+const EM_COL={animal:'--h0',food:'--h1',vehicle:'--h2',city:'--h3'};
+const EM_TPL={animal:['i feed the X','the X sleeps','i pet the X','the X runs'],food:['i eat X','we cook X','X is tasty','fresh X'],vehicle:['we drive the X','i ride the X','the X is fast','park the X'],city:['we visit X','i fly to X','X is a city','a trip to X']};
+const EM={running:false,epoch:0,seed:3,loss:[],pos:0,MAX:60};
+(function(){
+  const sents=[];for(const c in EM_CAT)for(const w of EM_CAT[c])for(const t of EM_TPL[c])sents.push(t.replace('X',w).split(' '));
+  EM.vocab=[...new Set(sents.flat())];EM.idx=Object.fromEntries(EM.vocab.map((w,i)=>[w,i]));
+  EM.catOf={};for(const c in EM_CAT)EM_CAT[c].forEach(w=>EM.catOf[w]=c);
+  EM.pairs=[];for(const s of sents)for(let i=0;i<s.length;i++)for(let j=Math.max(0,i-2);j<=Math.min(s.length-1,i+2);j++)if(j!==i)EM.pairs.push([EM.idx[s[i]],EM.idx[s[j]]]);
+  EM.sents=sents;
+})();
+function emReset(){emStop();const r=mulberry32(EM.seed++),V=EM.vocab.length;EM.E=EM.vocab.map(()=>[randn(r)*.12,randn(r)*.12]);EM.U=[0,1].map(()=>EM.vocab.map(()=>randn(r)*.12));EM.epoch=0;EM.pos=0;EM.loss=[];EM.trail=null;EM.bounds=null;
+  const r2=mulberry32(99);EM.order=EM.pairs.map((_,i)=>i).sort(()=>r2()-.5);
+  $('#etExplain').innerHTML='<li>The table has been filled with <strong>random numbers</strong>. Words sit in a meaningless clump. Press <strong>One example</strong> or <strong>Train embeddings</strong>.</li>';emDraw();emRenderInfer()}
+function emPair(k,lr){const [x,y]=EM.pairs[k],V=EM.vocab.length,h=EM.E[x],U=EM.U;
+  const z=EM.vocab.map((_,j)=>h[0]*U[0][j]+h[1]*U[1][j]),m=Math.max(...z),e=z.map(v=>Math.exp(v-m)),s=e.reduce((a,b)=>a+b,0),p=e.map(v=>v/s);
+  const py=p[y];p[y]-=1;let g0=0,g1=0;for(let j=0;j<V;j++){g0+=U[0][j]*p[j];g1+=U[1][j]*p[j];U[0][j]-=lr*h[0]*p[j];U[1][j]-=lr*h[1]*p[j]}
+  const before=[h[0],h[1]];h[0]-=lr*g0;h[1]-=lr*g1;return {x,y,py,before,after:[h[0],h[1]]}}
+function emStart(){if(EM.running)return;if(EM.epoch>=EM.MAX)emReset();EM.running=true;emBtn();requestAnimationFrame(emLoop)}
+function emStop(){EM.running=false;emBtn()}
+function emBtn(){$('#etPlay').innerHTML=EM.running?'<svg viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>Pause':'<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>'+(EM.epoch?'Keep training':'Train embeddings')}
+function emLoop(){
+  if(!EM.running)return;
+  let last=null,L=0,n=RM?EM.pairs.length:25;
+  for(let i=0;i<n;i++){last=emPair(EM.order[EM.pos],.04);L-=Math.log(last.py+1e-9);EM.pos++;if(EM.pos>=EM.pairs.length){EM.pos=0;EM.epoch++}}
+  const prev=EM.loss.length?EM.loss[EM.loss.length-1]:L/n;EM.loss.push(prev*.9+(L/n)*.1);EM.trail=last;emDraw();
+  if(EM.loss.length%6===0){const w=EM.vocab[last.x],c=EM.vocab[last.y];$('#etExplain').innerHTML=`<li class="on">Training example: “${w}” appears near “${c}”.</li><li class="cur">The model is asked to predict “${c}” from “${w}”’s row. It gave ${(last.py*100).toFixed(1)}%.</li><li class="cur">Gradient descent nudges “${w}”’s two numbers so that next time “${c}” is a little more likely (the short arrow on the map).</li>`;emRenderInfer()}
+  if(EM.epoch>=EM.MAX){emStop();$('#etExplain').innerHTML=`<li>Done: ${EM.MAX} passes over all ${EM.pairs.length} word pairs. Words that share neighbours now share a region. The table is ready; switch to <strong>Phase 2</strong> below to use it.</li>`;emRenderInfer();return}
+  requestAnimationFrame(emLoop);
+}
+async function emOne(){
+  emStop();const k=EM.order[EM.pos];const r=emPair(k,.25);EM.pos++;if(EM.pos>=EM.pairs.length){EM.pos=0;EM.epoch++}
+  EM.trail=r;EM.loss.push(-Math.log(r.py+1e-9));emDraw();emRenderInfer();
+  const w=EM.vocab[r.x],c=EM.vocab[r.y],s=EM.sents.find(s=>s.includes(w)&&s.includes(c))?.join(' ')||'';
+  $('#etExplain').innerHTML=[`<b>Take a sentence</b> from the training text: “${s}”.`,`<b>Pick a word and a neighbour:</b> “${w}” and, within two words of it, “${c}”.`,`<b>Guess:</b> from “${w}”’s row, the model gives “${c}” a probability of ${(r.py*100).toFixed(1)}%.`,`<b>Nudge:</b> “${w}”’s row moves from (${r.before.map(v=>v.toFixed(2)).join(', ')}) to (${r.after.map(v=>v.toFixed(2)).join(', ')}), a small step that makes “${c}” more likely next time. Words with the same neighbours get pushed the same way, so they drift together.`].map(l=>`<li>${l}</li>`).join('');
+  const lis=[...$('#etExplain').children];for(let i=0;i<lis.length;i++){lis.forEach((li,m)=>li.classList.toggle('cur',m===i));await sleep(700)}
+}
+function emDraw(){
+  const cv=$('#etMap');if(!cv||!cv.clientWidth||!EM.E)return;
+  const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;EM.E.forEach(([a,b])=>{x0=Math.min(x0,a);x1=Math.max(x1,a);y0=Math.min(y0,b);y1=Math.max(y1,b)});
+  const pad=.15*Math.max(x1-x0,y1-y0,.3),tgt=[x0-pad,x1+pad,y0-pad,y1+pad];EM.bounds=EM.bounds?EM.bounds.map((v,i)=>v+(tgt[i]-v)*.12):tgt;
+  const [bx0,bx1,by0,by1]=EM.bounds,sc=Math.min((w-60)/(bx1-bx0),(h-36)/(by1-by0)),X=v=>30+(v-bx0)*sc+((w-60)-(bx1-bx0)*sc)/2,Y=v=>h-18-(v-by0)*sc-((h-36)-(by1-by0)*sc)/2;
+  g.font=`12px ${cssVar('--mono')}`;
+  const muted=cssVar('--muted'),line=cssVar('--line');
+  g.strokeStyle=line;g.beginPath();g.moveTo(X(0),6);g.lineTo(X(0),h-6);g.moveTo(6,Y(0));g.lineTo(w-6,Y(0));g.stroke();
+  const placed=[];
+  EM.vocab.map((wd,i)=>({wd,i,c:EM.catOf[wd]})).sort((a,b)=>!!b.c-!!a.c).forEach(({wd,i,c})=>{
+    const [a,b]=EM.E[i],px=X(a),py=Y(b),col=c?cssVar(EM_COL[c]):muted;
+    g.globalAlpha=c?1:.55;g.fillStyle=col;g.beginPath();g.arc(px,py,c?5:3,0,7);g.fill();
+    const tw=g.measureText(wd).width;let ly=py+4;for(let k=0;k<5&&placed.some(r=>px+7<r.x+r.w&&px+7+tw>r.x&&Math.abs(ly-r.y)<12);k++)ly+=(k%2?-1:1)*12*(k+1);
+    placed.push({x:px+7,y:ly,w:tw});g.fillStyle=c?cssVar('--ink'):muted;g.fillText(wd,px+7,ly);g.globalAlpha=1;
+  });
+  if(EM.trail){const t=EM.trail,[ax,ay]=t.before,[bx,by]=t.after,dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,k=Math.min(40,Math.max(14,L*sc*6))/(L*sc||1);
+    const sx=X(bx),sy=Y(by),ex=sx+dx*sc*k,ey=sy-dy*sc*k;g.strokeStyle=cssVar('--ink');g.lineWidth=2;g.beginPath();g.moveTo(sx,sy);g.lineTo(ex,ey);g.stroke();
+    const an=Math.atan2(ey-sy,ex-sx);g.beginPath();g.moveTo(ex,ey);g.lineTo(ex-8*Math.cos(an-.4),ey-8*Math.sin(an-.4));g.lineTo(ex-8*Math.cos(an+.4),ey-8*Math.sin(an+.4));g.closePath();g.fillStyle=cssVar('--ink');g.fill();
+    g.beginPath();g.arc(sx,sy,9,0,7);g.lineWidth=2;g.strokeStyle=cssVar('--accent');g.stroke();g.lineWidth=1}
+  $('#etStats').textContent=`pass ${EM.epoch} of ${EM.MAX}`;
+  const lc=$('#etLoss');if(lc.clientWidth){const lw=lc.clientWidth,lh=lc.clientHeight;lc.width=lw*dpr;lc.height=lh*dpr;const q=lc.getContext('2d');q.scale(dpr,dpr);
+    const top=Math.log(EM.vocab.length)*1.1,n=Math.max(EM.loss.length,60),Lx=i=>28+i/n*(lw-32),Ly=v=>4+(1-Math.min(v,top)/top)*(lh-16);
+    q.strokeStyle=line;q.fillStyle=muted;q.font=`10px ${cssVar('--mono')}`;[0,top].forEach(v=>{q.beginPath();q.moveTo(28,Ly(v));q.lineTo(lw-4,Ly(v));q.stroke();q.fillText(v.toFixed(1),2,Ly(v)+3)});
+    q.strokeStyle=cssVar('--accent');q.lineWidth=1.6;q.beginPath();EM.loss.forEach((v,i)=>i?q.lineTo(Lx(i),Ly(v)):q.moveTo(Lx(i),Ly(v)));q.stroke();
+    $('#etLossv').textContent=EM.loss.length?`now ${EM.loss[EM.loss.length-1].toFixed(2)}`:''}
+}
+/* inference: lookup */
+const EI_SENTS=['i feed the cat','we drive the bus','a trip to rome','i eat bread'];
+EM.pick=0;EM.sel=null;
+function emRenderInfer(){
+  if(!EM.E)return;
+  $('#eiPick').innerHTML=EI_SENTS.map((s,i)=>`<button class="btn" type="button" data-e="${i}" aria-pressed="${i===EM.pick}">${s}</button>`).join('');
+  const toks=EI_SENTS[EM.pick].split(' '),mx=Math.max(1e-6,...EM.E.flat().map(Math.abs));
+  $('#eiToks').innerHTML=toks.map(t=>`<div class="chip" data-w="${t}"><span class="t">${t}</span><span class="id">#${EM.idx[t]}</span></div>`).join('');
+  $('#eiTable').innerHTML=EM.vocab.map((w,i)=>{const c=EM.catOf[w];return `<div class="er${EM.sel===i?' sel':''}" data-i="${i}"><span class="eid">#${i}</span><span class="ew" style="${c?`color:var(${EM_COL[c]})`:''}">${w}</span>${EM.E[i].map(v=>`<i class="c" style="background:${divColor(v,mx)}" title="${v.toFixed(3)}"></i><span class="ev">${v.toFixed(2)}</span>`).join('')}</div>`}).join('');
+  $('#eiOut').innerHTML=toks.map(t=>{const r=EM.E[EM.idx[t]];return `<div class="er a"><span class="ew">${t}</span>${r.map(v=>`<i class="c" style="background:${divColor(v,mx)}"></i><span class="ev">${v.toFixed(2)}</span>`).join('')}</div>`}).join('');
+  emNN();
+}
+function emNN(){
+  const i=EM.sel??EM.idx[EI_SENTS[EM.pick].split(' ').pop()],v=EM.E[i],cos=(a,b)=>(a[0]*b[0]+a[1]*b[1])/(Math.hypot(...a)*Math.hypot(...b)||1);
+  const nn=EM.vocab.map((w,j)=>({w,s:cos(v,EM.E[j]),j})).filter(o=>o.j!==i&&EM.catOf[o.w]).sort((a,b)=>b.s-a.s).slice(0,3);
+  $('#eiNN').innerHTML=`Nearest to <b>“${EM.vocab[i]}”</b>: ${nn.map(o=>`${o.w} <span class="muted">(${o.s.toFixed(2)})</span>`).join(', ')}${EM.epoch<3?'<br><span class="muted">The table is barely trained, so neighbours are still random. Train it above first.</span>':''}`;
+}
+let eiRun=0;
+async function emLookup(){
+  const run=++eiRun,toks=EI_SENTS[EM.pick].split(' ');emRenderInfer();
+  const outs=$$('#eiOut .er');outs.forEach(o=>o.classList.add('pre'));
+  for(let k=0;k<toks.length;k++){if(run!==eiRun)return;
+    const chip=$$('#eiToks .chip')[k],row=$(`#eiTable .er[data-i="${EM.idx[toks[k]]}"]`);
+    $$('#eiToks .chip').forEach(c=>c.classList.remove('hot'));chip.classList.add('hot');
+    $$('#eiTable .er').forEach(r=>r.classList.remove('hot'));row.classList.add('hot');row.scrollIntoView({block:'nearest',behavior:RM?'auto':'smooth'});
+    await sleep(650);outs[k].classList.remove('pre');await sleep(350)}
+  $$('#eiToks .chip').forEach(c=>c.classList.remove('hot'));
+}
+/* directions: analogy + context */
+const ED_PTS={boy:[70,245],girl:[250,245],man:[70,185],woman:[250,185],prince:[70,120],princess:[250,120],king:[70,60],queen:[250,60]};
+function edAnalogy(a,b,c,d,step=3){
+  let s=`<defs><marker id="edArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--pos)"/></marker></defs>`;
+  s+=`<text x="160" y="290" text-anchor="middle" style="font:500 11px var(--mono);fill:var(--muted)">male ←  gender direction  → female</text>`;
+  Object.entries(ED_PTS).forEach(([w,[x,y]])=>{const on=[a,b,c,d].includes(w);s+=`<circle cx="${x}" cy="${y}" r="${on?7:5}" fill="${on?'var(--accent)':'var(--mask)'}"/><text x="${x+(x<160?-12:12)}" y="${y+4}" text-anchor="${x<160?'end':'start'}" style="font:500 14px var(--mono);fill:${on?'var(--ink)':'var(--muted)'}">${w}</text>`});
+  const [bx,by]=ED_PTS[b],[cx,cy]=ED_PTS[c],[ax,ay]=ED_PTS[a],[dx,dy]=ED_PTS[d];
+  if(step>=1)s+=`<line x1="${bx+8}" y1="${by}" x2="${cx-10}" y2="${cy}" stroke="var(--pos)" stroke-width="3" marker-end="url(#edArr)"/><text x="160" y="${by-8}" text-anchor="middle" style="font:600 12px var(--sans);fill:var(--pos)">${c} − ${b}</text>`;
+  if(step>=2)s+=`<line x1="${ax+8}" y1="${ay}" x2="${ax+8+(cx-bx-18)*(step>=3?1:.5)}" y2="${ay}" stroke="var(--pos)" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#edArr)"/>`;
+  if(step>=3)s+=`<circle cx="${dx}" cy="${dy}" r="13" fill="none" stroke="var(--pos)" stroke-width="2.5"/><text x="160" y="${ay-24}" text-anchor="middle" style="font:600 12px var(--sans);fill:var(--pos)">${a} − ${b} + ${c} ≈ ${d}</text>`;
+  $('#edAnalogy').innerHTML=s;
+}
+let edRun=0;async function edPlay(a,b,c,d){const run=++edRun;for(let st=0;st<=3;st++){if(run!==edRun)return;edAnalogy(a,b,c,d,st);await sleep(700)}}
+const EB={river:[[55,90],[40,150],[85,205],[110,120]],money:[[305,90],[320,150],[275,205],[250,120]]},EB_W={river:['river','water','shore','boat'],money:['money','cash','loan','deposit']};
+function edBank(t=0,side=null){
+  let s='';['river','money'].forEach(k=>EB[k].forEach(([x,y],i)=>{s+=`<circle cx="${x}" cy="${y}" r="5" fill="var(${k==='river'?'--h3':'--h2'})"/><text x="${x}" y="${y-10}" text-anchor="middle" style="font:500 13px var(--mono);fill:var(--ink)">${EB_W[k][i]}</text>`}));
+  const start=[180,150],end=side==='river'?[95,150]:side==='money'?[265,150]:start,x=start[0]+(end[0]-start[0])*t,y=start[1]+(end[1]-start[1])*t;
+  if(side&&t>0)s+=`<line x1="${start[0]}" y1="${start[1]}" x2="${x}" y2="${y}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"/><circle cx="${start[0]}" cy="${start[1]}" r="5" fill="none" stroke="var(--muted)" stroke-dasharray="2 2"/>`;
+  s+=`<circle cx="${x}" cy="${y}" r="9" fill="var(--accent)"/><text x="${x}" y="${y+28}" text-anchor="middle" style="font:700 14px var(--mono);fill:var(--accent)">bank</text>`;
+  s+=`<text x="180" y="290" text-anchor="middle" style="font:500 11px var(--mono);fill:var(--muted)">${!side||t===0?'from the table: one vector for both meanings':side==='river'?'after attention: pulled toward river words':'after attention: pulled toward money words'}</text>`;
+  $('#edBank').innerHTML=s;
+}
+let ebRun=0;async function edBankPlay(side){const run=++ebRun;edBank(0,side);await sleep(400);for(let k=1;k<=20;k++){if(run!==ebRun)return;edBank(k/20,side);await sleep(RM?0:40)}}
+function initEmb(){
+  $('#etCorpus').innerHTML=Object.keys(EM_TPL).map(c=>`<span>${EM_TPL[c].map(t=>t.replace('X',`<b style="color:var(${EM_COL[c]})">${c}</b>`)).join(' · ')}</span>`).join('');
+  $('#etLegend').innerHTML=Object.keys(EM_CAT).map(c=>`<span><i style="background:var(${EM_COL[c]})"></i>${c==='city'?'cities':c+'s'}</span>`).join('')+'<span><i style="background:var(--muted)"></i>other words</span>';
+  emReset();edAnalogy('king','man','woman','queen',3);edBank();
+  $('#etPlay').addEventListener('click',()=>EM.running?emStop():emStart());
+  $('#etStep').addEventListener('click',emOne);$('#etReset').addEventListener('click',emReset);
+  $('#eiPick').addEventListener('click',e=>{const b=e.target.closest('[data-e]');if(!b)return;EM.pick=+b.dataset.e;EM.sel=null;emLookup()});
+  $('#eiPlay').addEventListener('click',emLookup);
+  $('#eiTable').addEventListener('click',e=>{const r=e.target.closest('[data-i]');if(!r)return;EM.sel=+r.dataset.i;$$('#eiTable .er').forEach(x=>x.classList.toggle('sel',x===r));emNN()});
+  $('#edA1').addEventListener('click',()=>edPlay('king','man','woman','queen'));$('#edA2').addEventListener('click',()=>edPlay('prince','boy','girl','princess'));
+  $('#edB1').addEventListener('click',()=>edBankPlay('river'));$('#edB2').addEventListener('click',()=>edBankPlay('money'));
+}
+initEmb();
+
 /* ================= STEP 3a callouts: shared W within a block, new W per block ================= */
 S.cmpA=null;S.cmpB=null;
 function renderCmp(){
@@ -2128,6 +2345,7 @@ renderMF();
 /* ================= shape + parameter tracker on every decoder step ================= */
 const META={
   s0:N=>['All the numbers below start random',`θ = every learned number (GPT‑2 small: 124 M)`],
+  se:N=>['table: V × C = 38 × 2 here (GPT‑2: 50,257 × 768)','Learned (θ): the embedding table (frozen at inference)'],
   s1:N=>[`T = ${N} tokens → embeddings T × C = ${N} × 16`,'Learned (θ): the embedding table'],
   s2:N=>[`T × C = ${N} × 16 in, same shape out`,'Learned (θ): nothing here (fixed sine waves). GPT‑2 learns a position table instead'],
   s3a:N=>[`X (${N} × 16) · W (16 × 16) → Q, K, V each ${N} × 16`,'Learned (θ): W_Q, W_K, W_V'],
@@ -2276,7 +2494,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:play5,s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -2305,7 +2523,7 @@ $('#acceptBtn').addEventListener('click',()=>{
 $('#genPlay').addEventListener('click',()=>{if(gen.running){gen.running=false;setPlayLabel()}else{if(gen.done||gen.pieces.length>=MAXGEN)resetGen();gen.running=true;setPlayLabel();genLoop()}});
 $('#genStep').addEventListener('click',()=>{gen.running=false;setPlayLabel();genStep()});
 $('#genReset').addEventListener('click',resetGen);
-addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(()=>{drawPE();trDraw(true);dlRenderAll()},100)});
+addEventListener('resize',()=>{clearTimeout(drawPE._t);drawPE._t=setTimeout(()=>{drawPE();trDraw(true);dlRenderAll();emDraw()},100)});
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>setTimeout(drawPE,50));
 new MutationObserver(()=>setTimeout(drawPE,50)).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
@@ -2715,6 +2933,7 @@ function goSlide(i){
   window.scrollTo({top:0});
   if(s.id==='s2')setTimeout(drawPE,30);
   if(s.id==='s0')setTimeout(()=>trDraw(true),30);
+  if(s.id==='se')setTimeout(emDraw,30);
   if(/^b/.test(s.id))setTimeout(dlRenderAll,30);
   if(PLAY[s.id]&&s.id!=='s9')setTimeout(()=>PLAY[s.id](),350);
 }

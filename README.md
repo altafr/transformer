@@ -10,6 +10,7 @@ An animated, interactive single-page website with four tabs.
 
 0. Training: where the embeddings and weight matrices come from (a real tiny model trains live in the browser)
 1. Tokenization
+1b. Embeddings up close: a word2vec-style model trains live so similar words cluster (training), then the frozen table is used as a lookup with nearest neighbours (inference), plus illustrative panels on analogy directions and context
 2. Positional encoding
 3a. Where Q, K and V come from (x · W_Q, x · W_K, x · W_V, computed live)
 3b. Masked multi-head attention
