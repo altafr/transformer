@@ -493,6 +493,13 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 .dictionary b{font-family:var(--mono);font-size:13px}
 .dictionary span{color:var(--muted)}
 @media (max-width:1000px){.goals,.dictionary{grid-template-columns:minmax(0,1fr)}}
+.ps-link{margin-left:auto;font:500 11px var(--mono);letter-spacing:0;text-transform:none;color:var(--muted);background:none;border:0;border-bottom:1px dotted var(--muted);padding:0 0 1px;cursor:pointer;white-space:nowrap}
+.ps-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.sec-head .eyebrow,.hero .eyebrow{max-width:760px}
+#psPanel{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:90;width:min(440px,calc(100vw - 32px));max-height:min(78vh,640px);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);overflow:hidden;display:grid}
+#psPanel #psBody{overflow-y:auto;padding:18px 20px 20px;font:16px/1.6 var(--sans)}
+#psPanel .ps-x{position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;z-index:2}
+#psPanel .ps-top{padding-right:36px}
 /* ---------- engine ---------- */
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
@@ -3034,6 +3041,226 @@ function renderClips(){
   $$('.clip video').forEach(v=>vio.observe(v));
 }
 renderClips();
+
+/* ================= PRESENTER SCRIPTS: one short spoken script per section ================= */
+const SCRIPTS={
+intro:{say:[
+"Today we look at how an AI model such as ChatGPT or Claude writes text. It does one thing: it predicts the next word.",
+"We will take one sentence, “The cat sat on the”, and follow it through every stage until the model picks the next word. Then we repeat the process to write a whole reply.",
+"The diagram on the right is our map. Each box is one step, and you can click any box to jump to it.",
+"If you are new to neural networks, start with the Basics tab first."],
+show:"Type your own sentence in the box at the top. Every step will use it."},
+
+s0:{say:[
+"Before a model can predict anything, it has to be trained. At the start, every number inside it is random, so its guesses are random.",
+"Training works in four moves: show the model real text, ask it to guess the next word, measure how wrong the guess was, and nudge every number slightly toward a better answer. Then repeat, billions of times.",
+"For example, given “the cat sat on the”, an untrained model gives “mat” about one chance in fifty thousand. After training, “mat”, “floor” and “sofa” all get high probabilities.",
+"The key point: nobody programs these numbers by hand. They are learned from data, and once training ends they are frozen."],
+show:"Press Train. Watch the words form groups and the loss line fall."},
+
+s1:{say:[
+"A model cannot read letters. It only works with numbers. So the first step is to cut the text into pieces called tokens.",
+"A token is usually a whole word, sometimes part of a word, or a punctuation mark. Each token is swapped for its ID number in a fixed list, like a page number in a dictionary.",
+"Each ID then picks one row from a large table of numbers called the embedding table. From here on, every word is a list of numbers. In our demo each list has 16 numbers. GPT-2 uses 768."],
+show:"Point at the token boxes with their ID numbers, then at the grid of numbers below them."},
+
+se:{say:[
+"An embedding is a list of numbers that stands for a word. The model learns these lists during training, using one idea: words used in similar places should get similar numbers.",
+"Press Train and watch. Animals, foods, vehicles and cities drift into four groups, even though the model was never told what they are. It only saw which words appear near which.",
+"When the model is in use, nothing is calculated. It simply looks up the row for each word, like finding a name in a directory. Click any row in the table to see its nearest neighbours: “cat” sits next to “dog” and “cow”.",
+"The two panels at the bottom show that directions carry meaning, king minus man plus woman is about queen, and that later steps adjust a word like “bank” according to its context."],
+show:"Press Train embeddings, then Look up, then click a row in the table."},
+
+s2:{say:[
+"Attention looks at all words at once, so on its own it cannot tell the order. “Dog bites man” and “man bites dog” contain the same three words.",
+"So we add a position signal to every word, like a seat number. The original design uses sine and cosine waves of different speeds, so every position gets a unique pattern.",
+"Drag the slider: fast waves separate neighbouring words, slow waves separate early words from late ones.",
+"The bottom row shows the sum. Word meaning plus position gives the input to the first block."],
+show:"Drag the dimension slider, then point at the three matrices at the bottom."},
+
+s3a:{say:[
+"Attention needs three things from each word: a query, a key and a value.",
+"Think of an image search. The query is what you type. The key is the caption on each photo. The value is the photo you get back.",
+"Each one is made by multiplying the word’s vector by a learned table of numbers. The important point: there is one table for queries, one for keys and one for values, and they are the same for every word in the sentence. Only the word’s own vector changes.",
+"In the first callout, pick two words and compare. The table in the middle is identical, the results differ. The second callout adds that every block in the model has its own set of three tables."],
+show:"Press Replay, then pick two different words in Callout 1."},
+
+s3:{say:[
+"Now each word looks back at the words before it. It compares its query with the key of every earlier word. Good matches get a high score, the scores become percentages, and the word takes that share of each earlier word’s value.",
+"The mask hides later words, because when the model is writing, the future does not exist yet.",
+"For example, in “the animal did not cross the street because it was too tired”, the word “it” looks back and finds “animal”, not “street”.",
+"Use the four buttons to see the scores, the mask, the percentages and the final mix."],
+show:"Press Play all stages, then click a different row to follow another word."},
+
+s4:{say:[
+"Two housekeeping steps keep a deep model stable.",
+"First, the attention result is added back to the original vector, so nothing is lost and the model only has to learn the change. Think of track changes in a document.",
+"Second, the numbers are rescaled to an average of zero and a spread of one, which keeps them in a sensible range through many layers.",
+"The bars show it: the input, the attention output, their sum, and the rescaled result. On the right, after rescaling, the average is zero and the spread is one."],
+show:"Press Replay and point at the statistics on the right."},
+
+s5:{say:[
+"One attention pass gives each word one set of percentages, which blurs everything into a single average. Multi-head attention fixes this by running several attention passes in parallel, each on its own slice of the vector.",
+"For the word “mat”, one head looks at “the”, another at “sat”, another at the start of the sentence. It is like several people reading the same sentence, each with a different question.",
+"The equation has three moves: split the vector into slices, run attention in each slice, then glue the results back together and mix them with one more table. The output is the same size as the input, so blocks can be stacked."],
+show:"Pick a word, then press Walk through it."},
+
+s6:{say:[
+"Attention lets words share information with each other. The MLP, or feed-forward network, is where the model recalls what it knows.",
+"It works on each word separately: widen the vector, apply a bend called GELU, and shrink it back. Without the bend, stacking layers would add no power.",
+"Example: “The Eiffel Tower is located in”. Attention has already gathered two facts: the sentence is about the Eiffel Tower, and it asks for a place. One neuron in the MLP matches both facts and pushes the answer toward “Paris”.",
+"Switch that neuron off and the fact disappears. Press Edit a fact and the model now says “Rome”. This is how research teams find and change knowledge inside real models."],
+show:"Click a neuron to switch it off, then press Edit a fact."},
+
+s7:{say:[
+"Only the last word’s vector is needed to predict what comes next. The model gives every word in its vocabulary a score, and softmax turns those scores into percentages that add up to one hundred.",
+"For example, after “The cat sat on the”, “mat” gets about thirty percent, “sofa” sixteen and “floor” twelve.",
+"The temperature slider changes how confident the model looks. Low temperature puts almost everything on the top word. High temperature spreads the chances out.",
+"These predictions come from a live language model, shown by the badge at the top of the page."],
+show:"Drag the temperature slider and watch the bars change."},
+
+s8:{say:[
+"The model does not output a word. It outputs probabilities, and a rule picks one.",
+"Greedy always takes the top choice. It is predictable, but it can repeat itself. Sampling takes a weighted random pick from the top five, which gives more varied text.",
+"Press Choose next token and watch it select. Press Append to input to add the word to your sentence. Every step above then updates for the longer text.",
+"Switch to sampling and press again a few times. The same prompt gives different words."],
+show:"Press Choose next token, then Append to input."},
+
+s9:{say:[
+"Writing a whole reply is the same steps repeated. The chosen word is added to the text, and the model runs again on the longer text. This is called autoregressive generation.",
+"A 100-word reply takes about 130 passes. Press Generate and watch each stage light up, then the new word appended.",
+"The bar on the right shows the context window. A model can only read a fixed number of tokens, 1,024 for GPT-2, and every new word uses one. When the window is full, the oldest text is dropped, which is why very long chats can forget their beginning.",
+"The Demos tab lets you try a real GPT-2."],
+show:"Press Generate and point at the context window bar."},
+
+b1:{say:[
+"A neural network is a machine full of dials. Numbers go in, an answer comes out, and the dials decide what it does.",
+"Deep learning means we do not set the dials by hand. We show the network examples with known answers, and a procedure turns the dials until the answers come out right.",
+"Our running example: is a fruit good to eat? Each fruit has two numbers, sweetness and softness. Nobody writes the rule down. The network discovers it from sixty example fruits.",
+"There are two phases. Training sets the dials, once, using examples with answers. Inference uses the finished dials to answer new questions, and nothing changes inside. Every AI model you use today is in the inference phase."],
+show:"Point at the two phase cards at the bottom."},
+
+b2:{say:[
+"A neuron does three things. It multiplies each input by a dial, called a weight. It adds the results together with one more dial, called the bias. Then it squashes the total into a number between zero and one.",
+"Example: sweetness 0.8 and softness 0.5, with dials 6, 0 and minus 3. Six times 0.8, plus zero times 0.5, minus 3, equals 1.8. After the squash that becomes 0.86, so this neuron fires for a sweet fruit.",
+"Drag the dials and watch the output change. The presets show a sweet detector and a mushy detector."],
+show:"Click the Sweet detector preset, then drag a dial."},
+
+b3:{say:[
+"This is training on a real small network: three hidden neurons and one output, thirteen dials in total.",
+"Press Explain one step. The network takes one fruit and guesses. We measure the error. Then a method called backpropagation works out which way each dial should turn, and every dial is nudged a little.",
+"Now press Train. The shaded map shows what the network believes about every possible fruit, and it settles into the right shape while the loss falls.",
+"The learning rate is the size of each nudge: too big overshoots, too small is slow. You can turn dials by hand while paused. With 13 dials that is hard. With 175 billion it is impossible, which is why training is automatic."],
+show:"Press Explain one step, then Train."},
+
+b4:{say:[
+"Training is finished, so the dials are locked.",
+"Click anywhere on the map to place a fruit the network has never seen, then press Run inference. The numbers flow forward once: inputs, hidden neurons, output. Out comes an answer, for example good to eat at ninety-four percent.",
+"Nothing is learned here, and no correct answer is needed. This is what happens every time you ask an AI model a question. The network answers well on new fruit because it learned a pattern, not a list."],
+show:"Click a spot on the map, then press Run inference."},
+
+b5:{say:[
+"Large language models are built from the same parts. The task changes from “is this fruit good?” to “what is the next word?”, and the number of dials grows.",
+"Our fruit network has 13 dials. GPT-2 has 124 million. GPT-3 has 175 billion.",
+"Training is the same loop: guess the next word in real text, measure the error, turn every dial a little. Inference is the same forward pass, repeated once for each word generated.",
+"The table and glossary on screen are for reference."],
+show:"Point at the table, then press Continue."},
+
+b6:{say:[
+"The way neurons are wired together is called the architecture, and it is a design choice. Researchers match the design to the data.",
+"Pick a data type on screen. Rows of numbers suit a plain feed-forward network. Photos suit convolutional networks, which look at small neighbourhoods. Speech suits networks that read in order. Text and code suit the transformer, where every word can look at every other word. New images suit diffusion models. Molecules and road networks suit graph networks.",
+"The message: architectures are invented, tested and improved by researchers. The transformer is one very successful design from 2017, not the final answer. That is what we cover next."],
+show:"Click two or three data types and read the reason shown."},
+
+o1:{say:[
+"In 2017 a team at Google published a paper called “Attention Is All You Need”. It introduced the transformer for machine translation.",
+"Earlier systems read a sentence one word at a time. The transformer lets every word look at every other word at once. It translated more accurately and trained much faster.",
+"On screen: it was trained on English to German and English to French, uses six encoder and six decoder layers, and took about three and a half days on eight GPUs. It is the basis of BERT, GPT, Claude, Gemini and most modern models."],
+show:"Use the button to open the paper."},
+
+o2:{say:[
+"The original transformer has two halves. The encoder reads the whole source sentence at once and turns each word into a vector that captures its meaning in context.",
+"The decoder writes the translation one word at a time. At each step it looks at what it has already written, and across at the encoder’s output. That last link is called cross-attention, and it is the only place the two halves meet."],
+show:"Click any block in the diagram to see what it does."},
+
+o3:{say:[
+"Watch a translation. The English sentence is “The cat sat on the mat”. The encoder reads all six words at once.",
+"Then the decoder starts from a start token and writes one French word per step. The orange lines show which English words it is focusing on. When it needs the verb, it looks at “sat” and writes “était assis”.",
+"When it writes the end token, the translation is complete.",
+"The attention weights here are illustrative, drawn to show the kind of alignment trained models learn."],
+show:"Press Translate, or use One step to go slowly."},
+
+o4:{say:[
+"Researchers found that each half works well on its own.",
+"Encoder-only models understand text, for example BERT, used for search and classification. Encoder-plus-decoder models turn one sequence into another, for example translation. Decoder-only models continue text, and these are the chat models: GPT, Claude and Llama.",
+"A decoder-only model has no separate source sentence, so no encoder and no cross-attention. Your prompt is simply the text so far, and the decoder predicts the next word.",
+"The decoder tab takes your own sentence through every step."],
+show:"Point at the highlighted decoder-only card, then press the button."},
+
+d1:{say:[
+"Now we see the same steps in a real, trained GPT-2, running live in the browser. This tool is from the Polo Club of Data Science at Georgia Tech.",
+"Press Load the live demo. It downloads a model the first time, which can take a minute. Then type your own text and watch it flow through the embeddings, queries and keys, attention, the MLP and the final prediction.",
+"Compare with our decoder tab: here each word has 768 numbers, with 12 heads and 12 blocks. Try typing “The cat sat on the”, change the temperature slider, and open an attention block.",
+"If the frame stays blank, use Open in a new tab."],
+show:"Load the demo before the session starts."}
+};
+const PS_ORDER=['b1','b2','b3','b4','b5','b6','o1','o2','o3','o4','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
+const PS_TAB={tabBasics:'Basics',tabOverview:'Overview',tabDecoder:'Decoder',tabDemos:'Demo'};
+const PS={win:null,panel:null};
+function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.shell');const tab=PS_TAB[shell.id];const num=sec.dataset.num;return {name:sec.dataset.name,label:id==='intro'?'Decoder · Overview':`${tab} ${tab==='Decoder'?'step ':''}${num}`}}
+function psText(id){const d=SCRIPTS[id],m=psMeta(id);return `${m.label}: ${m.name}\n\n${d.say.join('\n\n')}\n\nOn screen: ${d.show}`}
+function psHtml(id){
+  const d=SCRIPTS[id],m=psMeta(id),i=PS_ORDER.indexOf(id),prev=PS_ORDER[i-1],next=PS_ORDER[i+1];
+  return `<div class="ps-top"><span class="ps-tag">${esc(m.label)}</span><span class="ps-cnt">${i+1} of ${PS_ORDER.length}</span></div><h1>${esc(m.name)}</h1><div class="ps-script">${d.say.map(p=>`<p>${p}</p>`).join('')}</div><div class="ps-show"><b>On screen</b>${d.show}</div><div class="ps-nav"><button type="button" data-ps="${prev||''}" ${prev?'':'disabled'}>← Previous</button><button type="button" data-copy="${id}">Copy script</button><button type="button" data-ps="${next||''}" ${next?'':'disabled'}>Next →</button></div>`;
+}
+function psVars(){const cs=getComputedStyle(document.documentElement);return ['--bg','--surface','--surface-2','--ink','--muted','--line','--accent','--accent-weak','--pos','--on-strong'].map(v=>`${v}:${cs.getPropertyValue(v).trim()}`).join(';')+';color-scheme:'+(cs.colorScheme||'light')}
+const PS_CSS=`*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;padding:20px 22px 28px}
+.ps-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.ps-tag{font:600 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--on-strong);background:var(--accent);padding:3px 9px;border-radius:6px}
+.ps-cnt{font:500 12px 'IBM Plex Mono',ui-monospace,monospace;color:var(--muted)}
+h1{font:800 26px/1.15 'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif;letter-spacing:-.02em;margin:8px 0 14px}
+.ps-script p{margin:0 0 12px}
+.ps-show{margin:16px 0;padding:10px 14px;border-left:3px solid var(--pos);background:var(--surface);border-radius:0 8px 8px 0;font-size:14px;color:var(--muted)}
+.ps-show b{display:block;font:600 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:2px}
+.ps-nav{display:flex;gap:8px;flex-wrap:wrap;position:sticky;bottom:0;padding-top:10px;background:linear-gradient(transparent,var(--bg) 35%)}
+.ps-nav button{flex:1;min-width:96px;font:500 14px 'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer}
+.ps-nav button:hover:not(:disabled){border-color:var(--accent)}.ps-nav button:disabled{opacity:.4;cursor:default}
+.ps-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}`;
+function psClick(e){
+  const doc=e.target.ownerDocument,go=e.target.closest('[data-ps]'),cp=e.target.closest('[data-copy]'),cl=e.target.closest('[data-close]');
+  if(go&&go.dataset.ps){psShow(go.dataset.ps);return}
+  if(cl){psClosePanel();return}
+  if(cp){const btn=cp,txt=psText(cp.dataset.copy);
+    const sel=()=>{const r=doc.createRange();r.selectNodeContents(doc.querySelector('.ps-script'));const s=doc.defaultView.getSelection();s.removeAllRanges();s.addRange(r);btn.textContent='Selected, press Ctrl+C'};
+    try{window.navigator.clipboard.writeText(txt).then(()=>{btn.textContent='Copied'},sel)}catch(err){sel()}
+    setTimeout(()=>{if(btn.isConnected)btn.textContent='Copy script'},2500)}
+}
+function psWin(){
+  if(PS.win&&!PS.win.closed)return PS.win;
+  let w=null;try{w=window.open('','presenterScript',`popup=yes,width=480,height=660,left=${Math.max(0,(screen.availWidth||1280)-520)},top=60,resizable=yes,scrollbars=yes`)}catch(e){}
+  if(!w)return null;
+  w.document.open();w.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Presenter script</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"><style>${PS_CSS}</style></head><body><div id="root"></div></body></html>`);w.document.close();
+  w.document.addEventListener('click',psClick);PS.win=w;return w;
+}
+function psClosePanel(){if(PS.panel){PS.panel.remove();PS.panel=null}}
+function psShow(id){
+  if(!SCRIPTS[id])return;
+  const w=psWin();
+  if(w){psClosePanel();w.document.documentElement.setAttribute('style',psVars());w.document.getElementById('root').innerHTML=psHtml(id);w.document.title='Presenter script · '+psMeta(id).name;w.scrollTo(0,0);try{w.focus()}catch(e){}return}
+  // pop-ups are blocked (for example inside the Claude viewer): show the same script in a small in-page window
+  if(!PS.panel){const p=document.createElement('div');p.id='psPanel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Presenter script');p.innerHTML=`<style>${PS_CSS.replace('body{','#psBody{').replace(/\*\{box-sizing:border-box\}/,'')}</style><button type="button" class="ps-x" data-close="1" aria-label="Close presenter script">×</button><div id="psBody"></div>`;p.addEventListener('click',psClick);document.body.appendChild(p);PS.panel=p}
+  PS.panel.setAttribute('style',psVars());PS.panel.querySelector('#psBody').innerHTML=psHtml(id);PS.panel.querySelector('#psBody').scrollTop=0;
+}
+function initScripts(){
+  PS_ORDER.forEach(id=>{
+    const sec=document.getElementById(id);if(!sec||sec.querySelector('.ps-link'))return;
+    const eb=sec.querySelector('.eyebrow');if(!eb)return;
+    const b=document.createElement('button');b.type='button';b.className='ps-link';b.dataset.script=id;b.textContent='Presenter script ↗';b.title='Open the spoken script for this section in a small window';
+    eb.appendChild(b);
+  });
+  document.addEventListener('click',e=>{const b=e.target.closest('.ps-link');if(b)psShow(b.dataset.script)});
+}
+initScripts();
 
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
