@@ -3211,13 +3211,14 @@ function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.sh
 function psText(id){const d=SCRIPTS[id],m=psMeta(id);return `${m.label}: ${m.name}\n\n${d.say.join('\n\n')}\n\nOn screen: ${d.show}`}
 function psHtml(id){
   const d=SCRIPTS[id],m=psMeta(id),i=PS_ORDER.indexOf(id),prev=PS_ORDER[i-1],next=PS_ORDER[i+1];
-  return `<div class="ps-top"><span class="ps-tag">${esc(m.label)}</span><span class="ps-cnt">${i+1} of ${PS_ORDER.length}</span></div><h1>${esc(m.name)}</h1><div class="ps-script">${d.say.map(p=>`<p>${p}</p>`).join('')}</div><div class="ps-show"><b>On screen</b>${d.show}</div><div class="ps-nav"><button type="button" data-ps="${prev||''}" ${prev?'':'disabled'}>← Previous</button><button type="button" data-copy="${id}">Copy script</button><button type="button" data-ps="${next||''}" ${next?'':'disabled'}>Next →</button></div>`;
+  return `<div class="ps-top"><span class="ps-tag">${esc(m.label)}</span><span class="ps-sync" title="This script follows the section shown on the page. Previous and Next move the page too."><i></i>in sync with the page</span><span class="ps-cnt">${i+1} of ${PS_ORDER.length}</span></div><h1>${esc(m.name)}</h1><div class="ps-script">${d.say.map(p=>`<p>${p}</p>`).join('')}</div><div class="ps-show"><b>On screen</b>${d.show}</div><div class="ps-nav"><button type="button" data-ps="${prev||''}" ${prev?'':'disabled'}>← Previous</button><button type="button" data-copy="${id}">Copy script</button><button type="button" data-ps="${next||''}" ${next?'':'disabled'}>Next →</button></div>`;
 }
 function psVars(){const cs=getComputedStyle(document.documentElement);return ['--bg','--surface','--surface-2','--ink','--muted','--line','--accent','--accent-weak','--pos','--on-strong'].map(v=>`${v}:${cs.getPropertyValue(v).trim()}`).join(';')+';color-scheme:'+(cs.colorScheme||'light')}
 const PS_CSS=`*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;padding:20px 22px 28px}
 .ps-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
 .ps-tag{font:600 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--on-strong);background:var(--accent);padding:3px 9px;border-radius:6px}
 .ps-cnt{font:500 12px 'IBM Plex Mono',ui-monospace,monospace;color:var(--muted)}
+.ps-sync{font:500 11px 'IBM Plex Mono',ui-monospace,monospace;color:var(--muted);display:inline-flex;align-items:center;gap:6px;margin-left:auto;margin-right:6px}.ps-sync i{width:7px;height:7px;border-radius:50%;background:#22A06B;display:inline-block}
 h1{font:800 26px/1.15 'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif;letter-spacing:-.02em;margin:8px 0 14px}
 .ps-script p{margin:0 0 12px}
 .ps-show{margin:16px 0;padding:10px 14px;border-left:3px solid var(--pos);background:var(--surface);border-radius:0 8px 8px 0;font-size:14px;color:var(--muted)}
@@ -3228,7 +3229,7 @@ h1{font:800 26px/1.15 'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif
 .ps-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}`;
 function psClick(e){
   const doc=e.target.ownerDocument,go=e.target.closest('[data-ps]'),cp=e.target.closest('[data-copy]'),cl=e.target.closest('[data-close]');
-  if(go&&go.dataset.ps){psShow(go.dataset.ps);return}
+  if(go&&go.dataset.ps){psGo(go.dataset.ps);return}
   if(cl){psClosePanel();return}
   if(cp){const btn=cp,txt=psText(cp.dataset.copy);
     const sel=()=>{const r=doc.createRange();r.selectNodeContents(doc.querySelector('.ps-script'));const s=doc.defaultView.getSelection();s.removeAllRanges();s.addRange(r);btn.textContent='Selected, press Ctrl+C'};
@@ -3240,13 +3241,37 @@ function psWin(){
   let w=null;try{w=window.open('','presenterScript',`popup=yes,width=480,height=660,left=${Math.max(0,(screen.availWidth||1280)-520)},top=60,resizable=yes,scrollbars=yes`)}catch(e){}
   if(!w)return null;
   w.document.open();w.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Presenter script</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"><style>${PS_CSS}</style></head><body><div id="root"></div></body></html>`);w.document.close();
-  w.document.addEventListener('click',psClick);PS.win=w;return w;
+  w.document.addEventListener('click',psClick);w.document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='PageDown')psStep(1);else if(e.key==='ArrowLeft'||e.key==='PageUp')psStep(-1)});PS.win=w;return w;
 }
 function psClosePanel(){if(PS.panel){PS.panel.remove();PS.panel=null}}
-function psShow(id){
+function psOpen(){return (PS.win&&!PS.win.closed)||!!PS.panel}
+/* keep the script in step with the section being presented (called whenever the active section changes) */
+function psSync(id){
+  PS.active=id;
+  if(!SCRIPTS[id]||!psOpen()||Date.now()<(PS.lock||0))return;
+  clearTimeout(PS.t);
+  PS.t=setTimeout(()=>{if(psOpen()&&PS.cur!==id)psShow(id,{focus:false})},180);
+}
+/* move the page to a section (used by Previous/Next in the script window) */
+function goToSection(id){
+  const sec=document.getElementById(id);if(!sec)return;
+  const t=Object.keys(TABS).find(k=>TABS[k].contains(sec));
+  if(t&&t!==TAB)setTab(t,{scroll:false});
+  if(document.body.classList.contains('present')){const i=SECS.findIndex(x=>x.id===id);if(i>=0)goSlide(i)}
+  else sec.scrollIntoView({behavior:'auto',block:'start'});
+}
+function psGo(id,focus=false){
+  clearTimeout(PS.t);PS.lock=Date.now()+900;
+  psShow(id,{focus});goToSection(id);
+  // once the page has settled, make sure the script matches the section it really ended on
+  setTimeout(()=>{PS.lock=0;if(psOpen()&&PS.active&&SCRIPTS[PS.active]&&PS.active!==PS.cur)psShow(PS.active,{focus:false})},980);
+}
+function psStep(d){const id=PS_ORDER[PS_ORDER.indexOf(PS.cur)+d];if(id)psGo(id)}
+function psShow(id,opts={}){
   if(!SCRIPTS[id])return;
+  PS.cur=id;
   const w=psWin();
-  if(w){psClosePanel();w.document.documentElement.setAttribute('style',psVars());w.document.getElementById('root').innerHTML=psHtml(id);w.document.title='Presenter script · '+psMeta(id).name;w.scrollTo(0,0);try{w.focus()}catch(e){}return}
+  if(w){psClosePanel();w.document.documentElement.setAttribute('style',psVars());w.document.getElementById('root').innerHTML=psHtml(id);w.document.title='Presenter script · '+psMeta(id).name;w.scrollTo(0,0);if(opts.focus!==false){try{w.focus()}catch(e){}}return}
   // pop-ups are blocked (for example inside the Claude viewer): show the same script in a small in-page window
   if(!PS.panel){const p=document.createElement('div');p.id='psPanel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Presenter script');p.innerHTML=`<style>${PS_CSS.replace('body{','#psBody{').replace(/\*\{box-sizing:border-box\}/,'')}</style><button type="button" class="ps-x" data-close="1" aria-label="Close presenter script">×</button><div id="psBody"></div>`;p.addEventListener('click',psClick);document.body.appendChild(p);PS.panel=p}
   PS.panel.setAttribute('style',psVars());PS.panel.querySelector('#psBody').innerHTML=psHtml(id);PS.panel.querySelector('#psBody').scrollTop=0;
@@ -3258,7 +3283,7 @@ function initScripts(){
     const b=document.createElement('button');b.type='button';b.className='ps-link';b.dataset.script=id;b.textContent='Presenter script ↗';b.title='Open the spoken script for this section in a small window';
     eb.appendChild(b);
   });
-  document.addEventListener('click',e=>{const b=e.target.closest('.ps-link');if(b)psShow(b.dataset.script)});
+  document.addEventListener('click',e=>{const b=e.target.closest('.ps-link');if(!b)return;const id=b.dataset.script;if(id===PS.active)psShow(id);else{psGo(id,true)}});
 }
 initScripts();
 
@@ -3293,6 +3318,7 @@ function markActive(id){
   $$('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.s===id));
   $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id||b.dataset.also===id));
   if(SECS.some(s=>s.id===id))jump.value=id;
+  psSync(id);
 }
 const played=new Set();
 const io=new IntersectionObserver(ents=>{
@@ -3323,9 +3349,11 @@ function goSlide(i){
   if(PLAY[s.id]&&s.id!=='s9')setTimeout(()=>PLAY[s.id](),350);
 }
 function enterPresent(){
+  // start from the section currently on screen (work this out before the other sections are hidden)
+  let vis=SECS.findIndex(s=>s.id===PS.active);
+  if(vis<0)vis=SECS.findIndex(s=>s.getBoundingClientRect().bottom>120);
   document.body.classList.add('present');
   try{document.documentElement.requestFullscreen?.().catch(()=>{})}catch(e){}
-  const vis=SECS.findIndex(s=>s.getBoundingClientRect().bottom>120);
   goSlide(vis<0?0:vis);
 }
 function exitPresent(){
