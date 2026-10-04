@@ -500,7 +500,58 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 #psPanel #psBody{overflow-y:auto;padding:18px 20px 20px;font:16px/1.6 var(--sans)}
 #psPanel .ps-x{position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;z-index:2}
 #psPanel .ps-top{padding-right:36px}
+/* ---------- key concepts + structured presenter notes ---------- */
+.dp-table{min-width:560px;display:grid;gap:6px}
+.dp-head,.dp-row{display:grid;grid-template-columns:84px minmax(120px,1fr) 18px minmax(120px,1fr) minmax(110px,.9fr);gap:12px;align-items:center}
+.dp-head{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dp-row{padding:6px 10px;border:1px solid var(--line);border-radius:10px;transition:opacity .4s,transform .4s}
+.dp-f{font:600 14px var(--sans)}
+.dp-s{display:flex;align-items:center;gap:8px}.dp-s input{flex:1;min-width:70px;width:auto}
+.dp-v{font:600 14px var(--mono);min-width:26px;text-align:right}
+.dp-x{font:500 16px var(--mono);color:var(--muted)}
+.dp-p{position:relative;height:26px;display:flex;align-items:center;justify-content:flex-end}
+.dp-p .trk{position:absolute;left:0;right:34px;top:50%;height:10px;transform:translateY(-50%);background:var(--surface-2);border-radius:5px}
+.dp-p .trk::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+.dp-p .trk i{position:absolute;top:0;bottom:0;border-radius:5px;transition:left .2s,width .2s}
+.dp-p b{position:relative;font:600 14px var(--mono);min-width:30px;text-align:right}
+.dp-total{display:flex;justify-content:flex-end;gap:12px;align-items:baseline;padding:8px 10px;font:600 15px var(--mono);border-top:2px solid var(--ink)}
+.dp-total span:first-child{color:var(--muted);font-weight:500}
+.sm-table{min-width:560px;display:grid;gap:6px}
+.sm-head,.sm-row{display:grid;grid-template-columns:70px minmax(180px,1.3fr) 110px minmax(180px,1.3fr);gap:14px;align-items:center}
+.sm-head{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sm-row{padding:6px 10px;border:1px solid var(--line);border-radius:10px}
+.sm-head span:nth-child(3){text-transform:none;letter-spacing:0}
+.sm-row .w{font:600 14px var(--mono)}
+.sm-row .sc{display:flex;gap:8px;align-items:center;transition:opacity .4s}.sm-row .sc input{flex:1;min-width:80px;width:auto}.sm-row .sc b{font:600 13px var(--mono);min-width:38px;text-align:right}
+.sm-row .ex{font:500 13px var(--mono);color:var(--muted);transition:opacity .4s}
+.sm-row .sh{display:flex;align-items:center;gap:8px;transition:opacity .4s}
+.sm-row .sh .track{flex:1;height:14px;background:var(--surface-2);border-radius:4px;position:relative;overflow:hidden}
+.sm-row .sh .track i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px;transition:width .35s}
+.sm-row .sh b{font:600 13px var(--mono);min-width:46px;text-align:right}
+.sm-row.masked .w{text-decoration:line-through;color:var(--muted)}
+.sm-total{display:grid;grid-template-columns:70px minmax(180px,1.3fr) 110px minmax(180px,1.3fr);gap:14px;padding:8px 10px;border-top:2px solid var(--ink);font:600 13px var(--mono)}
+.sm-table.s1 .ex,.sm-table.s1 .sh,.sm-table.s2 .sh{opacity:.18}
+.refer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.refer .btn{font-size:12px;padding:4px 10px}
+details.notes .pn-h{font:600 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:16px 0 6px}
+details.notes p{margin:0 0 8px;font-size:15px}
+details.notes dl.qa{display:grid;gap:10px;margin:0}
+details.notes dl.qa dt{font-weight:600;font-size:15px}
+details.notes dl.qa dd{margin:2px 0 0;color:var(--muted);font-size:15px}
+details.notes ul.slip{list-style:none;padding-left:0;display:grid;gap:6px}
+details.notes ul.slip li{position:relative;padding-left:20px;font-size:15px}
+details.notes ul.slip li::before{content:"!";position:absolute;left:3px;top:1px;font:700 13px var(--mono);color:var(--pos)}
+details.notes .pn-tbl{overflow-x:auto;margin:6px 0 10px}
+details.notes table{border-collapse:collapse;font-size:14px;width:100%}
+details.notes th,details.notes td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+details.notes th{background:var(--surface-2);font-weight:600}
+details.notes .pn-fix{border-left:3px solid var(--pos);background:color-mix(in srgb,var(--pos) 8%,var(--surface));padding:8px 12px;border-radius:0 8px 8px 0;font-size:14px;margin:8px 0}
+details.notes .pn-fix b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--pos);display:block;margin-bottom:2px}
+details.notes .pn-say{border-left:3px solid var(--accent);padding:2px 0 2px 12px;margin:6px 0 10px}
+details.notes .pn-say p{font-size:15px;color:var(--ink)}
+@media (max-width:760px){.dp-head,.dp-row,.sm-head,.sm-row,.sm-total{gap:8px}}
 /* ---------- engine ---------- */
+
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .engine i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
 .engine[data-state="live"] i{background:#22A06B;box-shadow:0 0 0 3px color-mix(in srgb,#22A06B 25%,transparent)}
@@ -562,7 +613,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -572,6 +623,171 @@ body.present footer{display:none}
   <select id="jump" aria-label="Jump to step"></select>
   <button class="btn primary" id="presentBtn" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Present</button>
 </header>
+
+<div class="shell" id="tabConcepts" hidden>
+  <nav class="rail" aria-label="Key concepts">
+    <div class="cap">Three ideas to know first</div>
+  </nav>
+  <main>
+    <section id="c1" data-name="Dot product" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Concept 1 of 3 · used for attention scores</div>
+        <h2>Dot product: how well do two lists match?</h2>
+        <p class="tldr"><b>In short</b>Multiply two lists of numbers position by position, then add everything up. A big total means they point the same way.</p>
+        <p class="lede">A list of numbers is called a <strong>vector</strong>. The <strong>dot product</strong> compares two vectors of the same length: multiply them <em>position by position</em>, then add everything up. The total is a <strong>match score</strong>. It is large and positive when the lists agree, near zero when they are unrelated, and negative when they disagree.</p>
+        <div class="example"><b>Example</b>A support ticket needs <em>billing 3, technical 0, urgent 2</em>. Agent A offers 3, 1, 2. Agent B offers 0, 4, 0. Agent A scores 3×3 + 0×1 + 2×2 = <strong>13</strong>. Agent B scores 3×0 + 0×4 + 2×0 = <strong>0</strong>. The ticket goes to Agent A.</div>
+        <div class="formula">a · b = a₁×b₁ + a₂×b₂ + … + aₙ×bₙ</div>
+        <div class="key"><b>Where it is used</b>In attention, every word’s <em>query</em> is dot-multiplied with the <em>key</em> of each earlier word to score how relevant it is (decoder step 3b). At the very end, the final vector is dot-multiplied with every word’s row to score the whole vocabulary (step 7).</div>
+      </div>
+      <div class="viz" id="vDot">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Try it</span><div class="seg" id="dpPre">
+            <button class="btn" type="button" data-p="match">Strong match</button>
+            <button class="btn" type="button" data-p="none">Unrelated</button>
+            <button class="btn" type="button" data-p="opp">Opposite</button></div></div>
+          <button class="btn play" data-play="c1" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div class="scroll-x"><div class="dp-table">
+          <div class="dp-head"><span></span><span>The ticket needs (a)</span><span></span><span>The agent offers (b)</span><span>a × b</span></div>
+          <div id="dpRows"></div>
+          <div class="dp-total" id="dpTotal"></div>
+        </div></div>
+        <p class="stage-note" id="dpVerdict"></p>
+        <div class="two">
+          <div style="display:grid;gap:8px;min-width:0">
+            <span class="label">The same idea as arrows: drag the angle</span>
+            <svg id="dpAng" viewBox="0 0 320 220" style="width:100%;max-width:360px" aria-label="Two arrows with an adjustable angle"></svg>
+            <div class="slider"><label class="label" for="dpAngle">Angle between the arrows</label><input type="range" id="dpAngle" min="0" max="360" step="5" value="30"><span class="mono" id="dpAngleV" style="font-size:13px"></span></div>
+          </div>
+          <div style="display:grid;gap:10px;align-content:center">
+            <p class="calc" id="dpAngNote"></p>
+            <p class="note">For two arrows of length 1 the dot product is just the cosine of the angle between them: +1 when they point the same way, 0 at a right angle, −1 when they point opposite ways. Longer arrows scale the total up, which is why attention divides its scores by a size factor.</p>
+          </div>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Why multiply and add instead of just comparing the lists?</dt><dd>It boils two lists down to one number that is very cheap to compute. GPUs do billions of these per second, and everything in a transformer is built from them.</dd>
+          <dt>Does a bigger total always mean a better match?</dt><dd>Not quite. Longer lists or bigger numbers give bigger totals. That is why attention divides its scores by √d<sub>k</sub>, and why cosine similarity (the angle alone) is used when only direction matters.</dd>
+          <dt>Is this the same as matrix multiplication?</dt><dd>A matrix multiplication is many dot products at once: each output number is the dot product of one row with one column.</dd>
+          <dt>Can the total be negative?</dt><dd>Yes. It means the two lists point in opposite directions.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Don’t say “the dot product is the similarity” without adding that the length of the lists also matters.</li>
+          <li>Both lists must be the same length.</li>
+          <li>Dot product gives one number. The cross product, which gives a vector, is not used here.</li>
+          <li>The ticket numbers are made up for the demo. In a model the numbers are learned, not chosen by hand.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="c2" data-name="Softmax" data-num="2">
+      <div class="sec-head">
+        <div class="eyebrow">Concept 2 of 3 · used for attention weights and next-word odds</div>
+        <h2>Softmax: turn scores into shares of 100%</h2>
+        <p class="tldr"><b>In short</b>Softmax turns any list of scores into percentages that add up to 100%. The biggest score takes the biggest share.</p>
+        <p class="lede">Scores can be any size, even negative. <strong>Softmax</strong> converts them into shares that are all positive and add up to 100%. It takes two moves: make every score positive with <em>e<sup>score</sup></em>, then divide each one by the total. A higher score always gets a bigger share, and gaps between scores get stretched, so the leader stands out.</p>
+        <div class="example"><b>Example</b>After “The cat sat on the”, a model scores <em>mat 3.6, sofa 3.0, floor 2.7, moon −1.0</em>. Softmax gives mat <strong>51%</strong>, sofa <strong>28%</strong>, floor <strong>21%</strong>, moon <strong>0.5%</strong>. Add the same number to every score and the shares do not change; only the gaps matter.</div>
+        <div class="formula">softmax(sᵢ) = e<sup>sᵢ / T</sup> ÷ Σ e<sup>sⱼ / T</sup> &nbsp;&nbsp; (T = temperature, 1 by default)</div>
+        <div class="key"><b>Where it is used</b>Attention uses it to turn scores into <em>how much to listen to each word</em> (step 3b), and the final layer uses it to turn scores into <em>next-word probabilities</em> (step 7). Temperature is the T in the formula.</div>
+      </div>
+      <div class="viz" id="vSoft">
+        <div class="viz-bar">
+          <div class="left stagebar" id="smStages">
+            <button class="btn" type="button" data-st="1"><b>1</b> Raw scores</button>
+            <button class="btn" type="button" data-st="2"><b>2</b> Make positive: e<sup>score</sup></button>
+            <button class="btn" type="button" data-st="3"><b>3</b> Share of the total</button>
+          </div>
+          <button class="btn play" data-play="c2" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Play steps</button>
+        </div>
+        <div class="scroll-x"><div class="sm-table">
+          <div class="sm-head"><span>Word</span><span>1 · Score (drag)</span><span>2 · e<sup>score</sup></span><span>3 · Share</span></div>
+          <div id="smRows"></div>
+          <div class="sm-total" id="smTotal"></div>
+        </div></div>
+        <div class="viz-bar">
+          <div class="slider"><label class="label" for="smT">Temperature</label><input type="range" id="smT" min="0.2" max="3" step="0.1" value="1"><span class="mono" id="smTv" style="font-size:13px"></span></div>
+          <div class="left">
+            <button class="btn" id="smShift" type="button">Add 2 to every score</button>
+            <button class="btn" id="smMask" type="button" aria-pressed="false">Mask “moon” (−∞)</button>
+            <button class="btn" id="smReset" type="button">Reset</button>
+          </div>
+        </div>
+        <p class="stage-note" id="smNote"></p>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Why not just divide each score by the total?</dt><dd>Plain division breaks on negative scores (you would get negative shares) and gives a score of zero exactly 0%. The exponential makes every score positive and also stretches the gaps.</dd>
+          <dt>What is “e”?</dt><dd>A constant, about 2.718. All you need to know is that e<sup>x</sup> is always positive and grows fast.</dd>
+          <dt>Why does adding the same number to every score change nothing?</dt><dd>Every e<sup>score</sup> gets multiplied by the same factor, and that factor cancels when you divide by the total. Only the gaps between scores matter.</dd>
+          <dt>What does temperature do?</dt><dd>It divides the scores before softmax. Low temperature widens the gaps, so the top word dominates. High temperature shrinks them, so the shares even out.</dd>
+          <dt>Does 51% mean the model is 51% sure it is right?</dt><dd>It is the model’s relative preference among the options, not a guarantee of correctness. Models can be confidently wrong.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Softmax gives a probability distribution (positive, sums to 1), not a “normal distribution”.</li>
+          <li>Softmax doesn’t choose a word; it only converts scores. The sampling step chooses.</li>
+          <li>The shares always add to 100%, even when the model is unsure. Uncertainty shows up as flat shares, not as a smaller total.</li>
+          <li>A score of −∞ (the attention mask) gives exactly 0%. A score of 0 does not: e<sup>0</sup> = 1.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="c3" data-name="Non-linearity" data-num="3">
+      <div class="sec-head">
+        <div class="eyebrow">Concept 3 of 3 · used inside the MLP</div>
+        <h2>Non-linearity: a bend in the line</h2>
+        <p class="tldr"><b>In short</b>Multiplying and adding only gives straight lines. A bend, like an IF rule, lets stacked layers learn curves and “it depends” patterns.</p>
+        <p class="lede">Most of what a neural network does is multiply and add. Those steps are <strong>linear</strong>: the output moves in a straight line with the input, and however many you chain together, you still get one straight-line rule. A <strong>non-linearity</strong> is a small bend inserted between them, such as “if the number is negative, make it zero”. It is the same idea as an IF in a workflow. With bends in between, each layer can build on the one before.</p>
+        <div class="example"><b>Example</b>A shipping fee is <em>free below $50, then 5% of the amount above $50</em>. A straight line cannot do that, because the rule changes at $50. The fee is max(0, 0.05 × (order − 50)): the “max with zero” is the bend.</div>
+        <div class="key"><b>Where it is used</b>Inside the MLP of every block (decoder step 6), between its two matrices. Real models use smooth versions of the same bend called GELU or SiLU. The squash you tuned in the neuron demo was also a bend.</div>
+      </div>
+      <div class="viz" id="vBend">
+        <span class="label">1 · Stacking straight steps gives one straight step</span>
+        <div class="two">
+          <div style="display:grid;gap:10px;align-content:start">
+            <div class="slider"><label class="label" for="lnX">Input x</label><input type="range" id="lnX" min="-3" max="3" step="0.5" value="2"><span class="mono" id="lnXv" style="font-size:13px"></span></div>
+            <p class="calc" id="lnCalc"></p>
+          </div>
+          <p class="note" style="align-self:center">Two layers, y = 2x + 1 and then z = 3y − 2, look like two steps. But z = 6x + 1 does the same job in one. Chain a hundred straight layers and you can still replace them with one. Depth adds nothing without a bend.</p>
+        </div>
+        <span class="label">2 · Add bends and the line can follow a curve</span>
+        <div class="viz-bar">
+          <div class="slider"><label class="label" for="bnK">Number of bends</label><input type="range" id="bnK" min="0" max="8" step="1" value="0"><span class="mono" id="bnKv" style="font-size:13px"></span></div>
+          <button class="btn play" data-play="c3" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Add bends one by one</button>
+        </div>
+        <canvas id="bnCanvas" aria-label="A wave target and a bent-line approximation" style="width:100%;height:260px;display:block;border-radius:12px;background:var(--surface-2)"></canvas>
+        <p class="stage-note" id="bnNote"></p>
+        <span class="label">3 · The bend itself</span>
+        <div class="two">
+          <svg id="actSvg" viewBox="0 0 320 200" style="width:100%;max-width:380px" aria-label="ReLU and GELU curves"></svg>
+          <p class="note" style="align-self:center"><b>ReLU</b> (dashed) is the plain bend: below zero the output is 0, above zero it passes straight through. <b>GELU</b> (solid) is a smooth version used in GPT‑2. Modern models often use a close relative, SiLU. They all do the same job: put a bend between the matrices.</p>
+        </div>
+        <div><button class="btn primary" type="button" data-tabgo="overview">Continue to the transformer overview →</button></div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Isn’t a neural network all just multiplying?</dt><dd>Multiplying and adding, plus bends. Take the bends away and the whole network collapses into a single multiplication.</dd>
+          <dt>Which bends do real models use?</dt><dd>ReLU (zero if negative), and smooth versions such as GELU and SiLU. Same idea.</dd>
+          <dt>Is attention non-linear too?</dt><dd>Yes, softmax is a non-linearity. The MLP adds an explicit bend for each word on top of that.</dd>
+          <dt>How many bends does a real model have?</dt><dd>One per neuron in every MLP, so millions to billions. Training decides where each bend sits.</dd>
+          <dt>Why does the shipping example need a bend?</dt><dd>“Free below $50, then 5% of the rest” changes slope at $50. A straight line can’t change slope.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Don’t say “non-linear means complicated maths”. Say “the output doesn’t move in a straight line with the input”.</li>
+          <li>Stacked straight layers are not useless because they are shallow; they are useless because they collapse into one.</li>
+          <li>The wave demo is illustrative. Real networks learn where to put the bends; you don’t place them.</li>
+          <li>Each bend is one small neuron. “Bend” and “neuron” are not different things in the demo.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+</div>
 
 <div class="shell" id="tabOverview" hidden>
   <nav class="rail" aria-label="Transformer overview">
@@ -1011,6 +1227,7 @@ body.present footer{display:none}
         <p class="tldr"><b>In short</b>Each word looks back at the earlier words and borrows information from the ones that matter most to it.</p>
         <p class="lede">Each word compares its <strong>query</strong> with the <strong>key</strong> of every earlier word. Good matches get a high score, the scores are turned into percentages, and the word takes that share of each earlier word’s <strong>value</strong>. The <strong>mask</strong> hides later words, because when the model writes text, the future has not been written yet.</p>
         <div class="example"><b>Example</b>In “The animal didn’t cross the street because it was too tired”, attention lets “it” look back and find “animal” rather than “street”. Because of the mask, “it” cannot peek at “tired”, which comes later.</div>
+        <div class="refer"><span>Need a refresher?</span><button class="btn" type="button" data-tabgo="concepts" data-sec="c1">Dot product</button><button class="btn" type="button" data-tabgo="concepts" data-sec="c2">Softmax</button></div>
         <div class="formula">Attention(Q, K, V) = softmax( Q·Kᵀ / √d<sub>k</sub> + mask ) · V</div>
       </div>
       <div class="viz" id="v3">
@@ -1134,6 +1351,7 @@ body.present footer{display:none}
         <h2>The MLP: each word thinks on its own</h2>
         <p class="tldr"><b>In short</b>Attention gathers information from other words; the MLP then works on each word alone and adds what the model knows.</p>
         <p class="lede">Attention lets words share information with each other. The <strong>MLP</strong> (also called the feed-forward network) then works on <strong>each word separately</strong>: it widens the word’s vector to 4× its size, applies a bend called GELU, and shrinks it back. Research suggests much of a model’s factual knowledge is stored in these weights. A second Add &amp; Norm follows.</p>
+        <div class="refer"><span>Need a refresher?</span><button class="btn" type="button" data-tabgo="concepts" data-sec="c3">Non-linearity</button></div>
         <div class="formula">MLP(x) = W₂ · GELU( W₁·x + b₁ ) + b₂ &nbsp;&nbsp; 16 → 64 → 16</div>
         <div class="key"><b>Why a non-linearity?</b>Making Q, K, V and mixing the heads with W<sub>O</sub> are all plain matrix multiplications, and a chain of matrix multiplications is still just one matrix multiplication, however long it is. The GELU bend in the MLP breaks that, and it is what lets stacked layers learn complicated relationships instead of straight-line ones. (The same squash you tuned by hand in the basics tab.)</div>
       </div>
@@ -1202,6 +1420,7 @@ body.present footer{display:none}
         <p class="tldr"><b>In short</b>Turn the last word’s vector into a probability for every word in the vocabulary.</p>
         <p class="lede">Only the <strong>last word’s</strong> vector is used to predict what comes next. It is multiplied by one more learned table, giving one raw score (a <strong>logit</strong>) for every word in the vocabulary. <strong>Softmax</strong> turns those scores into percentages that add up to 100%. <strong>Temperature</strong> decides how confident the result looks: low temperature favours the top word, high temperature spreads the chances.</p>
         <div class="example"><b>Example</b>After “The cat sat on the”, the scores might be mat 3.6, sofa 3.0, floor 2.7, and so on. Softmax turns them into about mat 30%, sofa 16%, floor 12%, with everything adding up to 100%. Temperature 0.5 makes “mat” dominate; temperature 1.5 spreads the chances out.</div>
+        <div class="refer"><span>Need a refresher?</span><button class="btn" type="button" data-tabgo="concepts" data-sec="c2">Softmax</button></div>
         <div class="formula">p(word) = exp(logit / T) / Σ exp(logit / T)</div>
       </div>
       <div class="viz" id="v7">
@@ -1570,7 +1789,7 @@ body.present footer{display:none}
           </article>
         </div>
         <p class="note">These families also mix. Vision Transformers (2020) apply attention to patches of an image, and diffusion models often contain attention layers. The next tab looks closely at the architecture behind today’s language models.</p>
-        <div><button class="btn primary" type="button" data-tabgo="overview">Continue to the transformer overview →</button></div>
+        <div><button class="btn primary" type="button" data-tabgo="concepts">Continue to the key concepts →</button></div>
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Ask the audience which card our fruit network belongs to (the MLP). Then ask why an MLP would struggle with photos: it would need a separate dial for every pixel position and would not know that a cat in the corner is still a cat.</li>
@@ -2659,7 +2878,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={c1:playDot,c2:playSoft,c3:playBend,s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -3042,6 +3261,116 @@ function renderClips(){
 }
 renderClips();
 
+/* ================= KEY CONCEPTS TAB ================= */
+/* --- dot product --- */
+const DP={f:['billing','technical','urgent'],a:[3,0,2],b:[3,1,2]};
+const DPP={match:[[3,0,2],[3,1,2]],none:[[3,0,2],[0,3,0]],opp:[[3,0,2],[-3,0,-2]]};
+(function(){
+  $('#dpRows').innerHTML=DP.f.map((f,i)=>`<div class="dp-row a" data-r="${i}"><span class="dp-f">${f}</span><span class="dp-s"><input type="range" id="dpA${i}" min="-3" max="3" step="1" value="${DP.a[i]}" aria-label="ticket needs ${f}"><b class="dp-v" id="dpAv${i}"></b></span><span class="dp-x">×</span><span class="dp-s"><input type="range" id="dpB${i}" min="-3" max="3" step="1" value="${DP.b[i]}" aria-label="agent offers ${f}"><b class="dp-v" id="dpBv${i}"></b></span><span class="dp-p"><span class="trk"><i id="dpBar${i}"></i></span><b id="dpP${i}"></b></span></div>`).join('');
+  DP.f.forEach((_,i)=>{['A','B'].forEach(k=>$(`#dp${k}${i}`).addEventListener('input',e=>{DP[k.toLowerCase()][i]=+e.target.value;dpUpdate()}))});
+  $('#dpPre').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;[DP.a,DP.b]=DPP[b.dataset.p].map(x=>x.slice());DP.f.forEach((_,i)=>{$(`#dpA${i}`).value=DP.a[i];$(`#dpB${i}`).value=DP.b[i]});dpUpdate()});
+  $('#dpAngle').addEventListener('input',dpAngle);
+})();
+function dpUpdate(){
+  const prods=DP.a.map((x,i)=>x*DP.b[i]),tot=prods.reduce((s,v)=>s+v,0);
+  DP.f.forEach((_,i)=>{
+    $(`#dpAv${i}`).textContent=DP.a[i];$(`#dpBv${i}`).textContent=DP.b[i];$(`#dpP${i}`).textContent=prods[i];
+    const p=prods[i],w=Math.abs(p)/9*50,bar=$(`#dpBar${i}`);bar.style.width=w+'%';bar.style.left=(p>=0?50:50-w)+'%';bar.style.background=`var(${p>=0?'--pos':'--neg'})`;
+  });
+  const na=Math.hypot(...DP.a),nb=Math.hypot(...DP.b),cos=na&&nb?tot/(na*nb):0;
+  $('#dpTotal').innerHTML=`<span>${prods.map(p=>p<0?`(${p})`:p).join(' + ')} =</span><span>${tot}</span>`;
+  let v;
+  if(!na||!nb)v='One of the lists is all zeros, so there is nothing to match.';
+  else if(cos>=.8)v=`Strong match. The lists point almost the same way (similarity ${cos.toFixed(2)}).`;
+  else if(cos>=.4)v=`Partial match (similarity ${cos.toFixed(2)}).`;
+  else if(cos>-.4)v=`Mostly unrelated. The total is close to zero (similarity ${cos.toFixed(2)}).`;
+  else v=`Opposite needs. The total is negative (similarity ${cos.toFixed(2)}).`;
+  $('#dpVerdict').innerHTML=`<b>Total = ${tot}.</b> ${v}`;
+}
+function dpAngle(){
+  const deg=+$('#dpAngle').value,th=deg*Math.PI/180,c=Math.cos(th),cx=110,cy=110,L=90;
+  $('#dpAngleV').textContent=deg+'°';
+  const bx=cx+L*Math.cos(th),by=cy-L*Math.sin(th);
+  const arc=`M${cx+34} ${cy} A34 34 0 ${deg>180?1:0} 0 ${(cx+34*Math.cos(th)).toFixed(1)} ${(cy-34*Math.sin(th)).toFixed(1)}`;
+  $('#dpAng').innerHTML=`<defs><marker id="dpAr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>
+    <line x1="${cx}" y1="${cy}" x2="${cx+L}" y2="${cy}" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><polygon points="${cx+L+9},${cy} ${cx+L-3},${cy-7} ${cx+L-3},${cy+7}" fill="var(--accent)"/>
+    <line x1="${cx}" y1="${cy}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}" stroke="var(--pos)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="6" fill="var(--pos)"/><circle cx="${cx}" cy="${cy}" r="4" fill="var(--ink)"/>
+    ${deg>0&&deg<360?`<path d="${arc}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`:''}
+    <text x="${cx+L+14}" y="${cy-10}" style="font:600 13px var(--mono);fill:var(--accent)">a</text><text x="${(cx+(L+16)*Math.cos(th)).toFixed(1)}" y="${(cy-(L+16)*Math.sin(th)+4).toFixed(1)}" style="font:600 13px var(--mono);fill:var(--pos)">b</text>`;
+  const m=c>.9?'Pointing the same way: a strong match.':c>.3?'Mostly the same direction: a partial match.':c>-.3?'Near a right angle: unrelated.':c>-.9?'Mostly opposite directions: a mismatch.':'Pointing opposite ways: a strong mismatch.';
+  $('#dpAngNote').innerHTML=`a · b = cos(${deg}°) = <b>${c.toFixed(2)}</b><br>${m}`;
+}
+async function playDot(){dpUpdate();dpAngle();const rows=$$('#dpRows .dp-row');await stagger(rows,380)}
+
+/* --- softmax --- */
+const SM={n:['mat','sofa','floor','moon'],s:[3.6,3.0,2.7,-1.0],T:1,stage:3,mask:false};
+(function(){
+  $('#smRows').innerHTML=SM.n.map((w,i)=>`<div class="sm-row" id="smR${i}"><span class="w">${w}</span><span class="sc"><input type="range" id="smS${i}" min="-4" max="10" step="0.1" value="${SM.s[i]}" aria-label="score for ${w}"><b id="smSv${i}"></b></span><span class="ex" id="smE${i}"></span><span class="sh"><span class="track"><i id="smB${i}"></i></span><b id="smP${i}"></b></span></div>`).join('');
+  SM.n.forEach((_,i)=>$(`#smS${i}`).addEventListener('input',e=>{SM.s[i]=+e.target.value;smUpdate()}));
+  $('#smT').addEventListener('input',e=>{SM.T=+e.target.value;smUpdate()});
+  $('#smShift').addEventListener('click',()=>{SM.s=SM.s.map(v=>Math.min(10,v+2));SM.n.forEach((_,i)=>$(`#smS${i}`).value=SM.s[i]);smUpdate();$('#smNote').innerHTML='<b>Every score went up by 2 (the slider stops at 10).</b> Look at the shares: they stay the same, because only the gaps between scores matter.'});
+  $('#smMask').addEventListener('click',()=>{SM.mask=!SM.mask;smUpdate()});
+  $('#smReset').addEventListener('click',()=>{SM.s=[3.6,3.0,2.7,-1.0];SM.T=1;SM.mask=false;SM.n.forEach((_,i)=>$(`#smS${i}`).value=SM.s[i]);$('#smT').value=1;smUpdate()});
+  $('#smStages').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(!b)return;smRun++;SM.stage=+b.dataset.st;smUpdate()});
+})();
+function fmtE(v){return v>=1e5?v.toExponential(1):v>=100?v.toFixed(0):v>=10?v.toFixed(1):v.toFixed(2)}
+function smUpdate(){
+  const T=SM.T,last=SM.n.length-1,sc=SM.s.map((v,i)=>SM.mask&&i===last?-Infinity:v/T),m=Math.max(...sc.filter(isFinite)),ex=sc.map(v=>v===-Infinity?0:Math.exp(v)),exs=sc.map(v=>v===-Infinity?0:Math.exp(v-m)),tot=exs.reduce((a,b)=>a+b,0),sh=exs.map(v=>v/tot);
+  $('#smTv').textContent='T = '+T.toFixed(1);$('#smMask').setAttribute('aria-pressed',SM.mask);
+  $('#smMask').textContent=SM.mask?'Unmask “moon”':'Mask “moon” (−∞)';
+  const tb=$('.sm-table');tb.classList.remove('s1','s2','s3');tb.classList.add('s'+SM.stage);
+  $$('#smStages .btn').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.st===SM.stage));
+  SM.n.forEach((_,i)=>{
+    const masked=SM.mask&&i===last;$(`#smR${i}`).classList.toggle('masked',masked);
+    $(`#smSv${i}`).textContent=masked?'−∞':SM.s[i].toFixed(1);$(`#smS${i}`).disabled=masked;
+    $(`#smE${i}`).textContent=masked?'0':fmtE(ex[i]);
+    $(`#smB${i}`).style.width=(sh[i]*100).toFixed(1)+'%';$(`#smP${i}`).textContent=(sh[i]*100).toFixed(1)+'%';
+  });
+  $('#smTotal').innerHTML=`<span>Total</span><span></span><span>${fmtE(ex.reduce((a,b)=>a+b,0))}</span><span>${(sh.reduce((a,b)=>a+b,0)*100).toFixed(0)}%</span>`;
+  const top=sh.indexOf(Math.max(...sh));
+  if(SM.stage===1)$('#smNote').innerHTML='<b>Step 1.</b> Raw scores. They can be any size, even negative, so they are not yet usable as shares.';
+  else if(SM.stage===2)$('#smNote').innerHTML='<b>Step 2.</b> e<sup>score</sup> makes every number positive and stretches the gaps: a score of 3.6 becomes about 37, a score of −1 becomes about 0.4.';
+  else $('#smNote').innerHTML=SM.mask?`<b>Step 3.</b> “moon” is masked: a score of −∞ becomes e<sup>−∞</sup> = 0, so it gets exactly 0%. The other words share the full 100%. This is how attention hides future words.`:`<b>Step 3.</b> Divide each by the total. “${SM.n[top]}” has the highest score, so it gets the largest share: ${(sh[top]*100).toFixed(0)}%. The shares add up to 100%.${T!==1?` Temperature is ${T.toFixed(1)}, so the gaps were ${T<1?'widened':'shrunk'} first.`:''}`;
+}
+let smRun=0;
+async function playSoft(){const run=++smRun;for(let s=1;s<=3;s++){if(run!==smRun)return;SM.stage=s;smUpdate();await sleep(1400)}}
+
+/* --- non-linearity --- */
+(function(){
+  $('#lnX').addEventListener('input',lnUpdate);$('#bnK').addEventListener('input',bnDraw);
+})();
+function lnUpdate(){
+  const x=+$('#lnX').value,y=2*x+1,z=3*y-2;
+  $('#lnXv').textContent='x = '+x;
+  $('#lnCalc').innerHTML=`Layer 1: y = 2×${x} + 1 = <b>${y}</b><br>Layer 2: z = 3×${y} − 2 = <b>${z}</b><br>One step instead: z = 6×${x} + 1 = <b>${6*x+1}</b> <span class="muted">${z===6*x+1?'same answer':''}</span>`;
+}
+const BN_F=x=>.5+.38*Math.sin(2*Math.PI*x+.5);
+function bnDraw(){
+  const cv=$('#bnCanvas');if(!cv||!cv.clientWidth)return;
+  const k=+$('#bnK').value;$('#bnKv').textContent=k+(k===1?' bend':' bends');
+  const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.scale(dpr,dpr);
+  const X=x=>24+x*(w-48),Y=y=>h-20-(y-.05)/.9*(h-40);
+  g.strokeStyle=cssVar('--line');g.lineWidth=1;g.beginPath();g.moveTo(24,Y(.05));g.lineTo(w-24,Y(.05));g.stroke();
+  g.strokeStyle=cssVar('--muted');g.lineWidth=2;g.setLineDash([6,5]);g.beginPath();for(let i=0;i<=200;i++){const x=i/200;i?g.lineTo(X(x),Y(BN_F(x))):g.moveTo(X(x),Y(BN_F(x)))}g.stroke();g.setLineDash([]);
+  const kn=Array.from({length:k+2},(_,i)=>i/(k+1)),ys=kn.map(BN_F);
+  g.strokeStyle=cssVar('--accent');g.lineWidth=3.5;g.lineJoin='round';g.beginPath();kn.forEach((x,i)=>i?g.lineTo(X(x),Y(ys[i])):g.moveTo(X(x),Y(ys[i])));g.stroke();
+  kn.forEach((x,i)=>{if(i>0&&i<kn.length-1){g.fillStyle=cssVar('--pos');g.beginPath();g.arc(X(x),Y(ys[i]),6,0,7);g.fill()}});
+  g.font=`12px ${cssVar('--mono')}`;g.fillStyle=cssVar('--muted');g.fillText('dashed = the pattern to learn',28,16);g.fillStyle=cssVar('--accent');g.fillText('solid = what the network draws',w-230,16);
+  let err=0,N=400;for(let j=0;j<=N;j++){const x=j/N,i=Math.min(Math.floor(x*(k+1)),k),t=(x-kn[i])/(kn[i+1]-kn[i]),y=ys[i]+(ys[i+1]-ys[i])*t;err+=Math.abs(y-BN_F(x))}
+  const pct=100*err/(N+1)/.76;
+  $('#bnNote').innerHTML=k===0?`<b>No bends:</b> one straight line. It misses the pattern by about ${pct.toFixed(0)}% of its height on average. Straight lines cannot follow a curve.`:`<b>${k} ${k===1?'bend':'bends'}</b> = one straight line plus ${k} small ReLU ${k===1?'neuron':'neurons'}. Average miss: about ${pct.toFixed(1)}% of the height. ${k>=5?'Now it follows the pattern closely.':'Add more bends to follow the curve.'}`;
+}
+function actDraw(){
+  const X=v=>20+(v+3)/6*280,Y=v=>170-(v+.5)/3.5*150;let rl='',gl='';
+  for(let i=0;i<=60;i++){const v=-3+i/10;rl+=(i?'L':'M')+X(v).toFixed(1)+','+Y(Math.max(0,v)).toFixed(1);gl+=(i?'L':'M')+X(v).toFixed(1)+','+Y(gelu(v)).toFixed(1)}
+  $('#actSvg').innerHTML=`<line x1="20" x2="300" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/><line x1="${X(0)}" x2="${X(0)}" y1="14" y2="186" stroke="var(--line)"/><path d="${rl}" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-dasharray="6 4"/><path d="${gl}" fill="none" stroke="var(--accent)" stroke-width="3"/><text x="24" y="196" style="font:11px var(--mono);fill:var(--muted)">input −3</text><text x="300" y="196" text-anchor="end" style="font:11px var(--mono);fill:var(--muted)">+3</text><text x="${X(1.2)}" y="${Y(2.5)}" style="font:600 12px var(--mono);fill:var(--muted)">ReLU</text><text x="${X(-2.8)}" y="${Y(.35)}" style="font:600 12px var(--mono);fill:var(--accent)">GELU</text>`;
+}
+async function playBend(){const run=++bnRun;for(let k=0;k<=8;k++){if(run!==bnRun)return;$('#bnK').value=k;bnDraw();await sleep(k?650:900)}}
+let bnRun=0;
+function conceptsRender(){dpUpdate();dpAngle();smUpdate();lnUpdate();bnDraw();actDraw()}
+conceptsRender();
+
 /* ================= PRESENTER SCRIPTS: one short spoken script per section ================= */
 const SCRIPTS={
 intro:{say:[
@@ -3172,6 +3501,27 @@ b6:{say:[
 "The message: architectures are invented, tested and improved by researchers. The transformer is one very successful design from 2017, not the final answer. That is what we cover next."],
 show:"Click two or three data types and read the reason shown."},
 
+c1:{say:[
+"A vector is just a list of numbers. The dot product compares two lists of the same length. Multiply them position by position, then add everything up.",
+"Example: a support ticket needs billing 3, technical 0, urgent 2. Agent A offers 3, 1, 2. Three times three, plus zero times one, plus two times two, equals thirteen. Agent B offers 0, 4, 0, which gives zero. The ticket goes to Agent A.",
+"A big positive total means a strong match. Zero means unrelated. Negative means opposite.",
+"Attention uses exactly this. A word’s query is multiplied against every earlier word’s key, and the total says how relevant that word is."],
+show:"Click Strong match, Unrelated and Opposite in turn, then drag the angle slider."},
+
+c2:{say:[
+"Softmax turns any list of scores into percentages. The scores can be any size, even negative.",
+"It takes two moves. First, make every score positive. Second, divide each one by the total. The biggest score gets the biggest share, and the shares add up to one hundred percent.",
+"Example: mat 3.6, sofa 3.0, floor 2.7, moon minus 1. After softmax: mat 51 percent, sofa 28, floor 21, moon half a percent.",
+"Adding the same number to every score changes nothing. Setting a score to minus infinity gives exactly zero percent, which is how the attention mask works. Temperature divides the scores first: low temperature is decisive, high temperature spreads the shares."],
+show:"Press Play steps, then Mask “moon”, then drag the temperature slider."},
+
+c3:{say:[
+"Most of a neural network is multiplying and adding. Those steps are linear: the output moves in a straight line with the input. Chain as many as you like and you still have one straight-line rule.",
+"A non-linearity is a small bend between the steps. It is the same idea as an IF in a workflow.",
+"Example: shipping is free below fifty dollars, then five percent of the amount above. A straight line cannot do that, because the rule changes at fifty. It needs a bend.",
+"Drag the bends slider. With no bends the line misses the wave. With a few bends it follows it closely. Each bend is one small neuron. This is the bend inside the MLP, in decoder step 6."],
+show:"Press Add bends one by one."},
+
 o1:{say:[
 "In 2017 a team at Google published a paper called “Attention Is All You Need”. It introduced the transformer for machine translation.",
 "Earlier systems read a sentence one word at a time. The transformer lets every word look at every other word at once. It translated more accurately and trained much faster.",
@@ -3204,8 +3554,8 @@ d1:{say:[
 "If the frame stays blank, use Open in a new tab."],
 show:"Load the demo before the session starts."}
 };
-const PS_ORDER=['b1','b2','b3','b4','b5','b6','o1','o2','o3','o4','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
-const PS_TAB={tabBasics:'Basics',tabOverview:'Overview',tabDecoder:'Decoder',tabDemos:'Demo'};
+const PS_ORDER=['b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
+const PS_TAB={tabBasics:'Basics',tabConcepts:'Concept',tabOverview:'Overview',tabDecoder:'Decoder',tabDemos:'Demo'};
 const PS={win:null,panel:null};
 function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.shell');const tab=PS_TAB[shell.id];const num=sec.dataset.num;return {name:sec.dataset.name,label:id==='intro'?'Decoder · Overview':`${tab} ${tab==='Decoder'?'step ':''}${num}`}}
 function psText(id){const d=SCRIPTS[id],m=psMeta(id);return `${m.label}: ${m.name}\n\n${d.say.join('\n\n')}\n\nOn screen: ${d.show}`}
@@ -3289,7 +3639,7 @@ initScripts();
 
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
-const TABS={basics:$('#tabBasics'),overview:$('#tabOverview'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
+const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
 const ALLSECS=$$('main>section');
 let SECS=$$('#tabDecoder main>section');
 const jump=$('#jump');
@@ -3308,10 +3658,10 @@ function setTab(t,{scroll=true}={}){
   try{history.replaceState(null,'','#'+t)}catch(e){}
   if(document.body.classList.contains('present'))goSlide(0);else if(scroll)window.scrollTo({top:0});
   markActive(SECS[0].id);
-  setTimeout(()=>{if(t==='basics')dlRenderAll();else{drawPE();trDraw(true)}},30);
+  setTimeout(()=>{if(t==='basics')dlRenderAll();else if(t==='concepts')conceptsRender();else{drawPE();trDraw(true)}},30);
 }
 $$('.tabs .btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
-document.addEventListener('click',e=>{const b=e.target.closest('[data-tabgo]');if(b)setTab(b.dataset.tabgo)});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tabgo]');if(!b)return;if(b.dataset.sec)goToSection(b.dataset.sec);else setTab(b.dataset.tabgo)});
 jump.addEventListener('change',()=>{if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===jump.value));else $('#'+jump.value).scrollIntoView({behavior:RM?'auto':'smooth'})});
 $$('.arch .box').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.go;if(document.body.classList.contains('present'))goSlide(SECS.findIndex(s=>s.id===id));else $('#'+id).scrollIntoView({behavior:RM?'auto':'smooth'})}));
 function markActive(id){
@@ -3337,7 +3687,7 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:TAB==='demos'?`Demo ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='concepts'?`Concept ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:TAB==='demos'?`Demo ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
@@ -3395,7 +3745,7 @@ async function initEngine(){
 renderAll();
 markActive('intro');
 initBasics();
-if(['#basics','#overview','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
+if(['#basics','#concepts','#overview','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>

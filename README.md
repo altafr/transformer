@@ -1,8 +1,10 @@
 # Inside the Decoder
 
-An animated, interactive single-page website with four tabs.
+An animated, interactive single-page website with five tabs.
 
 **Deep learning basics** (for newcomers): a neural network as a machine full of tunable dials, one neuron you can tune by hand, a 13-dial network that learns live in the browser to tell whether a fruit is good to eat (training phase, with a step-by-step explanation of one gradient step), then the same network answering new fruits with its dials frozen (inference phase), how this scales up to GPT, and a closing section on network architectures (MLP, CNN, RNN, transformer, diffusion, GNN) showing that the architecture is a research design choice matched to the data. Open it directly with `index.html#basics`.
+
+**Key concepts** (between the basics and the transformer): three short interactive primers. *Dot product* (a match score between two lists, with a ticket-routing example and an angle view), *softmax* (scores to shares of 100%, with temperature, a mask toggle and the "add the same number" property) and *non-linearity* (why stacked straight steps collapse into one, and how bends let a line follow a curve). The decoder's attention, MLP and softmax sections link back to them. Open with `index.html#concepts`.
 
 **Transformer overview** (high level): the 2017 Google paper *Attention Is All You Need* (https://arxiv.org/abs/1706.03762), a clickable encoder–decoder diagram, an animated English→French translation showing cross-attention, and the three model families (encoder-only, encoder–decoder, decoder-only) leading into the decoder tab. Open with `index.html#overview`.
 
