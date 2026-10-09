@@ -554,6 +554,98 @@ details.notes .pn-say p{font-size:15px;color:var(--ink)}
 .pn-new.fix{background:var(--pos)}
 details.notes code{font:500 13px var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:5px}
 .hero>details.notes{grid-column:1/-1;max-width:none;margin-top:8px}
+/* ---------- bird's-eye view ---------- */
+.bv-groups{display:grid;grid-template-columns:3fr 4fr 2fr 1fr;gap:10px}
+.bv-grp{display:grid;gap:6px;align-content:start;min-width:0}
+.bv-gl{font:600 10px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line);padding-bottom:4px}
+.bv-chips{display:flex;flex-wrap:wrap;gap:5px}
+.bv-chip{font:500 12px var(--sans);padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;display:inline-flex;gap:6px;align-items:center;transition:background .2s,border-color .2s,color .2s}
+.bv-chip b{font:600 11px var(--mono);color:var(--muted)}
+.bv-chip:hover{border-color:var(--accent);color:var(--ink)}
+.bv-chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-strong)}.bv-chip.on b{color:var(--on-strong)}
+.bv-chip.done{color:var(--ink);border-color:var(--accent)}
+.bv-card{border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:16px;background:var(--surface)}
+.bv-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.bv-k{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--on-strong);background:var(--accent);padding:3px 8px;border-radius:6px}
+.bv-head h3{font-size:clamp(20px,2.6vw,28px)}
+.bv-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start}
+.bv-vis{min-width:0;min-height:300px;display:grid;gap:12px;align-content:start;overflow-x:auto;padding-bottom:4px}
+.bv-txt{display:grid;gap:12px;align-content:start}
+.bv-txt p{margin:0;font-size:15px;display:grid;gap:2px}
+.bv-txt p b{font:600 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.bv-scale{color:var(--muted);font-size:13px!important;border-left:3px solid var(--line);padding-left:10px}
+.bv-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.bv-a{animation:bvIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d,0) * 1ms)}
+@keyframes bvIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
+.bv-row{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.bv-lbl{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.bv-text{font:800 clamp(22px,3vw,32px) var(--display);letter-spacing:-.01em}
+.bv-arrow{font:500 13px var(--mono);color:var(--accent)}
+.bv-toks{display:flex;flex-wrap:wrap;gap:10px}
+.bv-tok{display:inline-flex;flex-direction:column;align-items:center;gap:1px;padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);min-width:54px}
+.bv-tok b{font:600 15px var(--mono)}.bv-tok small{font:500 11px var(--mono);color:var(--muted)}
+.bv-tok.me{border-color:var(--accent);background:var(--accent-weak)}
+.bv-rows{display:grid;gap:8px}
+.bv-r{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.bv-op{font:500 12px var(--mono);color:var(--muted)}
+.bvs{display:inline-flex;gap:2px;vertical-align:middle}
+.bvs i{width:16px;height:16px;border-radius:3px;display:block}
+.bvs.grp{gap:1px}.bvs.grp i:nth-child(2n){margin-right:5px}
+.bv-svg{width:100%;max-width:420px;height:auto;display:block}
+.bv-svg text{font:500 12px var(--mono);fill:var(--ink)}
+.bv-svg .w rect{fill:var(--surface);stroke:var(--line)}
+.bv-svg .w.me rect{fill:var(--accent-weak);stroke:var(--accent)}
+.bv-svg .pc{font-size:11px;fill:var(--muted)}
+.bv-att{display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(200px,1fr);gap:14px;align-items:center}
+.bv-ba{display:grid;gap:6px;font:500 12px var(--mono);color:var(--muted)}
+.bv-ba .bar{display:flex;gap:8px;align-items:center}.bv-ba .bar span:first-child{width:62px}
+.bv-ba .hl{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.bv-heads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bv-head-c{border:1px solid var(--line);border-top:3px solid var(--hc);border-radius:10px;padding:8px 10px;display:grid;gap:2px;min-width:0}
+.bv-head-c h4{margin:0;font:600 13px var(--sans);display:flex;gap:6px;align-items:center}.bv-head-c h4 i{width:9px;height:9px;border-radius:50%;background:var(--hc)}
+.bv-head-c small{color:var(--muted);font-size:12px}
+.bv-out{display:flex;gap:8px;align-items:center;font:500 11px var(--mono);color:var(--muted)}
+.bv-glue{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 12px;border:1px dashed var(--accent);border-radius:10px;font-size:13px}
+.bv-mlp{display:grid;gap:12px}
+.bv-col{display:grid;gap:6px}.bv-col>b{font:600 12px var(--sans)}.bv-col small{color:var(--muted);font-size:12px}
+.bv-dots{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;max-width:360px}
+.bv-dots i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--accent) calc(var(--a)*100%),var(--surface-2));position:relative;display:block}
+.bv-dots i.on{box-shadow:0 0 0 2px var(--pos)}
+.bv-dots i.on::after{content:attr(data-n);position:absolute;inset:0;display:grid;place-items:center;font:700 9px var(--mono);color:var(--on-strong)}
+.bv-legend{display:grid;gap:3px;font-size:12px}.bv-legend b{color:var(--pos);font-family:var(--mono)}
+.bv-chipsrow{display:flex;flex-wrap:wrap;gap:6px}
+.bv-pill{font:500 12px var(--mono);padding:3px 9px;border-radius:999px;background:var(--accent-weak);border:1px solid var(--accent)}
+.bv-stack{display:grid;gap:6px;max-width:340px}
+.bv-blk{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:500 13px var(--sans);display:flex;justify-content:space-between;gap:10px;background:var(--surface)}
+.bv-blk small{color:var(--muted);font:500 11px var(--mono)}
+.bv-blk.dots{border-style:dashed;justify-content:center;color:var(--muted)}
+.bv-bars{display:grid;gap:6px;max-width:460px}
+.bv-bar{display:grid;grid-template-columns:128px minmax(0,1fr) 48px;gap:10px;align-items:center;font:500 13px var(--mono)}
+.bv-bar .tr{height:16px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bv-bar .tr i{display:block;height:100%;background:var(--accent);border-radius:4px;animation:bvGrow .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d,0) * 1ms);transform-origin:left}
+@keyframes bvGrow{from{transform:scaleX(0)}}
+.bv-bar.pick .tr i{background:var(--pos)}.bv-bar.pick .nm{font-weight:700;color:var(--pos)}
+.bv-bar .v{text-align:right;color:var(--muted)}
+.bv-bar.rest .tr i{background:var(--muted);opacity:.5}
+.bv-sent{font:600 clamp(18px,2.4vw,26px)/1.5 var(--display);min-height:2.6em;word-break:break-word}
+.bv-sent .pr{color:var(--muted)}.bv-sent .g{color:var(--accent);animation:bvIn .4s both}
+.bv-sent .caret{display:inline-block;width:3px;height:1em;background:var(--accent);vertical-align:-3px;margin-left:3px;animation:blink 1s steps(2) infinite}
+.bv-passinfo{font:500 12px var(--mono);color:var(--muted);min-height:1.5em}
+.bv-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.smart-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sm-card{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start}
+.sm-because{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.sm-because button{font:600 10px var(--mono);padding:2px 7px;border-radius:999px;border:1px solid var(--accent);background:var(--accent-weak);color:var(--ink);cursor:pointer}
+.sm-card h4{margin:0;font:700 16px/1.25 var(--display)}
+.sm-card p{margin:0;font-size:13.5px;color:var(--muted)}
+.mk-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.mk-prompt{margin:0;padding:14px 16px;border-radius:12px;background:var(--surface-2);font:500 13.5px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word;min-height:150px}
+.mk-why{display:grid;gap:8px;font-size:14px}
+.mk-why .row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:baseline}
+.mk-why .row b{font:600 11px var(--mono);color:var(--on-strong);background:var(--accent);padding:2px 7px;border-radius:5px;white-space:nowrap}
+.mk-why .row.bad b{background:var(--pos)}
+@media (max-width:1000px){.bv-groups{grid-template-columns:minmax(0,1fr)}.bv-grid,.mk-grid,.bv-att{grid-template-columns:minmax(0,1fr)}.smart-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.smart-grid,.bv-heads{grid-template-columns:minmax(0,1fr)}.bv-bar{grid-template-columns:96px minmax(0,1fr) 42px}}
 /* ---------- engine ---------- */
 
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -617,7 +709,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="birdseye" aria-pressed="false">Bird’s-eye view</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -793,6 +885,85 @@ body.present footer{display:none}
   </main>
 </div>
 
+<div class="shell" id="tabBird" hidden>
+  <nav class="rail" aria-label="Bird’s-eye view">
+    <div class="cap">The whole journey</div>
+  </nav>
+  <main>
+    <section id="v1" data-name="One sentence, start to finish" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Bird’s-eye view · one sentence, start to finish</div>
+        <h2>From a sentence to the next word</h2>
+        <p class="tldr"><b>In short</b>The model turns text into numbers, lets the words share information, thinks about each word, scores every possible next word, picks one, and repeats.</p>
+        <p class="lede">Follow one sentence, <strong>“Approve the invoice if”</strong>, through the whole machine in ten short stages. Then see what it means for how you work with these models. <strong>Every number here is illustrative</strong>, drawn to tell the story. The decoder tab computes real ones for your own text.</p>
+      </div>
+
+      <div class="viz" id="bvViz">
+        <div class="bv-groups" id="bvChips"></div>
+        <div class="bv-card">
+          <div class="bv-head"><span class="bv-k" id="bvK"></span><h3 id="bvT"></h3></div>
+          <div class="bv-grid">
+            <div class="bv-vis" id="bvVis"></div>
+            <div class="bv-txt">
+              <p><b>What happens</b><span id="bvWhat"></span></p>
+              <p><b>Why we need it</b><span id="bvWhy"></span></p>
+              <p class="bv-scale" id="bvScale"></p>
+              <button class="btn" id="bvGo" type="button">See it in detail in the decoder tab →</button>
+            </div>
+          </div>
+          <div class="bv-nav">
+            <button class="btn" id="bvPrev" type="button">← Previous</button>
+            <button class="btn primary" id="bvPlay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Play the journey</button>
+            <button class="btn" id="bvNext" type="button">Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="viz" id="bvSmart">
+        <div style="display:grid;gap:10px;max-width:780px">
+          <span class="label">Part 2 · What this means for you</span>
+          <h3 class="subh">Working smartly with these models</h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">Almost every good habit follows from how the machine works. Each card names the mechanism, then what to do about it. Click a stage tag to see the mechanism again.</p>
+        </div>
+        <div class="smart-grid" id="bvCards"></div>
+        <div style="display:grid;gap:10px;max-width:780px">
+          <span class="label">Example · the same task, two prompts</span>
+          <div class="seg" id="bvMake" role="tablist" aria-label="Prompt version">
+            <button class="btn" type="button" data-m="weak" aria-pressed="true">Weak prompt</button>
+            <button class="btn" type="button" data-m="strong" aria-pressed="false">Strong prompt</button>
+          </div>
+        </div>
+        <div class="mk-grid">
+          <pre class="mk-prompt" id="bvPrompt" aria-live="polite"></pre>
+          <div class="mk-why" id="bvMakeWhy"></div>
+        </div>
+        <div><button class="btn primary" type="button" data-tabgo="decoder">Now go step by step in the decoder →</button></div>
+      </div>
+
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">How to use this section</h4>
+        <p>Press <b>Play the journey</b> for a two-minute tour, or step through with Next and pause on any stage. Part 2 is the payoff: every habit on the cards traces back to a stage you just watched. Finish with the prompt makeover.</p>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Are these numbers real?</dt><dd>No. The IDs, percentages, head patterns and neuron names are illustrative, chosen to tell the story. The decoder tab computes real numbers for your own text, and the Demos tab runs a real GPT-2.</dd>
+          <dt>Do heads and neurons really have clean meanings like “what is being acted on”?</dt><dd>Sometimes, partly. Mostly they are messier and overlap. The labels make the idea visible; don’t claim more than that.</dd>
+          <dt>Why can words only look backwards?</dt><dd>Because the model writes left to right, so the future does not exist yet when it picks a word. A mask hides later words.</dd>
+          <dt>Is the finished sentence what a real model would write?</dt><dd>It is a plausible example, not a recording. A real model might choose other words at each step.</dd>
+          <dt>Where does it “understand” the invoice rule?</dt><dd>It doesn’t apply a rule the way a program does. It has learned patterns from huge amounts of text, and your prompt makes the right continuation likely. That is why putting the rule in the prompt matters.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Say “illustrative” every time you show a number on this tab.</li>
+          <li>Don’t say the model decides the whole answer first. Stress that it picks one word at a time, from only the words before it.</li>
+          <li>Don’t imply one head or one neuron per concept.</li>
+          <li>This tab has ten stages; the decoder tab and your script number their steps differently. Use names.</li>
+          <li>Don’t promise a prompt makes the model correct. It makes a good answer more likely; you still verify.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+</div>
+
 <div class="shell" id="tabOverview" hidden>
   <nav class="rail" aria-label="Transformer overview">
     <div class="cap">The transformer, high level</div>
@@ -886,7 +1057,7 @@ body.present footer{display:none}
           <div class="fam"><h3>Encoder–decoder</h3><p>Reads one sequence, writes another.</p><p><b>Used for:</b> translation, summarising, speech-to-text</p><p class="eg">Original transformer (2017) · T5 (2019) · Whisper (2022)</p></div>
           <div class="fam hl"><h3>Decoder-only</h3><p>Continues text one token at a time.</p><p><b>Used for:</b> chat, writing, coding</p><p class="eg">GPT (2018 onward) · Claude · Llama</p></div>
         </div>
-        <div><button class="btn primary" type="button" data-tabgo="decoder">Go inside the decoder, step by step →</button></div>
+        <div><button class="btn primary" type="button" data-tabgo="birdseye">See the whole journey in one example →</button> <button class="btn" type="button" data-tabgo="decoder">Or go straight into the decoder →</button></div>
       </div>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>The next tab takes the right-hand stack of the diagram, removes cross-attention, and follows your own sentence through every step.</li>
@@ -2828,7 +2999,7 @@ function renderAll(predDelay=800){
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={c1:playDot,c2:playSoft,c3:playBend,s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={v1:()=>bvGo(BV.stage),c1:playDot,c2:playSoft,c3:playBend,s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -3321,6 +3492,177 @@ let bnRun=0;
 function conceptsRender(){dpUpdate();dpAngle();smUpdate();lnUpdate();bnDraw();actDraw()}
 conceptsRender();
 
+/* ================= BIRD'S-EYE VIEW TAB ================= */
+const BVW=['Approve','the','invoice','if'],BVID=[41231,279,25637,422];
+const BVATT=[[1,0,0,0],[.7,.3,0,0],[.3,.2,.5,0],[.10,.05,.60,.25]];
+const BVH=[
+  {n:'Previous word',d:'looks at the word just before',w:[.03,.07,.80,.10]},
+  {n:'What is acted on',d:'looks at the noun phrase',w:[.05,.35,.55,.05]},
+  {n:'Sentence start',d:'looks at the first word',w:[.80,.08,.07,.05]},
+  {n:'Myself',d:'keeps its own meaning',w:[.04,.03,.08,.85]}];
+const BVCAND=[
+  {w:'the',p:.30},{w:'it',p:.18},{w:'all',p:.09},{w:'payment',p:.07}];
+const BVLOOP=[
+  {w:'the',c:[['the',.30],['it',.18],['all',.09],['payment',.07]]},
+  {w:'amount',c:[['amount',.24],['total',.19],['vendor',.11],['PO',.08]]},
+  {w:'matches',c:[['matches',.28],['is',.22],['equals',.12],['exceeds',.08]]},
+  {w:'the',c:[['the',.41],['our',.12],['a',.10],['what',.05]]},
+  {w:'purchase',c:[['purchase',.26],['PO',.20],['quote',.10],['contract',.07]]},
+  {w:'order',c:[['order',.83],['price',.05],['agreement',.03],['request',.02]]},
+  {w:'.',c:[['.',.45],[',',.20],['and',.15],['within',.06]]}];
+const bvM=(()=>{
+  const d=8,pe8=(p,i)=>{const e=(i-(i%2))/d,a=p/Math.pow(10000,e);return i%2?Math.cos(a):Math.sin(a)};
+  const E=BVID.map(id=>{const r=mulberry32(id);return Array.from({length:d},()=>randn(r)*.6)});
+  const P=BVW.map((_,i)=>Array.from({length:d},(_,k)=>pe8(i,k)));
+  const X=E.map((e,i)=>e.map((v,k)=>v+P[i][k]));
+  const slices=BVH.map((h,hi)=>{const s=[0,0];BVW.forEach((_,j)=>{for(let k=0;k<2;k++)s[k]+=h.w[j]*X[j][hi*2+k]});return s});
+  const cat=slices.flat(),Wo=randMat(8,8,.5,7),O=matmul([cat],Wo)[0],R=X[3].map((v,k)=>v+O[k]);
+  const W1=randMat(8,32,.7,11),h=matmul([R],W1)[0].map(gelu);
+  const mx=Math.max(...h.map(Math.abs))||1,act=h.map(v=>Math.max(0,v)/mx*.55);
+  const lit={5:.95,14:.85,23:.8};Object.entries(lit).forEach(([i,v])=>act[i]=v);
+  return {E,P,X,slices,cat,O,R,act,lit};
+})();
+const BV={stage:0,mode:'greedy',picked:null,loop:0,running:false,play:false,make:'weak',tok:0};
+const bvStrip=(v,cls='')=>{const m=Math.max(.5,...v.map(Math.abs));return `<span class="bvs ${cls}">${v.map(x=>`<i style="background:${divColor(x,m)}" title="${x.toFixed(2)}"></i>`).join('')}</span>`};
+const bvA=(h,d)=>`<div class="bv-a" style="--d:${d}">${h}</div>`;
+const bvPct=p=>Math.round(p*100)+'%';
+const bvBars=(rows,pick,rest)=>{const mx=Math.max(.45,...rows.map(r=>r[1]));return `<div class="bv-bars">${rows.map(([w,p],i)=>`<div class="bv-bar ${pick===w?'pick':''}"><span class="nm">${esc(w)}</span><span class="tr"><i style="width:${p*100/mx}%;--d:${i*120}"></i></span><span class="v">${bvPct(p)}</span></div>`).join('')}${rest?`<div class="bv-bar rest"><span class="nm">~100,000 others</span><span class="tr"><i style="width:${rest*100/mx}%;--d:600"></i></span><span class="v">${bvPct(rest)}</span></div>`:''}</div>`};
+const BVS=[
+{g:'A',t:'Text becomes IDs',sec:'s1',
+ what:'The sentence is cut into pieces called tokens, and each token gets a whole-number ID from a fixed list (the vocabulary).',
+ why:'A computer cannot do arithmetic on letters. IDs turn text into something it can look up. The IDs say nothing about meaning yet.',
+ scale:'Real vocabularies hold about 50,000 to 200,000 tokens. A token is often a word, a piece of a word, or punctuation.',
+ vis:()=>bvA(`<div class="bv-row"><span class="bv-lbl">Text</span><span class="bv-text">Approve the invoice if</span></div>`,0)+bvA(`<div class="bv-arrow">↓ split into tokens, look up each in the vocabulary</div>`,300)+bvA(`<div class="bv-toks">${BVW.map((w,i)=>`<span class="bv-tok" style="animation-delay:${400+i*150}ms"><b>${w}</b><small>${BVID[i]}</small></span>`).join('')}</div>`,400)},
+{g:'A',t:'IDs become embeddings',sec:'se',
+ what:'Each ID picks one row from a big table. The row is a list of numbers, the token’s embedding. Here, 8 numbers; orange cells are positive values and teal cells are negative.',
+ why:'A bare ID is just a label. A list of numbers can be compared, mixed and nudged, so similar words can end up with similar lists. Training tunes the table.',
+ scale:'Real embeddings have 768 numbers (GPT-2) to 12,288 or more (GPT-3). The same token always gets the same row.',
+ vis:()=>`<div class="bv-rows">${BVW.map((w,i)=>bvA(`<div class="bv-r"><span class="bv-tok me"><b>${w}</b><small>${BVID[i]}</small></span><span class="bv-op">table[${BVID[i]}] →</span>${bvStrip(bvM.E[i])}</div>`,i*180)).join('')}</div>`},
+{g:'A',t:'Add position',sec:'s2',
+ what:'Each token’s list gets a second list added to it, one that depends only on where the token sits: first, second, third, fourth.',
+ why:'Attention treats the words as a pile and ignores order. Without position, “dog bites man” and “man bites dog” would look identical.',
+ scale:'The original paper used fixed sine and cosine patterns. Many newer models learn or rotate positions instead. The goal is the same.',
+ vis:()=>`<div class="bv-rows">${BVW.map((w,i)=>bvA(`<div class="bv-r"><b style="min-width:62px">${w}</b>${bvStrip(bvM.E[i])}<span class="bv-op">+ pos ${i+1}</span>${bvStrip(bvM.P[i])}<span class="bv-op">=</span>${bvStrip(bvM.X[i])}</div>`,i*180)).join('')}</div>`},
+{g:'B',t:'Attention: words look back',sec:'s3',
+ what:'Each word asks “which earlier words matter to me?”, gives them weights that sum to 100%, and takes a weighted blend of what they carry. Click a word to see its row.',
+ why:'Meaning depends on context. “if” after “Approve the invoice” sets up a condition about the invoice. Attention is how that information travels between words.',
+ scale:'A mask hides later words, because the model writes left to right and the future does not exist yet.',
+ vis:()=>{const r=BV.att??3,W=['Approve','the','invoice','if'],xs=[40,130,235,350];
+  const arcs=BVATT[r].map((p,j)=>j<=r&&j!==r&&p>0?`<path d="M${xs[r]+20} 78 Q ${(xs[r]+xs[j])/2+20} ${78-20-p*120} ${xs[j]+20} 78" fill="none" stroke="var(--accent)" stroke-width="${1+p*9}" stroke-linecap="round" opacity=".8"/>`:'').join('');
+  return `<div class="bv-att"><svg class="bv-svg" viewBox="0 0 420 110" role="img" aria-label="Attention arcs from ${W[r]}">${arcs}${W.map((w,j)=>`<g class="w ${j===r?'me':''}" data-w="${j}" style="cursor:pointer"><rect x="${xs[j]-10}" y="82" width="${Math.max(54,w.length*9+16)}" height="24" rx="8"/><text x="${xs[j]+Math.max(54,w.length*9+16)/2-10}" y="98" text-anchor="middle">${w}</text></g>`).join('')}</svg>
+  <div class="bv-ba"><b style="color:var(--ink)">“${W[r]}” looks at:</b>${W.map((w,j)=>`<div class="bar ${j===r?'hl':''}"><span>${w}</span><span class="bv-pill" style="padding:1px 8px">${j<=r?bvPct(BVATT[r][j]):'masked'}</span></div>`).join('')}</div></div>`}},
+{g:'B',t:'Many heads, many questions',sec:'s5',
+ what:'The attention step is run several times side by side. Each “head” has its own way of weighing the words, and works on its own slice of the numbers. The slices are joined and mixed back to one list.',
+ why:'One blend cannot answer every question at once: who is nearby, what is the subject, what started the sentence. Several heads can each answer a different one, then combine.',
+ scale:'GPT-2 small has 12 heads per layer, GPT-3 has 96. The names here are illustrative; real heads are messier and overlap.',
+ vis:()=>`<div class="bv-heads">${BVH.map((h,i)=>bvA(`<div class="bv-head-c" style="--hc:var(--h${i})"><h4><i></i>${h.n}</h4><small>“if” ${h.d}</small><div class="bv-ba">${BVW.map((w,j)=>`<div class="bar"><span>${w}</span><span class="tr" style="flex:1;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:${h.w[j]*100}%;background:var(--h${i})"></i></span></div>`).join('')}</div><div class="bv-out">slice ${bvStrip(bvM.slices[i])}</div></div>`,i*160)).join('')}</div>`+bvA(`<div class="bv-glue"><span>Join the 4 slices</span>${bvStrip(bvM.cat,'grp')}<span class="bv-op">× W<sub>O</sub> →</span>${bvStrip(bvM.O)}<span>one mixed list that is added to “if”</span></div>`,800)},
+{g:'B',t:'MLP: each word thinks alone',sec:'s6',
+ what:'Attention moved information between words. Now each word, on its own, goes through a small network: widen the list (here 8 → 32), switch some neurons on, then squeeze back to 8.',
+ why:'Attention mostly blends. The MLP is where the model processes what was gathered: it recognises patterns and recalls what it learned in training, and the non-linear step lets it combine facts instead of only averaging them.',
+ scale:'Real MLPs widen about 4×, and hold much of the model’s stored knowledge. Neuron meanings here are made up for the story.',
+ vis:()=>{const lit=bvM.lit,names={5:'a condition follows “if”',14:'money, invoices',23:'business wording'};
+  return `<div class="bv-mlp">${bvA(`<div class="bv-col"><b>“if” after attention</b>${bvStrip(bvM.R)}</div>`,0)}${bvA(`<div class="bv-col"><b>Widen to 32 neurons, switch some on</b><div class="bv-dots">${bvM.act.map((a,i)=>`<i style="--a:${a.toFixed(2)}" ${lit[i]?`class="on" data-n="${Object.keys(lit).indexOf(String(i))+1}"`:''}></i>`).join('')}</div><div class="bv-legend">${Object.keys(lit).map((k,n)=>`<span><b>${n+1}</b> ${names[k]}</span>`).join('')}</div></div>`,300)}${bvA(`<div class="bv-col"><b>Squeeze back to 8, nudging the next-word odds toward</b><div class="bv-chipsrow">${['the','it','all','payment'].map(w=>`<span class="bv-pill">${w}</span>`).join('')}</div></div>`,700)}</div>`}},
+{g:'B',t:'Stack the block',sec:'s4',
+ what:'Attention plus MLP is one block. Add-and-norm steps keep the numbers tidy around each part. The output of one block is the input to the next, and the same recipe repeats with different learned weights.',
+ why:'One pass only does a little. Stacking lets early blocks handle simple patterns and later blocks build on them with more abstract ideas, ending with a list rich enough to predict the next word.',
+ scale:'GPT-2 small stacks 12 blocks. GPT-3 stacks 96. Only the last word’s final list is used to predict what comes next.',
+ vis:()=>`<div class="bv-stack">${[['Input: tokens + position','4 lists of 8'],['Block 1','attention + MLP'],['Block 2','attention + MLP'],['⋮',''],['Block 12 (GPT-2) / 96 (GPT-3)','attention + MLP'],['Final list for the last word','8 numbers']].map(([a,b],i)=>bvA(`<div class="bv-blk ${a==='⋮'?'dots':''}"><span>${a}</span><small>${b}</small></div>`,i*160)).join('')}</div>`},
+{g:'C',t:'Score every word',sec:'s7',
+ what:'The final list for the last word is compared with every token in the vocabulary (unembedding). Each gets a raw score, and softmax turns all scores into percentages that add up to 100%.',
+ why:'The model has to rank every possible continuation. Softmax gives a clean spread of probabilities, where higher scores win much more than lower ones.',
+ scale:'One score per vocabulary entry, so about 50,000 to 200,000 of them. Only the top few are shown. All numbers are illustrative.',
+ vis:()=>bvBars(BVCAND.map(c=>[c.w,c.p]),null,.36)+`<p class="note">“Approve the invoice if ___”: the model is not sure, but some words are far likelier than others.</p>`},
+{g:'C',t:'Pick one word',sec:'s8',
+ what:'One word is chosen from the percentages. Greedy always takes the top one. Sampling rolls weighted dice, so likelier words win more often but not always.',
+ why:'Always taking the top word gives safe but repetitive text. Sampling gives variety. The “temperature” setting changes how adventurous the dice are.',
+ scale:'This is why asking the same question twice can give different answers.',
+ vis:()=>{const cands=BVCAND.map(c=>[c.w,c.p]);
+  return `<div class="bv-ctl"><div class="seg" role="group" aria-label="Selection">${['greedy','sample'].map(m=>`<button class="btn" type="button" data-bvmode="${m}" aria-pressed="${BV.mode===m}">${m==='greedy'?'Greedy':'Sample'}</button>`).join('')}</div><button class="btn" type="button" data-bvpick="1">${BV.mode==='greedy'?'Pick':'Roll the dice'}</button></div>`+bvBars(cands,BV.picked,.36)+`<div class="bv-passinfo">${BV.picked?`Chosen: “${esc(BV.picked)}”`:'Press the button to choose.'}</div>`}},
+{g:'D',t:'Append, then repeat',sec:'s9',
+ what:'The chosen word is added to the end of the text, and the whole thing goes through the machine again to pick the next word, and so on, until an end is reached.',
+ why:'The model can only produce one word per pass. Writing a paragraph means running the full stack once for every word, each time reading everything so far.',
+ scale:'This loop is why replies stream out word by word, and why long replies take longer. A scripted illustrative run is shown, not a recording.',
+ vis:()=>{const done=BVLOOP.slice(0,BV.loop),words=done.map(s=>s.w);const text=BVW.join(' ');
+  const last=done[done.length-1];const nxt=BVLOOP[BV.loop];
+  const sent=`<span class="pr">${esc(text)}</span>${words.map((w,i)=>`<span class="g">${/^[.,]$/.test(w)?'':' '}${esc(w)}</span>`).join('')}${BV.loop<BVLOOP.length?'<span class="caret"></span>':''}`;
+  return `<div class="bv-sent" aria-live="polite">${sent}</div><div class="bv-passinfo">${BV.loop?`Pass ${BV.loop}: read ${BVW.length+BV.loop-1} words → picked “${esc(last.w)}” (${bvPct(last.c[0][1])})`:'Press Run to start the loop.'}</div>${nxt&&BV.loop?bvBars(nxt.c,null,0).replace(/<div class="bv-bar /,'<div class="bv-bar ')+'<div class="bv-passinfo">Next pass’s candidates</div>':''}<div class="bv-ctl"><button class="btn primary" type="button" data-bvloop="run">${BV.running?'Running…':'Run'}</button><button class="btn" type="button" data-bvloop="step">Step</button><button class="btn" type="button" data-bvloop="reset">Reset</button></div>`}}
+];
+const BVG={A:'Prepare the input',B:'Mix and think: the block',C:'Choose the next word',D:'Repeat'};
+function bvChipsBuild(){
+  $('#bvChips').innerHTML=Object.entries(BVG).map(([g,l])=>`<div class="bv-grp"><div class="bv-gl">${g} · ${l}</div><div class="bv-chips">${BVS.map((s,i)=>s.g===g?`<button class="bv-chip" type="button" data-bvs="${i}"><b>${i+1}</b>${esc(s.t.split(':')[0].replace(/^(Text becomes IDs|IDs become embeddings)$/,x=>x))}</button>`:'').join('')}</div></div>`).join('');
+}
+function bvGo(i){
+  i=Math.max(0,Math.min(BVS.length-1,i));BV.stage=i;const s=BVS[i];
+  $$('#bvChips .bv-chip').forEach((c,k)=>{c.classList.toggle('on',k===i);c.classList.toggle('done',k<i)});
+  $('#bvK').textContent=`Stage ${i+1} of ${BVS.length}`;$('#bvT').textContent=s.t;
+  $('#bvWhat').textContent=s.what;$('#bvWhy').textContent=s.why;$('#bvScale').textContent=s.scale;
+  const go=$('#bvGo');go.dataset.tabgo='decoder';go.dataset.sec=s.sec;
+  $('#bvVis').innerHTML=s.vis();
+  $('#bvPrev').disabled=i===0;$('#bvNext').disabled=i===BVS.length-1;
+}
+let bvTimer=null;
+function bvStop(){BV.play=false;clearTimeout(bvTimer);$('#bvPlay').lastChild.textContent='Play the journey'}
+async function bvPlay(){
+  if(BV.play){bvStop();return}
+  BV.play=true;$('#bvPlay').lastChild.textContent='Pause';
+  if(BV.stage>=BVS.length-1){bvGo(0)}
+  while(BV.play){
+    await sleep(RM?100:4200);if(!BV.play)return;
+    if(BV.stage>=BVS.length-1){bvStop();return}
+    bvGo(BV.stage+1);
+    if(BV.stage===BVS.length-1){BV.loop=0;bvGo(BV.stage);await bvRunLoop();bvStop();return}
+  }
+}
+async function bvRunLoop(){
+  if(BV.running)return;BV.running=true;if(BV.loop>=BVLOOP.length)BV.loop=0;
+  bvGo(BV.stage);
+  while(BV.loop<BVLOOP.length&&BV.running){await sleep(900);BV.loop++;bvGo(BV.stage);if(BV.stage!==BVS.length-1)break}
+  BV.running=false;if(BV.stage===BVS.length-1)bvGo(BV.stage);
+}
+const BVCARDS=[
+ ['It only continues text','The model’s one job is to predict the next word, again and again.','Start the text you want continued. Phrase the task clearly, as the opening of the answer you expect.',[10]],
+ ['The prompt is all it sees','It has no memory of you or your files. Only the tokens in the window go in.','Put the facts, rules, examples and data right in the prompt. Do not assume it knows your context.',[1,3]],
+ ['Words reshape the odds','Attention lets every extra detail shift the scores for the next word.','Be specific: role, audience, format, constraints, an example of a good answer.',[4,5,8]],
+ ['Picking is partly random','The next word is sampled from percentages, not looked up from a fixed table.','Expect variation. Lower the temperature for consistent answers, raise it for ideas. Run it twice when it matters.',[9]],
+ ['One word at a time','There is no plan before writing. Each word depends only on the words before it.','Ask it to lay out reasoning or steps before the answer. Split big tasks into smaller ones.',[10]],
+ ['Plausible is not true','Scores measure what sounds likely after the words so far, not what has been checked.','Give it the sources. Verify names, numbers and quotes. Ask it to say when it is unsure.',[8]],
+ ['Learned once, then frozen','The weights are fixed after training. A chat does not retrain the model.','Re-state new facts in every conversation. Do not expect it to remember tomorrow unless a tool stores it.',[6,7]],
+ ['Cost follows tokens','Every token in and out passes through every block, and the window has a size limit.','Trim the prompt, summarise long material, and avoid pasting what the task does not need.',[1,7]]];
+function bvCardsBuild(){
+  $('#bvCards').innerHTML=BVCARDS.map(([t,b,s,st])=>`<div class="sm-card"><h4>${t}</h4><div class="sm-because">Because of stage ${st.map(n=>`<button type="button" data-bvstage="${n-1}" title="${esc(BVS[n-1].t)}">${n}</button>`).join('')}</div><p><b style="color:var(--ink)">Because</b> ${b}</p><p><b style="color:var(--ink)">So</b> ${s}</p></div>`).join('');
+}
+const BVMAKE={
+ weak:{p:'Is this invoice OK?',w:[['bad','No role','Who is the model supposed to be? It will guess.'],['bad','No rule','What does “OK” mean? It must invent a standard.'],['bad','No facts','No amounts, no purchase order. It can only talk in general.'],['bad','No format','Expect a vague, chatty reply of unpredictable length.']],o:'Likely reply: a generic “It depends. Check the amount, vendor and PO…” with nothing you can act on.'},
+ strong:{p:'You are an accounts-payable reviewer.\nRule: approve only if the invoice total is within 2% of the purchase order total; otherwise flag it.\n\nPurchase order PO-1042: $1,000.00\nInvoice INV-77: $1,008.00\n\nReply in one line: APPROVE or FLAG, then the reason.',w:[['','Role','Sets the tone and the kind of words that follow (stage 4: words reshape the odds).'],['','Rule','Puts the standard into the window, since the model only sees what is there (stage 1 to 3).'],['','Facts','Gives attention real numbers to look back at (stage 4).'],['','Format','Narrows the next-word choices to a short, checkable answer (stage 8 to 10).']],o:'Likely start of reply: “APPROVE: total is 0.8% over PO-1042, within the 2% limit.” A real model may word it differently, so still check the arithmetic.'}};
+function bvMakeRender(){
+  const m=BVMAKE[BV.make];$('#bvPrompt').textContent=m.p;
+  $('#bvMakeWhy').innerHTML=m.w.map(([c,a,b])=>`<div class="row ${c}"><b>${a}</b><span>${b}</span></div>`).join('')+`<p class="note">${m.o}</p>`;
+  $$('#bvMake .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===BV.make));
+}
+function bvInit(){
+  bvChipsBuild();bvCardsBuild();bvMakeRender();bvGo(0);
+  $('#bvChips').addEventListener('click',e=>{const b=e.target.closest('[data-bvs]');if(b){bvStop();bvGo(+b.dataset.bvs)}});
+  $('#bvPrev').addEventListener('click',()=>{bvStop();bvGo(BV.stage-1)});
+  $('#bvNext').addEventListener('click',()=>{bvStop();bvGo(BV.stage+1)});
+  $('#bvPlay').addEventListener('click',bvPlay);
+  $('#bvVis').addEventListener('click',e=>{
+    const w=e.target.closest('[data-w]');if(w){BV.att=+w.dataset.w;bvGo(BV.stage);return}
+    const m=e.target.closest('[data-bvmode]');if(m){BV.mode=m.dataset.bvmode;BV.picked=null;bvGo(BV.stage);return}
+    if(e.target.closest('[data-bvpick]')){
+      if(BV.mode==='greedy')BV.picked=BVCAND[0].w;
+      else{let r=Math.random(),tot=BVCAND.reduce((a,c)=>a+c.p,0)+.36;r*=tot;let pk=null;for(const c of BVCAND){r-=c.p;if(r<=0){pk=c.w;break}}BV.picked=pk||'(one of ~100,000 rarer words)'}
+      bvGo(BV.stage);return}
+    const l=e.target.closest('[data-bvloop]');if(l){
+      const a=l.dataset.bvloop;
+      if(a==='reset'){BV.running=false;BV.loop=0;bvGo(BV.stage)}
+      else if(a==='step'){if(BV.loop>=BVLOOP.length)BV.loop=0;else BV.loop++;bvGo(BV.stage)}
+      else bvRunLoop();
+    }});
+  $('#bvSmart').addEventListener('click',e=>{const b=e.target.closest('[data-bvstage]');if(b){bvStop();bvGo(+b.dataset.bvstage);$('#bvViz').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})}});
+  $('#bvMake').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){BV.make=b.dataset.m;bvMakeRender()}});
+}
+bvInit();
+
 /* ================= PRESENTER SCRIPTS: one short spoken script per section ================= */
 const SCRIPTS={
 intro:{say:[
@@ -3490,6 +3832,17 @@ o3:{say:[
 "The attention weights here are illustrative, drawn to show the kind of alignment trained models learn."],
 show:"Press Translate, or use One step to go slowly."},
 
+v1:{say:[
+"Before we open the machine, here is the whole journey on one sentence: “Approve the invoice if”. All numbers on this page are illustrative.",
+"First, the text is cut into tokens and each token becomes an ID. Then each ID is looked up in a table and becomes a list of numbers, an embedding. Then we add a position, so the model knows the order.",
+"Those lists go into the block. In attention, each word looks back at earlier words and blends in what matters. Several heads do this side by side, because one blend cannot answer every question at once.",
+"Next the MLP. Each word, on its own, is widened, processed and squeezed back. Attention moves information between words; the MLP is where the model processes it. Blocks are stacked, 12 in GPT-2 and 96 in GPT-3.",
+"The last word’s final list is scored against every word in the vocabulary. Softmax turns the scores into percentages. One word is picked, either the top one or by weighted dice.",
+"That word is added to the text and the whole process runs again. This is the autoregressive loop, and it is how a whole reply gets written.",
+"Now the payoff. Because it only continues text, sees only the prompt, and picks one word at a time, we write prompts with a role, a rule, the facts and a format. Compare the weak and strong prompt.",
+"Next we go step by step inside the decoder with your own sentence."],
+show:"Press Play the journey, or step through the ten stages. Finish on the prompt makeover."},
+
 o4:{say:[
 "Researchers found that each half works well on its own.",
 "Encoder-only models understand text, for example BERT, used for search and classification. Encoder-plus-decoder models turn one sequence into another, for example translation. Decoder-only models continue text, and these are the chat models: GPT, Claude and Llama.",
@@ -3504,8 +3857,8 @@ d1:{say:[
 "If the frame stays blank, use Open in a new tab."],
 show:"Load the demo before the session starts."}
 };
-const PS_ORDER=['b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
-const PS_TAB={tabBasics:'Basics',tabConcepts:'Concept',tabOverview:'Overview',tabDecoder:'Decoder',tabDemos:'Demo'};
+const PS_ORDER=['b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','v1','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
+const PS_TAB={tabBasics:'Basics',tabConcepts:'Concept',tabOverview:'Overview',tabBird:'Bird’s-eye',tabDecoder:'Decoder',tabDemos:'Demo'};
 const PS={win:null,panel:null};
 function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.shell');const tab=PS_TAB[shell.id];const num=sec.dataset.num;return {name:sec.dataset.name,label:id==='intro'?'Decoder · Overview':`${tab} ${tab==='Decoder'?'step ':''}${num}`}}
 function psText(id){const d=SCRIPTS[id],m=psMeta(id);return `${m.label}: ${m.name}\n\n${d.say.join('\n\n')}\n\nOn screen: ${d.show}`}
@@ -3589,7 +3942,7 @@ initScripts();
 
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
-const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
+const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),birdseye:$('#tabBird'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
 const ALLSECS=$$('main>section');
 let SECS=$$('#tabDecoder main>section');
 const jump=$('#jump');
@@ -3608,7 +3961,7 @@ function setTab(t,{scroll=true}={}){
   try{history.replaceState(null,'','#'+t)}catch(e){}
   if(document.body.classList.contains('present'))goSlide(0);else if(scroll)window.scrollTo({top:0});
   markActive(SECS[0].id);
-  setTimeout(()=>{if(t==='basics')dlRenderAll();else if(t==='concepts')conceptsRender();else{drawPE();trDraw(true)}},30);
+  setTimeout(()=>{if(t==='basics')dlRenderAll();else if(t==='concepts')conceptsRender();else if(t==='birdseye')bvGo(BV.stage);else{drawPE();trDraw(true)}},30);
 }
 $$('.tabs .btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tabgo]');if(!b)return;if(b.dataset.sec)goToSection(b.dataset.sec);else setTab(b.dataset.tabgo)});
@@ -3637,7 +3990,7 @@ function goSlide(i){
   cur=Math.max(0,Math.min(SECS.length-1,i));
   SECS.forEach((s,k)=>s.classList.toggle('cur',k===cur));
   const s=SECS[cur];
-  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='concepts'?`Concept ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:TAB==='demos'?`Demo ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
+  $('#deckPos').textContent=TAB==='basics'?`Basics ${s.dataset.num} · ${s.dataset.name}`:TAB==='concepts'?`Concept ${s.dataset.num} · ${s.dataset.name}`:TAB==='overview'?`Overview ${s.dataset.num} · ${s.dataset.name}`:TAB==='birdseye'?`Bird’s-eye · ${s.dataset.name}`:TAB==='demos'?`Demo ${s.dataset.num} · ${s.dataset.name}`:cur?`Step ${s.dataset.num} · ${s.dataset.name}`:'Overview';
   $('#deckBar').style.width=(cur/(SECS.length-1)*100)+'%';
   $('#deckPrev').disabled=cur===0;$('#deckNext').disabled=cur===SECS.length-1;
   markActive(s.id);
@@ -3695,7 +4048,7 @@ async function initEngine(){
 renderAll();
 markActive('intro');
 initBasics();
-if(['#basics','#concepts','#overview','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
+if(['#basics','#concepts','#overview','#birdseye','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>
