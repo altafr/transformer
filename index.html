@@ -646,24 +646,30 @@ details.notes code{font:500 13px var(--mono);background:var(--surface-2);padding
 .mk-why .row.bad b{background:var(--pos)}
 @media (max-width:1000px){.bv-groups{grid-template-columns:minmax(0,1fr)}.bv-grid,.mk-grid,.bv-att{grid-template-columns:minmax(0,1fr)}.smart-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.smart-grid,.bv-heads{grid-template-columns:minmax(0,1fr)}.bv-bar{grid-template-columns:96px minmax(0,1fr) 42px}}
-.bv-grid{grid-template-columns:168px minmax(0,1.5fr) minmax(0,1fr)!important}
-.bv-mini{display:grid;gap:3px;align-content:start;font:500 11px var(--sans);position:sticky;top:76px}
+.bv-mini{display:grid;gap:3px;align-content:start;font:500 11px var(--sans);--pk:#3E8EDE}
+:root[data-theme=dark] .bv-mini{--pk:#6FB1F5}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .bv-mini{--pk:#6FB1F5}}
+.bv-mini.rail-mini{order:1;margin:12px 0 10px;max-width:190px}
+.bv-mini.in{display:none}
 .bv-mini .mc{font:600 9px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:2px}
-.bv-p{border:1px solid var(--line);border-radius:7px;padding:4px 8px;background:var(--surface);color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:center;transition:background .25s,border-color .25s,color .25s,box-shadow .25s,opacity .25s;opacity:.62;text-align:left;font:500 11px var(--sans)}
+.bv-p{--pc:var(--h3);border:1px solid color-mix(in srgb,var(--pc) 40%,var(--surface));border-radius:7px;padding:4px 8px;background:color-mix(in srgb,var(--pc) 15%,var(--surface));color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:center;transition:background .25s,border-color .25s,color .25s,box-shadow .25s,opacity .25s;opacity:.7;text-align:left;font:500 11px var(--sans)}
 .bv-p small{font:500 9px var(--mono);color:inherit;opacity:.8}
-.bv-p.on{opacity:1;background:var(--accent);border-color:var(--accent);color:var(--on-strong);box-shadow:0 0 0 3px var(--accent-weak)}
-.bv-p.sec{opacity:1;background:var(--accent-weak);border-color:var(--accent);color:var(--ink)}
+.bv-p[data-c=att]{--pc:var(--h0)}.bv-p[data-c=mlp]{--pc:var(--h1)}.bv-p[data-c=norm]{--pc:var(--h2)}.bv-p[data-c=out]{--pc:var(--pk)}
+.bv-p.on{opacity:1;background:color-mix(in srgb,var(--pc) 62%,var(--surface));border-color:var(--pc);color:var(--ink);font-weight:700;box-shadow:0 0 0 3px color-mix(in srgb,var(--pc) 28%,transparent)}
+.bv-p.sec{opacity:1;background:color-mix(in srgb,var(--pc) 30%,var(--surface));border-color:var(--pc)}
 .bv-ar{text-align:center;color:var(--line);font-size:10px;line-height:8px}
-.bv-blkw{border:1.5px dashed var(--line);border-radius:10px;padding:6px 5px 5px;display:grid;gap:3px;position:relative;transition:border-color .25s,background .25s}
-.bv-blkw.on{border-color:var(--accent);background:var(--accent-weak)}
+.bv-blkw{border:1.5px dashed color-mix(in srgb,var(--h0) 45%,var(--surface));border-radius:10px;padding:6px 5px 5px;display:grid;gap:3px;position:relative;transition:border-color .25s,background .25s}
+.bv-blkw.on{border-color:var(--h0);background:color-mix(in srgb,var(--h0) 12%,var(--surface))}
 .bv-blkw>b{font:700 9px var(--mono);color:var(--muted);letter-spacing:.06em}
 .bv-blkw.on>b{color:var(--ink)}
 .bv-hd{display:flex;gap:3px;justify-content:center;margin-top:-1px}
 .bv-hd i{width:14px;height:5px;border-radius:3px;background:var(--line);transition:background .25s}
 .bv-hd.on i:nth-child(1){background:var(--h0)}.bv-hd.on i:nth-child(2){background:var(--h1)}.bv-hd.on i:nth-child(3){background:var(--h2)}.bv-hd.on i:nth-child(4){background:var(--h3)}
-.bv-loopar{text-align:center;font:600 9px var(--mono);color:var(--muted);border:1px dashed var(--line);border-radius:7px;padding:3px;opacity:.62;transition:all .25s}
-.bv-loopar.on{opacity:1;color:var(--ink);border-color:var(--accent);background:var(--accent-weak)}
-@media (max-width:1000px){.bv-grid{grid-template-columns:minmax(0,1fr)!important}.bv-mini{position:static;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.bv-mini .mc,.bv-ar{display:none}.bv-blkw{grid-column:1/-1}}
+.bv-loopar{text-align:center;font:600 9px var(--mono);color:var(--ink);border:1px dashed var(--h3);border-radius:7px;padding:3px;background:color-mix(in srgb,var(--h3) 12%,var(--surface));opacity:.7;transition:all .25s;cursor:pointer}
+.bv-loopar.on{opacity:1;background:color-mix(in srgb,var(--h3) 55%,var(--surface));font-weight:700}
+@media (max-width:1000px){.bv-mini.in{display:grid}}
+body.present .bv-mini.in{display:grid}
+.bv-mini.in{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.bv-mini.in .mc,.bv-mini.in .bv-ar{display:none}.bv-mini.in .bv-blkw{grid-column:1/-1}.bv-mini.in .bv-loopar{grid-column:1/-1}
 /* ---------- engine ---------- */
 
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -906,6 +912,7 @@ body.present footer{display:none}
 <div class="shell" id="tabBird" hidden>
   <nav class="rail" aria-label="Bird’s-eye view">
     <div class="cap">The whole journey</div>
+    <aside class="bv-mini rail-mini" aria-label="Decoder-only stack, highlighting the current stage"></aside>
   </nav>
   <main>
     <section id="v1" data-name="One sentence, start to finish" data-num="1">
@@ -921,7 +928,7 @@ body.present footer{display:none}
         <div class="bv-card">
           <div class="bv-head"><span class="bv-k" id="bvK"></span><h3 id="bvT"></h3></div>
           <div class="bv-grid">
-            <aside class="bv-mini" id="bvMini" aria-label="Decoder-only stack, highlighting the current stage"></aside>
+            <aside class="bv-mini in" aria-label="Decoder-only stack, highlighting the current stage"></aside>
             <div class="bv-vis" id="bvVis"></div>
             <div class="bv-txt">
               <p><b>What happens</b><span id="bvWhat"></span></p>
@@ -961,7 +968,7 @@ body.present footer{display:none}
 
       <details class="notes"><summary>Presenter notes</summary>
         <h4 class="pn-h">How to use this section</h4>
-        <p>The small stack on the left shows where you are in the decoder; the lit box is the part being explained, and you can click any box to jump to its stage. Press <b>Play the journey</b> for a two-minute tour, or step through with Next and pause on any stage. Part 2 is the payoff: every habit on the cards traces back to a stage you just watched. Finish with the prompt makeover.</p>
+        <p>The small coloured stack in the left navigation (above the stage on phones and in Present mode) shows where you are in the decoder; the lit box is the part being explained, and you can click any box to jump to its stage. Press <b>Play the journey</b> for a two-minute tour, or step through with Next and pause on any stage. Part 2 is the payoff: every habit on the cards traces back to a stage you just watched. Finish with the prompt makeover.</p>
         <h4 class="pn-h">Likely questions</h4>
         <dl class="qa">
           <dt>Are these numbers real?</dt><dd>No. The IDs, percentages, head patterns and neuron names are illustrative, chosen to tell the story. The decoder tab computes real numbers for your own text, and the Demos tab runs a real GPT-2.</dd>
@@ -3627,16 +3634,17 @@ const BVHI={ // primary / secondary parts lit at each stage
  0:[['txt','tok'],[]],1:[['emb'],['tok']],2:[['pos'],['emb']],3:[['att'],['an1']],4:[['att','hd'],[]],
  5:[['mlp'],['an2']],6:[['blk','an1','an2','att','mlp'],['hd']],7:[['fn','unemb','soft'],[]],8:[['pick'],['soft']],9:[['loop','pick','txt'],[]]};
 function bvMiniBuild(){
-  const P=(k,t,sm='')=>`<div class="bv-p" data-part="${k}" role="button" tabindex="0"><span>${t}</span>${sm?`<small>${sm}</small>`:''}</div>`,A='<div class="bv-ar">▼</div>';
-  $('#bvMini').innerHTML=`<div class="mc">Decoder-only stack</div>`+P('txt','Text')+A+P('tok','Tokenizer','IDs')+A+P('emb','Embedding','table')+A+P('pos','+ Position')+A+
+  const CL={att:'att',mlp:'mlp',an1:'norm',an2:'norm',fn:'out',unemb:'out',soft:'out'};
+  const P=(k,t,sm='')=>`<div class="bv-p" data-c="${CL[k]||'in'}" data-part="${k}" role="button" tabindex="0"><span>${t}</span>${sm?`<small>${sm}</small>`:''}</div>`,A='<div class="bv-ar">▼</div>';
+  const html=`<div class="mc">Decoder-only stack</div>`+P('txt','Text')+A+P('tok','Tokenizer','IDs')+A+P('emb','Embedding','table')+A+P('pos','+ Position')+A+
   `<div class="bv-blkw" data-part="blk"><b>BLOCK 1 … N</b>${P('att','Masked attention')}<div class="bv-hd" data-part="hd"><i></i><i></i><i></i><i></i></div>${P('an1','Add &amp; Norm')}${P('mlp','MLP')}${P('an2','Add &amp; Norm')}</div>`+A+
   P('fn','Final norm')+A+P('unemb','Unembedding','→ vocab')+A+P('soft','Softmax','%')+A+P('pick','Pick a token')+`<div class="bv-loopar" data-part="loop">↻ append, repeat</div>`;
-  $('#bvMini').addEventListener('click',e=>{const x=e.target.closest('[data-part]');if(!x)return;let k=x.dataset.part;if(k==='hd')k='att';bvStop();bvGo(BVPARTS[k])});
-  $('#bvMini').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const x=e.target.closest('[data-part]');if(x){e.preventDefault();x.click()}}});
+  $$('.bv-mini').forEach(m=>{m.innerHTML=html;m.addEventListener('click',e=>{const x=e.target.closest('[data-part]');if(!x)return;let k=x.dataset.part;if(k==='hd')k='att';bvStop();bvGo(BVPARTS[k])});
+  m.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const x=e.target.closest('[data-part]');if(x){e.preventDefault();x.click()}}})});
 }
 function bvMiniSet(i){
   const [on,sec]=BVHI[i];
-  $$('#bvMini [data-part]').forEach(n=>{const k=n.dataset.part;n.classList.toggle('on',on.includes(k));n.classList.toggle('sec',sec.includes(k)&&!on.includes(k))});
+  $$('.bv-mini [data-part]').forEach(n=>{const k=n.dataset.part;n.classList.toggle('on',on.includes(k));n.classList.toggle('sec',sec.includes(k)&&!on.includes(k))});
 }
 let bvTimer=null;
 function bvStop(){BV.play=false;clearTimeout(bvTimer);$('#bvPlay').lastChild.textContent='Play the journey'}
