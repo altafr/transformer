@@ -670,6 +670,54 @@ details.notes code{font:500 13px var(--mono);background:var(--surface-2);padding
 @media (max-width:1000px){.bv-mini.in{display:grid}}
 body.present .bv-mini.in{display:grid}
 .bv-mini.in{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.bv-mini.in .mc,.bv-mini.in .bv-ar{display:none}.bv-mini.in .bv-blkw{grid-column:1/-1}.bv-mini.in .bv-loopar{grid-column:1/-1}
+/* ---------- ML warm-up (b0) ---------- */
+.ml-rh{display:flex;gap:12px;align-items:flex-start}.ml-rh h3{margin:0}
+.ml-n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--on-strong);display:grid;place-items:center;font:700 15px var(--mono)}
+.ml-seq{display:flex;flex-wrap:wrap;gap:10px}
+.ml-seq b{min-width:64px;padding:14px 12px;text-align:center;border-radius:12px;border:1px solid var(--line);background:var(--surface);font:800 28px var(--display);box-shadow:var(--shadow)}
+.ml-seq b.q{border-style:dashed;border-color:var(--accent);color:var(--accent);background:var(--accent-weak)}
+.ml-opts,.ml-qs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ml-qs{flex-direction:column;align-items:stretch;gap:12px}
+.ml-q{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.ml-q .t{font-size:14px}.ml-q .t b{font-weight:700}
+.ml-q .btn.ok{background:color-mix(in srgb,var(--neg) 30%,var(--surface));border-color:var(--neg)}
+.ml-q .btn.no{background:color-mix(in srgb,var(--pos) 30%,var(--surface));border-color:var(--pos)}
+.ml-opts .btn.ok{background:color-mix(in srgb,var(--neg) 30%,var(--surface));border-color:var(--neg)}
+.ml-opts .btn.no{background:color-mix(in srgb,var(--pos) 30%,var(--surface));border-color:var(--pos)}
+.ml-fb{border-left:4px solid var(--accent);background:var(--accent-weak);border-radius:0 10px 10px 0;padding:12px 16px;font-size:15px;display:grid;gap:8px;max-width:820px}
+.ml-fb p{margin:0}.ml-fb dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}.ml-fb dt{font:600 12px var(--mono);color:var(--accent)}.ml-fb dd{margin:0}
+.ml-tw{overflow-x:auto}
+.ml-t{border-collapse:collapse;font-size:13px;min-width:100%}
+.ml-t th,.ml-t td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.ml-t th{font:600 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ml-t td.y{font-weight:700}.ml-t td.y.a{color:var(--neg)}.ml-t td.y.d{color:var(--pos)}
+.ml-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.ml-col{display:grid;gap:10px;align-content:start;min-width:0}
+.ml-sl{display:grid;gap:6px}
+.ml-sl label{display:grid;grid-template-columns:104px minmax(0,1fr) 64px;gap:8px;align-items:center;font-size:13px}
+.ml-sl input{width:100%}.ml-sl .v{font:500 12px var(--mono);text-align:right;color:var(--muted)}
+.ml-guess{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.ml-ctl{display:flex;flex-wrap:wrap;gap:8px}
+.ml-stat{font:500 13px var(--mono);color:var(--muted);min-height:1.4em}
+.ml-w{display:grid;gap:5px}
+.ml-wr{display:grid;grid-template-columns:104px minmax(0,1fr) 44px;gap:8px;align-items:center;font-size:12.5px}
+.ml-wr .bar{position:relative;height:14px;background:var(--surface-2);border-radius:4px}
+.ml-wr .bar i{position:absolute;top:0;bottom:0;border-radius:4px;transition:left .12s,width .12s,background .12s}
+.ml-wr .bar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted);opacity:.6}
+.ml-wr .n{font:500 11px var(--mono);color:var(--muted);text-align:right}
+.ml-verdict{font:600 16px var(--display);padding:10px 12px;border:1px solid var(--line);border-radius:10px;min-height:2.6em}
+.ml-verdict small{display:block;font:500 12px var(--sans);color:var(--muted);margin-top:2px}
+.ml-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-width:240px}
+.ml-grid i{aspect-ratio:1;border-radius:3px;background:var(--cell);display:block}
+.ml-grid.ink i.on{background:var(--ink)}
+.ml-thumbs{display:flex;flex-wrap:wrap;gap:10px}
+.ml-th{display:grid;gap:3px;justify-items:center;font:600 11px var(--mono)}
+.ml-th .ml-grid{width:64px;gap:1px}.ml-th .ml-grid i{border-radius:1px}
+.ml-th.ok{color:var(--neg)}.ml-th.no{color:var(--pos)}
+.ml-short{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ml-short>div{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;align-content:start}
+.ml-short b{font:700 15px var(--display)}.ml-short p{margin:0;font-size:14px}
+@media (max-width:820px){.ml-split,.ml-short{grid-template-columns:minmax(0,1fr)}.ml-sl label,.ml-wr{grid-template-columns:92px minmax(0,1fr) 54px}}
 /* ---------- engine ---------- */
 
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -1675,6 +1723,88 @@ body.present footer{display:none}
     <div class="cap">Deep learning from zero</div>
   </nav>
   <main>
+    <section id="b0" data-name="What is a model?" data-num="0">
+      <div class="sec-head">
+        <div class="eyebrow">Start here · machine learning in four rounds</div>
+        <h2>You already build models in your head</h2>
+        <p class="tldr"><b>In short</b>A model is a rule learned from examples that predicts something new. Machine learning finds the rule for us. It works well on tables of facts, and struggles with pictures, sound and language.</p>
+        <p class="lede">Four short rounds. Answer each one yourself before you press anything. Notice what your own mind does. Then watch a machine do the same job on a problem too big for a person.</p>
+      </div>
+
+      <div class="viz" id="mlR1">
+        <div class="ml-rh"><span class="ml-n">1</span><div><h3 class="subh">Spot the pattern</h3><p class="note">What comes next?</p></div></div>
+        <div class="ml-seq" id="mlSeq" aria-label="Number sequence 2, 4, 6, 8, then a question mark"></div>
+        <div class="ml-opts" id="mlOpts1" role="group" aria-label="Choose the next number"></div>
+        <div class="ml-fb" id="mlFb1" hidden></div>
+      </div>
+
+      <div class="viz" id="mlR2">
+        <div class="ml-rh"><span class="ml-n">2</span><div><h3 class="subh">A harder one, still answerable</h3><p class="note">A café owner noted whether each day was busy. Study the six days, then predict two days you have not seen.</p></div></div>
+        <div class="ml-tw"><table class="ml-t" id="mlT2"></table></div>
+        <div id="mlQ2" class="ml-qs"></div>
+        <div class="ml-fb" id="mlFb2" hidden></div>
+      </div>
+
+      <div class="viz" id="mlR3">
+        <div class="ml-rh"><span class="ml-n">3</span><div><h3 class="subh">Now eight columns</h3><p class="note">A bank has records of past loan decisions. Try to find the rule by eye. Then let a machine learn it.</p></div></div>
+        <div class="ml-tw"><table class="ml-t" id="mlT3"></table></div>
+        <div class="ml-split">
+          <div class="ml-col">
+            <span class="label">New applicant (drag to change)</span>
+            <div id="mlSl" class="ml-sl"></div>
+            <div class="ml-guess"><span>Your gut call:</span><div class="seg" role="group" aria-label="Your guess"><button class="btn" type="button" data-g="Approve" aria-pressed="false">Approve</button><button class="btn" type="button" data-g="Decline" aria-pressed="false">Decline</button></div></div>
+          </div>
+          <div class="ml-col">
+            <span class="label">What the machine learns</span>
+            <div class="ml-ctl"><button class="btn primary" id="mlTrain" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Train on 400 past decisions</button><button class="btn" id="mlReset" type="button">Reset</button></div>
+            <div class="ml-stat" id="mlStat" aria-live="polite"></div>
+            <div id="mlW" class="ml-w"></div>
+            <div class="ml-verdict" id="mlVer" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="ml-fb" id="mlFb3" hidden></div>
+      </div>
+
+      <div class="viz" id="mlR4">
+        <div class="ml-rh"><span class="ml-n">4</span><div><h3 class="subh">Where it breaks</h3><p class="note">The same kind of model learns to tell a <b>T</b> from an <b>L</b> in tiny 8×8 pictures. Each pixel is one column.</p></div></div>
+        <div class="ml-split">
+          <div class="ml-col">
+            <span class="label">What it learned (orange = “T-ish” pixel, teal = “L-ish”)</span>
+            <div class="ml-grid" id="mlMap" aria-label="Learned pixel weights"></div>
+          </div>
+          <div class="ml-col">
+            <div class="ml-ctl"><button class="btn" type="button" data-t="same">Test: same position</button><button class="btn primary" type="button" data-t="shift">Test: shifted a little</button></div>
+            <div class="ml-stat" id="mlAcc4" aria-live="polite">Trained on 200 pictures, always in the same position. Press a test.</div>
+            <div class="ml-thumbs" id="mlTh"></div>
+          </div>
+        </div>
+        <div class="ml-fb" id="mlFb4" hidden></div>
+        <div class="ml-short">
+          <div><b>Why it fell short</b><p>It learned <em>where the ink is</em>, not <em>what the shape is</em>. A person fixes this by hand-designing features, for example “has a long stroke across the top”. For a table of loans that is easy. For photos, speech and language there are millions of possible features, and nobody can list them all.</p></div>
+          <div><b>What deep learning changes</b><p>It stacks many layers of dials that learn the features themselves: edges, then shapes, then objects, or letters, then words, then meaning. That is the idea in the next section.</p></div>
+        </div>
+        <div><button class="btn primary" type="button" data-tabgo="basics" data-sec="b1">Next: the neural network as a box of dials →</button></div>
+      </div>
+
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">How to run it</h4>
+        <p>Do rounds 1 and 2 with the room: ask for a show of hands before you reveal. Round 3 is the pivot: let people stare at the table for twenty seconds, then train. Round 4 lands the limit and sets up the next section.</p>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Is the loan model real?</dt><dd>It is a real model, trained live in your browser, on made-up applicants. The hidden rule that created the data is invented. Do not present it as how a bank decides.</dd>
+          <dt>Why is Age near zero?</dt><dd>In this made-up data age plays no part, and the machine found that out by itself. That is a feature, not a bug.</dd>
+          <dt>If machine learning fails on pictures, why does it work for the loans?</dt><dd>Because each loan column already means something: income, debt, late payments. A person did the hard work of choosing and cleaning them. Pixels mean nothing one at a time.</dd>
+          <dt>Could we just give it more shifted pictures?</dt><dd>Sometimes, yes, and in this toy it would help. But real photos vary in size, angle, light and background all at once. Hand-listing every variation does not scale.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Do not say machine learning is “old” or “bad”. It is the right tool for tables of facts.</li>
+          <li>Do not claim the model understands loans. It fits weights to examples.</li>
+          <li>Do not call round 4 proof that machines cannot see. It shows that fixed, hand-picked columns do not carry over to new positions.</li>
+        </ul>
+      </details>
+    </section>
+
     <section id="b1" data-name="The big picture" data-num="1">
       <div class="sec-head">
         <div class="eyebrow">Basics 1 of 6</div>
@@ -3709,6 +3839,100 @@ function bvInit(){
 }
 bvInit();
 
+/* ================= ML WARM-UP (b0) ================= */
+(function(){
+const sg=z=>1/(1+Math.exp(-z));
+/* ---- round 1 ---- */
+const seq=[2,4,6,8],opts=[9,10,12];
+$('#mlSeq').innerHTML=seq.map(n=>`<b>${n}</b>`).join('')+'<b class="q">?</b>';
+$('#mlOpts1').innerHTML=opts.map(n=>`<button class="btn" type="button" data-v="${n}">${n}</button>`).join('');
+$('#mlOpts1').addEventListener('click',e=>{
+  const b=e.target.closest('[data-v]');if(!b)return;
+  $$('#mlOpts1 .btn').forEach(x=>x.classList.remove('ok','no'));
+  const ok=+b.dataset.v===10;b.classList.add(ok?'ok':'no');
+  $('#mlSeq .q').textContent=10;
+  const f=$('#mlFb1');f.hidden=false;
+  f.innerHTML=`<p><b>${ok?'Yes, 10.':'The answer is 10.'}</b> You looked at four examples, spotted a rule (“add 2”), and used it on something you had not seen.</p><p><b>That is a model:</b> a rule found from examples, used to predict a new case. Your brain just built one in a few seconds.</p>`;
+});
+/* ---- round 2 ---- */
+const H2=['Day','Sky','Temperature','Busy?'];
+const R2=[['Weekday','Sunny','Warm','Quiet'],['Weekday','Rainy','Warm','Busy'],['Weekend','Sunny','Cold','Busy'],['Weekend','Rainy','Warm','Busy'],['Weekday','Rainy','Cold','Busy'],['Weekend','Sunny','Warm','Busy']];
+$('#mlT2').innerHTML=`<tr>${H2.map(h=>`<th>${h}</th>`).join('')}</tr>`+R2.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===3?'y '+(c==='Busy'?'a':'d'):''}">${c}</td>`).join('')}</tr>`).join('');
+const Q2=[{t:'Weekday · Sunny · Cold',a:'Quiet'},{t:'Weekend · Rainy · Cold',a:'Busy'}];let q2done=new Set();
+$('#mlQ2').innerHTML=Q2.map((q,i)=>`<div class="ml-q" data-i="${i}"><span class="t"><b>${q.t}</b> → ?</span><button class="btn" type="button" data-a="Busy">Busy</button><button class="btn" type="button" data-a="Quiet">Quiet</button></div>`).join('');
+$('#mlQ2').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const row=b.closest('.ml-q'),q=Q2[+row.dataset.i];
+  row.querySelectorAll('.btn').forEach(x=>x.classList.remove('ok','no'));b.classList.add(b.dataset.a===q.a?'ok':'no');
+  if(b.dataset.a!==q.a)row.querySelector(`[data-a="${q.a}"]`).classList.add('ok');
+  q2done.add(+row.dataset.i);
+  if(q2done.size===Q2.length){const f=$('#mlFb2');f.hidden=false;f.innerHTML=`<p><b>The rule most people find:</b> busy if it is a weekend or it is raining. Temperature does not matter.</p><p>Look at what your mind did. It <b>ignored</b> a column, <b>combined</b> two others, and then handled rows it had never seen. Now the words we will use from here on:</p><dl><dt>examples</dt><dd>the rows you studied (the <b>training data</b>)</dd><dt>columns</dt><dd>the facts about each row (the <b>features</b>)</dd><dt>last column</dt><dd>the answer to learn (the <b>label</b>)</dd><dt>rule in your head</dt><dd>the <b>model</b></dd><dt>new row</dt><dd>a <b>prediction</b>, also called <b>inference</b></dd></dl>`}
+});
+/* ---- round 3 ---- */
+const A=[
+ {k:'Income',u:'$k',lo:20,hi:150,w:4,def:62},{k:'Debt ratio',u:'%',lo:0,hi:80,w:-4,def:38},
+ {k:'Years employed',u:'yrs',lo:0,hi:20,w:1.5,def:6},{k:'Late payments',u:'',lo:0,hi:6,w:-4,def:2},
+ {k:'Credit history',u:'yrs',lo:0,hi:30,w:2,def:9},{k:'Loan amount',u:'$k',lo:5,hi:100,w:-2.5,def:40},
+ {k:'Savings',u:'$k',lo:0,hi:80,w:1.5,def:12},{k:'Age',u:'yrs',lo:18,hi:70,w:0,def:41}];
+const mk=(n,seed)=>{const r=mulberry32(seed);return Array.from({length:n},()=>{const x=A.map(()=>r());const z=1+x.reduce((s,v,i)=>s+v*A[i].w,0)+.6*randn(r);return {x,y:z>0?1:0}})};
+const TR=mk(400,2024),TE=mk(300,7),unit=(a,x)=>Math.round(a.lo+x*(a.hi-a.lo));
+$('#mlT3').innerHTML=`<tr>${A.map(a=>`<th>${a.k}${a.u?` (${a.u})`:''}</th>`).join('')}<th>Decision</th></tr>`+TR.slice(0,8).map(d=>`<tr>${d.x.map((v,i)=>`<td>${unit(A[i],v)}</td>`).join('')}<td class="y ${d.y?'a':'d'}">${d.y?'Approved':'Declined'}</td></tr>`).join('');
+const app=A.map(a=>a.def);
+$('#mlSl').innerHTML=A.map((a,i)=>`<label>${a.k}<input type="range" min="${a.lo}" max="${a.hi}" step="1" value="${a.def}" data-i="${i}" aria-label="${a.k}"><span class="v" id="mlv${i}">${a.def}${a.u?' '+a.u:''}</span></label>`).join('');
+let M={w:A.map(()=>0),b:0,trained:false,run:false,guess:null,frames:null};
+const xN=()=>app.map((v,i)=>(v-A[i].lo)/(A[i].hi-A[i].lo));
+function wRender(){
+  const mx=Math.max(1,...M.w.map(Math.abs));
+  $('#mlW').innerHTML=A.map((a,i)=>{const w=M.w[i],f=Math.min(1,Math.abs(w)/mx)*50;return `<div class="ml-wr"><span>${a.k}</span><span class="bar"><i style="left:${w>=0?50:50-f}%;width:${f}%;background:var(${w>=0?'--neg':'--pos'})"></i></span><span class="n">${w>=0?'+':'−'}${Math.abs(w).toFixed(1)}</span></div>`}).join('');
+}
+function verdict(){
+  const el=$('#mlVer');
+  if(!M.trained&&!M.run){el.innerHTML='Untrained: every dial is 0, so the machine can only shrug (50%).';return}
+  const x=xN(),p=sg(M.b+x.reduce((s,v,i)=>s+v*M.w[i],0));
+  el.innerHTML=`Machine says: ${p>=.5?'Approve':'Decline'} · ${Math.round((p>=.5?p:1-p)*100)}% sure<small>${M.guess?`You said ${M.guess}. `:''}${M.run?'Still learning…':'Change the sliders and watch it respond.'}</small>`;
+}
+$('#mlSl').addEventListener('input',e=>{const i=+e.target.dataset.i;app[i]=+e.target.value;$('#mlv'+i).textContent=app[i]+(A[i].u?' '+A[i].u:'');verdict()});
+$$('.ml-guess [data-g]').forEach(b=>b.addEventListener('click',()=>{M.guess=b.dataset.g;$$('.ml-guess .btn').forEach(x=>x.setAttribute('aria-pressed',x===b));verdict()}));
+const acc=(D,w,b)=>D.filter(d=>(sg(b+d.x.reduce((s,v,i)=>s+v*w[i],0))>.5?1:0)===d.y).length/D.length;
+function trajectory(){
+  let w=A.map(()=>0),b=0;const fr=[];const lr=1.6,n=TR.length;
+  for(let s=0;s<=480;s++){
+    if(s%8===0)fr.push({w:[...w],b,acc:acc(TR,w,b),step:s});
+    const gw=A.map(()=>0);let gb=0;
+    for(const d of TR){const p=sg(b+d.x.reduce((t,v,i)=>t+v*w[i],0));const g=p-d.y;d.x.forEach((v,i)=>gw[i]+=g*v);gb+=g}
+    w=w.map((v,i)=>v-lr*gw[i]/n);b-=lr*gb/n;
+  }
+  return fr;
+}
+async function train(){
+  if(M.run)return;M.run=true;M.frames=M.frames||trajectory();$('#mlTrain').disabled=true;
+  for(const f of M.frames){M.w=f.w;M.b=f.b;wRender();verdict();$('#mlStat').textContent=`Step ${f.step} · right on ${Math.round(f.acc*100)}% of the 400 past decisions`;await sleep(RM?0:70)}
+  M.run=false;M.trained=true;$('#mlTrain').disabled=false;
+  const ta=acc(TE,M.w,M.b);
+  $('#mlStat').textContent=`Done · right on ${Math.round(ta*100)}% of 300 decisions it had never seen`;
+  verdict();
+  const f=$('#mlFb3');f.hidden=false;
+  f.innerHTML=`<p><b>Nobody told it the rule.</b> It started with every dial at zero and nudged them to fit the examples. Income, savings and credit history ended up pushing toward approval. Debt, late payments and loan size pushed against. <b>Age</b> ended near zero, because in this data it carries no signal.</p><p>With eight columns the pattern is hard to see by eye, and it only gets worse with fifty or five hundred. Weighing many columns at once is where machines are strong. <i>(The applicants are made up. This is a real model trained live in your browser, not a real bank.)</i></p>`;
+}
+function reset(){M={w:A.map(()=>0),b:0,trained:false,run:false,guess:M.guess,frames:M.frames};$('#mlTrain').disabled=false;$('#mlStat').textContent='';$('#mlFb3').hidden=true;wRender();verdict()}
+$('#mlTrain').addEventListener('click',train);$('#mlReset').addEventListener('click',()=>{if(!M.run)reset()});
+wRender();verdict();
+/* ---- round 4 ---- */
+const N=8,T_=[[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[2,2],[2,3],[2,4]],L_=[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4],[2,4],[3,4],[4,4]];
+function pic(kind,dx,dy,r){const g=Array(N*N).fill(0);(kind?T_:L_).forEach(([a,b])=>{const x=a+dx,y=b+dy;if(x>=0&&x<N&&y>=0&&y<N)g[y*N+x]=1});for(let i=0;i<N*N;i++)if(r()<.04)g[i]=1-g[i];return g}
+const set=(n,shift,seed)=>{const r=mulberry32(seed);return Array.from({length:n},(_,i)=>{const k=i%2,dx=shift?Math.floor(r()*4):1,dy=shift?Math.floor(r()*4):1;return {x:pic(k,dx,dy,r),y:k}})};
+const P4=(()=>{const D=set(200,false,1);let w=Array(N*N).fill(0),b=0;for(let e=0;e<300;e++){const gw=Array(N*N).fill(0);let gb=0;for(const d of D){const g=sg(b+d.x.reduce((s,v,i)=>s+v*w[i],0))-d.y;d.x.forEach((v,i)=>gw[i]+=g*v);gb+=g}w=w.map((v,i)=>v-.6*gw[i]/D.length);b-=.6*gb/D.length}return {w,b}})();
+const pr=d=>sg(P4.b+d.x.reduce((s,v,i)=>s+v*P4.w[i],0))>.5?1:0;
+const mxw=Math.max(...P4.w.map(Math.abs));
+$('#mlMap').innerHTML=P4.w.map(v=>`<i style="background:${divColor(v,mxw)}"></i>`).join('');
+const thumb=(d,ok)=>`<div class="ml-th ${ok?'ok':'no'}"><div class="ml-grid ink">${d.x.map(v=>`<i class="${v?'on':''}"></i>`).join('')}</div><span>${d.y?'T':'L'} → ${pr(d)?'T':'L'} ${ok?'✓':'✗'}</span></div>`;
+$$('[data-t]').forEach(b=>b.addEventListener('click',()=>{
+  const shift=b.dataset.t==='shift',D=set(400,shift,shift?3:2),a=D.filter(d=>pr(d)===d.y).length/D.length;
+  $('#mlAcc4').innerHTML=`<b>${Math.round(a*100)}% right</b> on ${shift?'pictures shifted by up to three pixels':'pictures in the training position'}${shift?' (50% is a coin flip)':''}.`;
+  $('#mlTh').innerHTML=D.slice(0,6).map(d=>thumb(d,pr(d)===d.y)).join('');
+  const f=$('#mlFb4');f.hidden=!shift;if(shift)f.innerHTML=`<p><b>Same model, same shapes, near coin-flip.</b> The map on the left shows why: each dial belongs to one pixel position. Move the shape and the dials no longer line up.</p>`;
+}));
+})();
+
 /* ================= PRESENTER SCRIPTS: one short spoken script per section ================= */
 const SCRIPTS={
 intro:{say:[
@@ -3799,6 +4023,17 @@ s9:{say:[
 "The bar on the right shows the context window. A model can only read a fixed number of tokens, 1,024 for GPT-2, and every new word uses one. When the window is full, the oldest text is dropped, which is why very long chats can forget their beginning.",
 "The Demos tab lets you try a real GPT-2."],
 show:"Press Generate and point at the context window bar."},
+
+b0:{say:[
+"Before neural networks, one idea: what is a model? A model is a rule, learned from examples, that predicts something new.",
+"Round one. Two, four, six, eight. What comes next? Ten. You looked at examples, found the rule “add two”, and applied it. You just built a model.",
+"Round two is harder. Six days at a café, with day, sky and temperature. Predict two days you have not seen. Most of you ignored the temperature and found “busy on weekends or when it rains”. That is a model too, built in your head.",
+"Notice the words. The rows are the training data. The columns are features. The last column is the label. The rule is the model. A new row is a prediction, also called inference.",
+"Round three. A bank has eight columns for each past loan. Try to find the rule by eye. It is hard. Now we press Train. The machine starts with every dial at zero and nudges them to fit 400 past decisions. It finds that income helps, debt and late payments hurt, and age does not matter. Eight columns is easy for a machine. Eight hundred would be too.",
+"Round four is where it breaks. The same kind of model learns to tell a T from an L in 8 by 8 pictures, and gets everything right when the shape is in the usual place. Shift the picture a little and it falls to a coin flip. It learned where the ink is, not what the shape is.",
+"A person can fix that by hand-designing features. That is fine for loans. For photos, sound and language there are millions of possible features, and nobody can list them. That is the gap deep learning fills: it learns the features itself, in layers.",
+"Next, the neural network as a box of dials."],
+show:"Ask for a show of hands in rounds 1 and 2 before pressing anything. In round 3 pause for twenty seconds before training."},
 
 b1:{say:[
 "A neural network is a machine full of dials. Numbers go in, an answer comes out, and the dials decide what it does.",
@@ -3903,7 +4138,7 @@ d1:{say:[
 "If the frame stays blank, use Open in a new tab."],
 show:"Load the demo before the session starts."}
 };
-const PS_ORDER=['b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','v1','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
+const PS_ORDER=['b0','b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','v1','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
 const PS_TAB={tabBasics:'Basics',tabConcepts:'Concept',tabOverview:'Overview',tabBird:'Bird’s-eye',tabDecoder:'Decoder',tabDemos:'Demo'};
 const PS={win:null,panel:null};
 function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.shell');const tab=PS_TAB[shell.id];const num=sec.dataset.num;return {name:sec.dataset.name,label:id==='intro'?'Decoder · Overview':`${tab} ${tab==='Decoder'?'step ':''}${num}`}}
