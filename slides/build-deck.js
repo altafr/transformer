@@ -605,7 +605,7 @@ Important honesty point: nobody assigns these roles. They emerge from training, 
     "●  household-object words are likely",
     "●  the noun phrase is about to end",
   ], { fill: C.white, line: C.ffnM, tc: C.ffn, anim: A(3, "rise", 300) });
-  text(s, "About two-thirds of a model’s weights live in these layers; researchers believe much of its factual knowledge is stored here.", { x: 7.7, y: 6.12, w: 5.0, h: 0.6, fontSize: 10, color: C.muted, objectName: A(5, "fade", 600) });
+  text(s, "About two-thirds of the weights inside the blocks live in these layers; researchers believe much of its factual knowledge is stored here.", { x: 7.7, y: 6.12, w: 5.0, h: 0.6, fontSize: 10, color: C.muted, objectName: A(5, "fade", 600) });
 
   s.addNotes(`The second half of every block is the feed-forward network, also called the MLP.
 
@@ -618,16 +618,91 @@ The key contrast: attention is a group meeting — tokens exchange information. 
 
 [CLICK] The exact same network, with the same weights, is applied to every token separately — in parallel.
 
-Fun fact: about two-thirds of the parameters in a model live in these layers, and interpretability research suggests a lot of factual knowledge — "Paris is the capital of France" — is stored here.
+Fun fact: about two-thirds of the weights inside the blocks live in these layers, and interpretability research suggests a lot of factual knowledge — "Paris is the capital of France" — is stored here.
 
-Slogan to remember: attention mixes, feed-forward transforms.`);
+Slogan to remember: attention mixes, feed-forward transforms. Next slide: a worked example of what the MLP actually does.`);
 }
 
 // =====================================================================
-// 9. Stacking blocks
+// 9. The MLP up close: a worked example
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "09 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
+  const s = contentSlide("The decoder block", "09 · THE MLP UP CLOSE", C.ffn, "The MLP up close: what it does in every block",
+    "Every block has its own MLP: thousands of “if I see this pattern → add that meaning” rules, applied to each token.");
+
+  // ---- left: worked example ----
+  chip(s, "the", 0.6, 1.8, { w: 0.6, h: 0.34, size: 11, fill: C.tokL, line: C.tok, anim: A(1, "fade") });
+  text(s, "Worked example: the vector for the last “the” in “The cat sat on the”", { x: 1.3, y: 1.84, w: 5.8, h: 0.28, fontSize: 11, bold: true, color: C.ffn, objectName: A(1, "fade") });
+  [["DETECTOR · row of W₁ · looks for…", 0.6, 2.45], ["SCORE → GELU", 3.3, 1.35], ["WRITER · column of W₂ · adds", 4.9, 2.3]].forEach(([t, x, w]) =>
+    text(s, t, { x, y: 2.28, w, h: 0.22, fontSize: 8.5, bold: true, color: C.muted, charSpacing: 1, objectName: A(1, "fade", 150) }));
+
+  const neurons = [
+    { det: "a sitting verb right before it (“sat on”)", score: "2.6 → 2.6", state: "FIRES", out: "“a surface or piece of furniture comes next”", on: true },
+    { det: "an animal or pet is the subject (“cat”)", score: "1.4 → 1.3", state: "FIRES", out: "“cosy pet spots: mat, rug, sofa, bed”", on: true },
+    { det: "the text is about money or banking", score: "−1.8 → 0.0", state: "SILENT", out: "“bank, price, dollars” — not added", on: false },
+  ];
+  neurons.forEach((n, i) => {
+    const y = 2.58 + i * 0.86, st = i + 2;
+    box(s, n.det, 0.6, y, 2.45, 0.72, { fill: n.on ? C.ffnL : C.bg2, color: n.on ? C.ink : C.faint, size: 10.5, align: "left", margin: [10, 8, 0, 0], anim: A(st, "rise") });
+    line(s, 3.08, y + 0.36, 3.27, y + 0.36, { color: n.on ? C.ffn : C.faint, w: 1.5, anim: A(st, "wipe", 200) });
+    box(s, [
+      { text: n.score, options: { fontSize: 10, color: n.on ? C.white : C.muted, breakLine: true } },
+      { text: n.state, options: { fontSize: 11, bold: true, color: n.on ? C.white : C.muted } },
+    ], 3.3, y, 1.35, 0.72, { fill: n.on ? C.ffn : "E2E8F0", margin: 0, anim: A(st, "zoom", 350) });
+    line(s, 4.68, y + 0.36, 4.87, y + 0.36, { color: n.on ? C.ffn : C.faint, w: 1.5, dash: n.on ? undefined : "dash", anim: A(st, "wipe", 600) });
+    box(s, n.out, 4.9, y, 2.2, 0.72, { fill: n.on ? C.white : C.bg2, line: n.on ? C.ffn : C.line, color: n.on ? C.ffn : C.faint, size: 10.5, bold: n.on, align: "left", margin: [10, 8, 0, 0], anim: A(st, "rise", 750) });
+  });
+
+  // result: x + MLP(x)
+  s.addText([
+    { text: "Result:  x + MLP(x)", options: { bold: true, color: C.ink } },
+    { text: "   the update is added back through the residual path", options: { color: C.muted, fontSize: 10 } },
+  ], { x: 0.6, y: 5.25, w: 6.5, h: 0.28, fontFace: F, fontSize: 11.5, margin: 0, isTextBox: true, objectName: A(5, "fade") });
+  text(s, "the vector now leans toward:", { x: 0.6, y: 5.7, w: 2.1, h: 0.34, fontSize: 10, color: C.muted, valign: "middle", objectName: A(5, "fade", 100) });
+  let cx = 2.7;
+  [["mat ↑", true], ["rug ↑", true], ["sofa ↑", true], ["floor ↑", true], ["bank ↓", false]].forEach(([t, up], k) => {
+    cx += chip(s, t, cx, 5.7, { size: 10.5, h: 0.34, fill: up ? C.ffnL : C.bg2, line: up ? C.ffn : C.line, color: up ? C.ffn : C.faint, anim: A(5, "zoom", 250 + k * 120) }) + 0.1;
+  });
+  text(s, "Illustrative: real neurons are messier, and many fire a little at once.", { x: 0.6, y: 6.2, w: 6.5, h: 0.24, fontSize: 9.5, italic: true, color: C.faint, objectName: A(5, "fade", 900) });
+
+  // ---- right: the MLP's job at different depths ----
+  text(s, "Same design, a different job at each depth", { x: 7.5, y: 1.84, w: 5.2, h: 0.28, fontSize: 11, bold: true, color: C.ink, objectName: A(6, "fade") });
+  [
+    { t: "Early blocks · tidy up the token", d: "“ the” + position 4 → “a determiner; a noun phrase starts here”.", f: C.tokL, c: C.tok },
+    { t: "Middle blocks · combine context", d: "“sat” + “on” + “the” → “we are describing a location”.", f: C.attL, c: C.att },
+    { t: "Late blocks · recall and prepare the answer", d: "“cat” + “sits on” → boost mat, sofa, floor; push down unrelated words.", f: C.outL, c: C.out },
+  ].forEach((r, k) => card(s, 7.5, 2.25 + k * 1.05, 5.2, 0.92, r.t, r.d, { fill: r.f, tc: r.c, ts: 12, bs: 10.5, margin: [8, 12, 8, 12], anim: A(6, "rise", k * 250) }));
+  s.addText([
+    { text: "MLP(x) = W₂ · GELU(W₁ · x + b₁) + b₂", options: { bold: true, color: C.ffn, fontSize: 12.5, breakLine: true } },
+    { text: "W₁ holds the detectors, W₂ holds what each one writes. GPT-2 small has 3,072 of them in every block, and each of its 12 blocks learns its own set.", options: { color: C.body, fontSize: 10.5, paraSpaceBefore: 4 } },
+  ], { shape: S.ROUNDED_RECTANGLE, x: 7.5, y: 5.45, w: 5.2, h: 1.25, rectRadius: 0.1, fill: { color: C.bg2 }, fontFace: F, valign: "middle", margin: [8, 12, 8, 12], objectName: A(7, "rise") });
+
+  s.addNotes(`The last slide said what the MLP is. This one shows what it does, with our sentence. The MLP, multi-layer perceptron, is the same thing as the feed-forward network.
+
+A useful mental model: the MLP is a huge set of rules, each saying "if I see this pattern, add that meaning". Each hidden neuron is one rule. Its row of the first weight matrix, W1, is the detector: the pattern it looks for. Its column of the second matrix, W2, is the writer: what it adds to the vector when it fires.
+
+[CLICK] Take the vector for the last “the” in “The cat sat on the”. Attention has already mixed in information about the cat and the sitting.
+
+[CLICK] Neuron 1's detector looks for "a sitting verb just before". It matches strongly, score 2.6. GELU lets it through: it fires. Its writer adds "a surface or piece of furniture comes next".
+
+[CLICK] Neuron 2 looks for "an animal or pet is the subject". It also fires and adds "cosy pet spots: mat, rug, sofa, bed".
+
+[CLICK] Neuron 3 looks for "talk about money". The score is negative, so GELU squashes it to about zero. It stays silent and adds nothing. That is the job of the non-linearity: rules switch ON only when their pattern is present.
+
+[CLICK] The MLP's output is added back to the original vector through the residual path. The vector now leans toward mat, rug, sofa and floor, and away from bank. The final prediction still happens at the very top, but this block nudged it in the right direction.
+
+[CLICK] Every block has its own MLP with its own rules, and their jobs shift with depth. Early blocks tidy up the token itself. Middle blocks combine context into ideas like "this is a location". Late blocks recall facts and push up the likely answers.
+
+[CLICK] The formula: W1 holds the detectors, GELU is the on/off switch, W2 holds what each detector writes. GPT-2 small has 3,072 detectors in each of its 12 blocks.
+
+Honesty point: these neat labels are illustrative. Real neurons often respond to several unrelated things, and meaning is usually spread across many neurons at once. The "detector and writer" picture is still the most useful way to think about it.`);
+}
+
+// =====================================================================
+// 10. Stacking blocks
+// =====================================================================
+{
+  const s = contentSlide("The decoder block", "10 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
     "The same block design repeats many times — 12 in GPT-2 small, 96 in GPT-3. Each layer refines the vectors further.");
   const sx = 4.35, sw = 3.6, bh = 0.6, bg = 0.12;
   const by = (i) => 5.55 - i * (bh + bg);
@@ -689,7 +764,7 @@ This is a tendency, not a strict rule. Layers overlap a lot.`);
 // =====================================================================
 pres.addSection({ title: "Output and generation" });
 {
-  const s = contentSlide("Output and generation", "10 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
+  const s = contentSlide("Output and generation", "11 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
     "Only the last token’s final vector is used to predict what comes next.");
   let x = 0.6;
   SENT.forEach((t, i) => {
@@ -753,7 +828,7 @@ These numbers are illustrative but realistic in shape.`);
 // 11. Choosing the next token
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "11 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
+  const s = contentSlide("Output and generation", "12 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
     "The model gives probabilities. A decoding strategy turns them into one actual token.");
   const toks = ["mat", "floor", "sofa", "bed", "chair", "windowsill"];
   function bars(x, y, ps, o = {}) {
@@ -822,7 +897,7 @@ In practice, chat models typically combine a temperature with top-p. When you se
 // 12. Generation loop
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "12 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
+  const s = contentSlide("Output and generation", "13 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
     "Predict, append, repeat — until the model emits an end token or hits a length limit.");
   const cx = 3.65, cy = 4.4, R = 1.8, RX = 2.15;
   rect(s, cx - RX, cy - R, 2 * RX, 2 * R, { shape: S.OVAL, line: C.line, lw: 2, dash: "dash" });
@@ -881,7 +956,7 @@ This loop is also why LLMs can't "go back and edit": each token is final once it
 // 13. Training vs inference
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "13 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
+  const s = contentSlide("Output and generation", "14 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
     "Same model, same mask — but training checks every position at once, while generation must go one step at a time.");
   // training panel
   rect(s, 0.6, 1.85, 6.0, 3.55, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line });
@@ -932,7 +1007,7 @@ This is called teacher forcing: even if the model would have guessed “floor”
 // =====================================================================
 pres.addSection({ title: "Summary" });
 {
-  const s = contentSlide("Summary", "14 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
+  const s = contentSlide("Summary", "15 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
     "Tokens → embeddings → decoder blocks → probabilities → next token, then repeat.");
   const nodes = [
     { t: "Text", d: "“The cat sat on the”", sh: "a string", w: 1.4, f: C.bg2, c: C.ink },
@@ -998,7 +1073,7 @@ pres.addSection({ title: "Summary" });
 // =====================================================================
 {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Summary" });
-  text(s, "15 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
+  text(s, "16 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
   s.addText("Five things to remember", { x: 0.8, y: 0.85, w: 11, h: 0.6, fontFace: F, fontSize: 28, bold: true, color: C.white, margin: 0, isTextBox: true });
   const items = [
     ["The decoder is causal", "Each token sees only the past. The mask enforces this in training and in generation.", "64748B"],
