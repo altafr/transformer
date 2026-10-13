@@ -231,11 +231,101 @@ function sliderModel(s, x, y, w, h, fracs, o = {}) {
 }
 
 // =====================================================================
-// W1. Warm-up: training and inference
+// W0. Warm-up: weights are dials that learn
 // =====================================================================
 pres.addSection({ title: "Warm-up" });
+// a round dial; the needle is a thin wedge centred on the knob so a spin effect turns it in place
+function dial(s, cx, cy, r, val, o = {}) {
+  rect(s, cx - r, cy - r, 2 * r, 2 * r, { shape: S.OVAL, fill: C.white, line: C.attM, lw: 2.5 });
+  for (let v = -3; v <= 3; v++) {
+    const a = (v * 45 * Math.PI) / 180, rr = r + 0.13;
+    dot(s, cx + rr * Math.sin(a), cy - rr * Math.cos(a), v === 0 ? 0.07 : 0.05, v === 0 ? C.muted : C.line);
+  }
+  text(s, "−", { x: cx - r - 0.3, y: cy + r * 0.8, w: 0.3, h: 0.3, fontSize: 14, bold: true, color: C.out, align: "center" });
+  text(s, "+", { x: cx + r, y: cy + r * 0.8, w: 0.3, h: 0.3, fontSize: 14, bold: true, color: C.ffn, align: "center" });
+  // needle: a thin pie slice from the centre to the rim, pointing up at 0; its box is the whole knob, so it spins in place
+  const nr = r * 0.88;
+  s.addShape(S.PIE, { x: cx - nr, y: cy - nr, w: 2 * nr, h: 2 * nr, angleRange: [263, 277], rotate: val * 45, fill: { color: C.att }, line: { type: "none" }, objectName: o.spin });
+  dot(s, cx, cy, 0.2, C.ink);
+}
 {
-  const s = contentSlide("Warm-up", "02 · WARM-UP · TRAINING AND INFERENCE", C.pos, "Deep learning in one slide: learn first, then use",
+  const s = contentSlide("Warm-up", "02 · WARM-UP · WEIGHTS ARE DIALS", C.pos, "Weights are dials that learn",
+    "A model’s knowledge is nothing more than where its dials are set. Learning = turning the dials, a little at a time.");
+  text(s, "Toy model: “Will the cat sit here?”  3 inputs, 3 dials", { x: 0.6, y: 1.8, w: 7.4, h: 0.28, fontSize: 12, bold: true, color: C.ink });
+  const dials = [
+    { t: "soft?", x: 1.35, v: 0.2, turns: ["spp45", null, "spp36"] },
+    { t: "warm?", x: 3.05, v: -0.5, turns: ["spp54", null, "spp36"] },
+    { t: "wet?", x: 4.75, v: 0.6, turns: [null, "spn117", "spn23"] },
+  ];
+  const cy = 2.95, r = 0.55;
+  dials.forEach((d) => line(s, d.x, cy, 5.85, cy, { color: C.line, w: 1.25 }));
+  text(s, "input × dial, all added up", { x: 5.35, y: cy - 0.62, w: 1.7, h: 0.22, fontSize: 9, italic: true, color: C.muted, align: "center" });
+  dials.forEach((d, i) => {
+    // one needle, turned on several clicks: its name carries one anim token per turn
+    const spins = d.turns.map((t, k) => (t ? A(k + 1, t, 300 + i * 150) : null)).filter(Boolean);
+    dial(s, d.x, cy, r, d.v, { spin: spins.join("~") });
+    text(s, d.t, { x: d.x - 0.6, y: cy + r + 0.22, w: 1.2, h: 0.26, fontSize: 12, bold: true, color: C.ink, align: "center" });
+    text(s, `start ${d.v > 0 ? "+" : "−"}${Math.abs(d.v).toFixed(1)}`, { x: d.x - 0.6, y: cy + r + 0.48, w: 1.2, h: 0.22, fontSize: 9.5, color: C.muted, align: "center" });
+  });
+  box(s, "Σ", 5.9, cy - 0.3, 0.6, 0.6, { shape: S.OVAL, fill: C.att, color: C.white, size: 16, bold: true, margin: 0 });
+  line(s, 6.53, cy, 6.8, cy, { color: C.faint, w: 1.5 });
+  box(s, [{ text: "will sit?", options: { fontSize: 9, color: C.muted, breakLine: true } }, { text: "a yes / no guess", options: { fontSize: 10.5, bold: true, color: C.ink } }], 6.85, cy - 0.4, 1.3, 0.8, { fill: C.white, line: C.line });
+
+  // training examples, one per click
+  const ex = [
+    { spot: "Mat", feat: "soft · warm · dry", truth: "cat sat ✓", said: "model said 30%", fix: "→ turn soft and warm up", c: C.ffn },
+    { spot: "Puddle", feat: "wet · cold", truth: "cat left ✗", said: "model said 55%", fix: "→ turn wet way down", c: C.out },
+    { spot: "Sofa", feat: "soft · warm · dry", truth: "cat sat ✓", said: "model said 85%", fix: "→ small nudges; nearly right", c: C.ffn },
+  ];
+  ex.forEach((e, k) => {
+    const y = 4.15 + k * 0.62;
+    s.addText([
+      { text: `Example ${k + 1}: ${e.spot}  `, options: { bold: true, color: C.ink } },
+      { text: `${e.feat}  ·  `, options: { color: C.muted } },
+      { text: `${e.truth}  ·  `, options: { bold: true, color: e.c } },
+      { text: `${e.said}  `, options: { color: C.body } },
+      { text: e.fix, options: { bold: true, color: C.att } },
+    ], { shape: S.ROUNDED_RECTANGLE, x: 0.6, y, w: 7.55, h: 0.5, rectRadius: 0.08, fill: { color: C.card }, line: { color: C.line, width: 1 }, fontFace: F, fontSize: 10.5, valign: "middle", margin: [10, 8, 0, 0], objectName: A(k + 1, "rise") });
+  });
+  s.addText([
+    { text: "After training:  soft +2.0 · warm +1.5 · wet −2.5", options: { bold: true, color: C.att, breakLine: true } },
+    { text: "Nobody wrote “cats like soft, warm, dry places”. It is stored in where the dials ended up.", options: { color: C.body, fontSize: 10.5 } },
+  ], { shape: S.ROUNDED_RECTANGLE, x: 0.6, y: 6.05, w: 7.55, h: 0.68, rectRadius: 0.08, fill: { color: C.attL }, fontFace: F, fontSize: 11.5, valign: "middle", margin: [12, 8, 0, 0], objectName: A(4, "rise") });
+
+  card(s, 8.45, 1.8, 4.25, 1.4, "A weight = how much an input matters", [
+    "Turned to + : pushes the answer toward yes.",
+    "Turned to − : pushes toward no.   Near 0 : ignored.",
+  ], { fill: C.attL, tc: C.att, ts: 12, bs: 10.5 });
+  card(s, 8.45, 3.35, 4.25, 1.55, "Learning = turning dials", [
+    "After each example, every dial turns a little in the direction that would have shrunk the error.",
+    "Bigger mistake → bigger turn.",
+  ], { fill: C.posL, tc: C.pos, ts: 12, bs: 10.5, anim: A(1, "rise", 900) });
+  card(s, 8.45, 5.05, 4.25, 1.68, "Same idea, enormous scale", [
+    "This toy has 3 dials. GPT-2 small has 124 million. Frontier LLMs have hundreds of billions.",
+    "The calculus that says which way to turn each dial is called backpropagation.",
+  ], { fill: C.bg2, tc: C.ink, ts: 12, bs: 10.5, anim: A(4, "rise", 300) });
+
+  s.addNotes(`Before anything else, one picture to carry through the whole talk: weights are dials.
+
+Here is a toy model that answers one question: "will the cat sit here?" It looks at three facts about a spot — is it soft, is it warm, is it wet — and each fact has its own dial. The dial says how much that fact matters. Turned to plus, it pushes the answer toward yes; turned to minus, toward no; near zero, the fact is ignored. The model adds up the inputs, each weighted by its dial, and that sum becomes its guess.
+
+At the start the dials are set randomly. Notice "warm" is even slightly negative and "wet" slightly positive — this model knows nothing about cats.
+
+[CLICK] Example 1: a mat — soft, warm, dry — and the cat sat on it. The model only said 30%. Too low. So we turn the dials that were "on" for this example — soft and warm — up. Watch them turn.
+[CLICK] Example 2: a puddle. Wet and cold, and the cat left. The model said 55% — too high. The wet dial was pushing toward yes, so we turn it way down.
+[CLICK] Example 3: a sofa. The model now says 85% and the cat did sit. Small error, so only small nudges.
+[CLICK] After training: soft +2.0, warm +1.5, wet −2.5. Nobody typed in "cats like soft, warm, dry places". That knowledge lives entirely in where the dials ended up.
+
+That is all learning is: show an example, measure the error, turn every dial a little in the direction that shrinks it. The maths that tells each dial which way to turn is called backpropagation.
+
+An LLM is exactly this — just with billions of dials instead of three, and instead of "will the cat sit here?" the question is "what's the next word?". Next slide: that full loop.`);
+}
+
+// =====================================================================
+// W1. Warm-up: training and inference
+// =====================================================================
+{
+  const s = contentSlide("Warm-up", "03 · WARM-UP · TRAINING AND INFERENCE", C.pos, "Deep learning in one slide: learn first, then use",
     "A model is a function with millions of adjustable dials (weights). Training sets the dials; inference uses them.");
   // training panel
   rect(s, 0.6, 1.8, 7.0, 4.95, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line });
@@ -289,9 +379,7 @@ pres.addSection({ title: "Warm-up" });
     { text: "Inference: ", options: { bold: true, color: C.out } }, { text: "milliseconds, every message.", options: {} },
   ], 8.1, 5.75, 4.4, 0.8, { fill: C.white, line: C.line, size: 10.5, color: C.body, align: "left", margin: [10, 10, 4, 4], anim: A(6, "rise") });
 
-  s.addNotes(`Before we open up the decoder, four warm-up ideas. First: what does "training" a deep learning model actually mean?
-
-A model is just a function with a huge number of adjustable dials, called weights or parameters. GPT-2 small has 124 million; frontier models have hundreds of billions. Nobody sets them by hand.
+  s.addNotes(`Now the same dial idea, applied to language. A language model is a function with a huge number of dials — GPT-2 small has 124 million; frontier models have hundreds of billions. Nobody sets them by hand; training does, exactly like the cat example.
 
 [CLICK] Training step 1: show the model an example. Here, the text “The cat sat on the”. With random dials, its guess is poor: floor 30%, mat only 5%.
 [CLICK] Step 2: compare with the real answer from the text, “mat”. The gap is measured by a single number, the loss. Here it's big.
@@ -308,7 +396,7 @@ Keep these two modes in mind — we'll come back to them at the end, specificall
 // W2. Warm-up: non-linearity
 // =====================================================================
 {
-  const s = contentSlide("Warm-up", "03 · WARM-UP · NON-LINEARITY", C.pos, "Non-linearity: why networks need a bend",
+  const s = contentSlide("Warm-up", "04 · WARM-UP · NON-LINEARITY", C.pos, "Non-linearity: why networks need a bend",
     "Without bends, stacking a hundred layers is no smarter than one. Example: when is a banana good to eat?");
   const P = [0.6, 4.65, 8.7], PW = [3.85, 3.85, 4.0], py = 1.8, ph = 3.65;
   P.forEach((x, i) => rect(s, x, py, PW[i], ph, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line, anim: A(i + 1, "fade") }));
@@ -376,7 +464,7 @@ Keep these two modes in mind — we'll come back to them at the end, specificall
 // W3. Warm-up: dot product
 // =====================================================================
 {
-  const s = contentSlide("Warm-up", "04 · WARM-UP · THE DOT PRODUCT", C.pos, "The dot product: a match score for two lists of numbers",
+  const s = contentSlide("Warm-up", "05 · WARM-UP · THE DOT PRODUCT", C.pos, "The dot product: a match score for two lists of numbers",
     "Multiply matching positions, add them up. A big result means the two vectors “agree”.");
   // header
   text(s, "feature", { x: 0.6, y: 1.95, w: 1.6, h: 0.24, fontSize: 9, bold: true, color: C.muted, charSpacing: 1 });
@@ -444,7 +532,7 @@ To make it concrete, imagine describing words with just three numbers: how anima
 // W4. Warm-up: softmax
 // =====================================================================
 {
-  const s = contentSlide("Warm-up", "05 · WARM-UP · SOFTMAX", C.pos, "Softmax: turning scores into probabilities",
+  const s = contentSlide("Warm-up", "06 · WARM-UP · SOFTMAX", C.pos, "Softmax: turning scores into probabilities",
     "Scores can be any number, even negative. Softmax turns them into percentages that add up to 100%.");
   const rows = [["mat", 3.0], ["floor", 2.0], ["sofa", 1.5], ["banana", -1.0]];
   const ex = rows.map(([, v]) => Math.exp(v));
@@ -511,7 +599,7 @@ That's the four warm-ups. Now, the decoder.`);
 // =====================================================================
 pres.addSection({ title: "The big picture" });
 {
-  const s = contentSlide("The big picture", "06 · THE JOB", C.out, "The decoder’s job: guess the next token, again and again",
+  const s = contentSlide("The big picture", "07 · THE JOB", C.out, "The decoder’s job: guess the next token, again and again",
     "It reads everything written so far, predicts one token, adds it to the text — and repeats.");
   const rows = [
     { y: 2.15, toks: SENT, pred: "mat", label: "Step 1" },
@@ -567,7 +655,7 @@ Quick vocabulary: a token is a word or a piece of a word. Common words are one t
 // =====================================================================
 pres.addSection({ title: "Inputs" });
 {
-  const s = contentSlide("Inputs", "07 · FROM TEXT TO VECTORS", C.tok, "From text to vectors",
+  const s = contentSlide("Inputs", "08 · FROM TEXT TO VECTORS", C.tok, "From text to vectors",
     "Neural networks only do math on numbers, so each token becomes a list of numbers (a vector).");
   const ids = [464, 3797, 3332, 319, 262];
   const colX = (i) => 2.7 + i * 2.0;
@@ -617,7 +705,7 @@ pres.addSection({ title: "Inputs" });
 // =====================================================================
 pres.addSection({ title: "The decoder block" });
 {
-  const s = contentSlide("The decoder block", "08 · INSIDE ONE BLOCK", C.att, "Inside one decoder block",
+  const s = contentSlide("The decoder block", "09 · INSIDE ONE BLOCK", C.att, "Inside one decoder block",
     "A block is a small pipeline. Every token’s vector flows through it and comes out richer.");
   const gap = 0.34, cy = 2.95, h = 0.95;
   const els = [
@@ -688,7 +776,7 @@ Remember the slogan: attention mixes, feed-forward transforms.`);
 // 5. Masked self-attention
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "09 · MASKED SELF-ATTENTION", C.att, "Masked self-attention: no peeking at the future",
+  const s = contentSlide("The decoder block", "10 · MASKED SELF-ATTENTION", C.att, "Masked self-attention: no peeking at the future",
     "Each token may look at itself and the tokens before it — never at tokens that come later.");
   const W = [[1], [0.35, 0.65], [0.04, 0.86, 0.1], [0.05, 0.2, 0.55, 0.2], [0.1, 0.08, 0.12, 0.5, 0.2]];
   const gx = 1.85, gy = 2.4, cs = 0.62, g = 0.05;
@@ -749,7 +837,7 @@ Analogy: reading a mystery novel with a card sliding down the page. You can use 
 // 6. Q, K, V
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "10 · HOW ATTENTION COMPUTES CONTEXT", C.att, "Queries, keys and values",
+  const s = contentSlide("The decoder block", "11 · HOW ATTENTION COMPUTES CONTEXT", C.att, "Queries, keys and values",
     "While processing “sat”, the model effectively asks: who is doing the sitting?");
   // Query
   s.addText([
@@ -816,7 +904,7 @@ The formula in the corner is the whole thing. The √d just keeps scores from ge
 // 7. Multi-head attention
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "11 · MULTI-HEAD ATTENTION", C.att, "Multi-head attention: many perspectives at once",
+  const s = contentSlide("The decoder block", "12 · MULTI-HEAD ATTENTION", C.att, "Multi-head attention: many perspectives at once",
     "Several heads run in parallel, each with its own Q, K, V matrices — so each learns to look for something different.");
   const heads = [
     { t: "Head 1 · Subject", c: "7C3AED", d: "Every word checks who the sentence is about: the “cat” column lights up.",
@@ -869,7 +957,7 @@ Important honesty point: nobody assigns these roles. They emerge from training, 
 // 8. Feed-forward network
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "12 · THE FEED-FORWARD NETWORK", C.ffn, "The feed-forward network: each token thinks on its own",
+  const s = contentSlide("The decoder block", "13 · THE FEED-FORWARD NETWORK", C.ffn, "The feed-forward network: each token thinks on its own",
     "Attention mixes information between tokens. The feed-forward network then transforms each token’s vector by itself.");
   chip(s, "the", 0.95, 1.85, { w: 0.85, h: 0.4, size: 12, fill: C.tokL, line: C.tok });
   text(s, "vector for the last “the”, after attention", { x: 1.9, y: 1.92, w: 4.2, h: 0.26, fontSize: 10, italic: true, color: C.muted });
@@ -932,7 +1020,7 @@ Slogan to remember: attention mixes, feed-forward transforms. Next slide: a work
 // 9. The MLP up close: a worked example
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "13 · THE MLP UP CLOSE", C.ffn, "The MLP up close: what it does in every block",
+  const s = contentSlide("The decoder block", "14 · THE MLP UP CLOSE", C.ffn, "The MLP up close: what it does in every block",
     "Every block has its own MLP: thousands of “if I see this pattern → add that meaning” rules, applied to each token.");
 
   // ---- left: worked example ----
@@ -1007,7 +1095,7 @@ Honesty point: these neat labels are illustrative. Real neurons often respond to
 // 10. Stacking blocks
 // =====================================================================
 {
-  const s = contentSlide("The decoder block", "14 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
+  const s = contentSlide("The decoder block", "15 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
     "The same block design repeats many times — 12 in GPT-2 small, 96 in GPT-3. Each layer refines the vectors further.");
   const sx = 4.35, sw = 3.6, bh = 0.6, bg = 0.12;
   const by = (i) => 5.55 - i * (bh + bg);
@@ -1069,7 +1157,7 @@ This is a tendency, not a strict rule. Layers overlap a lot.`);
 // =====================================================================
 pres.addSection({ title: "Output and generation" });
 {
-  const s = contentSlide("Output and generation", "15 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
+  const s = contentSlide("Output and generation", "16 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
     "Only the last token’s final vector is used to predict what comes next.");
   let x = 0.6;
   SENT.forEach((t, i) => {
@@ -1133,7 +1221,7 @@ These numbers are illustrative but realistic in shape.`);
 // 11. Choosing the next token
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "16 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
+  const s = contentSlide("Output and generation", "17 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
     "The model gives probabilities. A decoding strategy turns them into one actual token.");
   const toks = ["mat", "floor", "sofa", "bed", "chair", "windowsill"];
   function bars(x, y, ps, o = {}) {
@@ -1202,7 +1290,7 @@ In practice, chat models typically combine a temperature with top-p. When you se
 // 12. Generation loop
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "17 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
+  const s = contentSlide("Output and generation", "18 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
     "Predict, append, repeat — until the model emits an end token or hits a length limit.");
   const cx = 3.65, cy = 4.4, R = 1.8, RX = 2.15;
   rect(s, cx - RX, cy - R, 2 * RX, 2 * R, { shape: S.OVAL, line: C.line, lw: 2, dash: "dash" });
@@ -1261,7 +1349,7 @@ This loop is also why LLMs can't "go back and edit": each token is final once it
 // 13. Training vs inference
 // =====================================================================
 {
-  const s = contentSlide("Output and generation", "18 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
+  const s = contentSlide("Output and generation", "19 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
     "Same model, same mask — but training checks every position at once, while generation must go one step at a time.");
   // training panel
   rect(s, 0.6, 1.85, 6.0, 3.55, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line });
@@ -1312,7 +1400,7 @@ This is called teacher forcing: even if the model would have guessed “floor”
 // =====================================================================
 pres.addSection({ title: "Summary" });
 {
-  const s = contentSlide("Summary", "19 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
+  const s = contentSlide("Summary", "20 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
     "Tokens → embeddings → decoder blocks → probabilities → next token, then repeat.");
   const nodes = [
     { t: "Text", d: "“The cat sat on the”", sh: "a string", w: 1.4, f: C.bg2, c: C.ink },
@@ -1378,7 +1466,7 @@ pres.addSection({ title: "Summary" });
 // =====================================================================
 {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Summary" });
-  text(s, "20 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
+  text(s, "21 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
   s.addText("Five things to remember", { x: 0.8, y: 0.85, w: 11, h: 0.6, fontFace: F, fontSize: 28, bold: true, color: C.white, margin: 0, isTextBox: true });
   const items = [
     ["The decoder is causal", "Each token sees only the past. The mask enforces this in training and in generation.", "64748B"],
@@ -1411,6 +1499,12 @@ Suggested discussion questions: Why can't an LLM "take back" a word it already w
 // ---------- native animations ----------
 function effectXml(ids, spid, eff, delay, nodeType) {
   const tgt = `<p:tgtEl><p:spTgt spid="${spid}"/></p:tgtEl>`;
+  // "spp45" / "spn117": turn the shape clockwise / anticlockwise by that many degrees (spin emphasis)
+  if (eff.startsWith("sp")) {
+    const deg = (eff[2] === "n" ? -1 : 1) * Number(eff.slice(3));
+    const outer = ids();
+    return `<p:par><p:cTn id="${outer}" presetID="8" presetClass="emph" presetSubtype="0" accel="30000" decel="30000" fill="hold" grpId="0" nodeType="${nodeType}"><p:stCondLst><p:cond delay="${delay}"/></p:stCondLst><p:childTnLst><p:animRot by="${deg * 60000}"><p:cBhvr><p:cTn id="${ids()}" dur="1000" fill="hold"/>${tgt}<p:attrNameLst><p:attrName>r</p:attrName></p:attrNameLst></p:cBhvr></p:animRot></p:childTnLst></p:cTn></p:par>`;
+  }
   // "mvp35" / "mvn28": slide the shape right/left by 0.35 / 0.28 inches (motion path)
   if (eff.startsWith("mv")) {
     const dx = ((eff[2] === "n" ? -1 : 1) * Number(eff.slice(3))) / 100 / 13.333;
@@ -1442,7 +1536,7 @@ function timingXml(items) {
       .map((it, k) => effectXml(ids, it.spid, it.eff, it.delay, k === 0 ? "clickEffect" : "withEffect")).join("");
     return `<p:par><p:cTn id="${outer}" fill="hold"><p:stCondLst><p:cond delay="indefinite"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${inner}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effs}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
   }).join("");
-  const bld = items.map((i) => `<p:bldP spid="${i.spid}" grpId="0" animBg="1"/>`).join("");
+  const bld = [...new Set(items.map((i) => i.spid))].map((id) => `<p:bldP spid="${id}" grpId="0" animBg="1"/>`).join("");
   return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst><p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>${clicks}</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst><p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq></p:childTnLst></p:cTn></p:par></p:tnLst><p:bldLst>${bld}</p:bldLst></p:timing>`;
 }
 
@@ -1455,8 +1549,9 @@ async function addAnimations(file) {
     const items = [];
     for (const m of xml.matchAll(/<p:cNvPr\b([^>]*)>/g)) {
       const id = /\bid="(\d+)"/.exec(m[1]);
-      const name = /\bname="anim-(\d+)-(\w+)-(\d+)-\d+"/.exec(m[1]);
-      if (id && name) items.push({ spid: id[1], step: +name[1], eff: name[2], delay: +name[3] });
+      const name = /\bname="([^"]*)"/.exec(m[1]);
+      if (!id || !name) continue;
+      for (const t of name[1].matchAll(/anim-(\d+)-(\w+)-(\d+)-\d+/g)) items.push({ spid: id[1], step: +t[1], eff: t[2], delay: +t[3] });
     }
     let extra = `<p:transition spd="med"><p:fade/></p:transition>`;
     if (items.length) { extra += timingXml(items); total += items.length; }
