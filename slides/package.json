@@ -1,0 +1,7 @@
+{
+  "name": "decoder-explainer-slides",
+  "private": true,
+  "description": "Generator for transformer-decoder-explained.pptx",
+  "scripts": { "build": "node build-deck.js" },
+  "dependencies": { "jszip": "^3.10.1", "pptxgenjs": "^4.0.1" }
+}
