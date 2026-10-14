@@ -495,11 +495,19 @@ input[type=range]{accent-color:var(--accent);width:220px;max-width:100%}
 @media (max-width:1000px){.goals,.dictionary{grid-template-columns:minmax(0,1fr)}}
 .ps-link{margin-left:auto;font:500 11px var(--mono);letter-spacing:0;text-transform:none;color:var(--muted);background:none;border:0;border-bottom:1px dotted var(--muted);padding:0 0 1px;cursor:pointer;white-space:nowrap}
 .ps-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.code-link{margin-left:12px;font:500 11px var(--mono);letter-spacing:0;text-transform:none;color:var(--muted);background:none;border:0;border-bottom:1px dotted var(--muted);padding:0 0 1px;cursor:pointer;white-space:nowrap}
+.code-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.eyebrow .code-link:first-of-type{margin-left:auto}.eyebrow .ps-link+.code-link{margin-left:12px}
 .sec-head .eyebrow,.hero .eyebrow{max-width:760px}
-#psPanel{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:90;width:min(440px,calc(100vw - 32px));max-height:min(78vh,640px);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);overflow:hidden;display:grid}
-#psPanel #psBody{overflow-y:auto;padding:18px 20px 20px;font:16px/1.6 var(--sans)}
+#psPanel{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:90;width:min(440px,calc(100vw - 32px));max-height:min(78vh,640px);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);overflow:hidden;display:flex;flex-direction:column}
+#psPanel #psBody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 20px 20px;font:16px/1.6 var(--sans)}
 #psPanel .ps-x{position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;z-index:2}
 #psPanel .ps-top{padding-right:36px}
+#codePanel{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:91;width:min(560px,calc(100vw - 32px));max-height:min(80vh,700px);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -12px rgba(0,0,0,.45);overflow:hidden;display:flex;flex-direction:column}
+#codePanel #cdBody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 20px 20px;font:16px/1.6 var(--sans)}
+#codePanel .ps-x{position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;z-index:2}
+#codePanel .ps-top{padding-right:36px}
+#codePanel .ps-tag,#codePanel .ps-cnt,#codePanel .ps-sync,#codePanel .ps-nav button{font-family:var(--mono)}
 /* ---------- key concepts + structured presenter notes ---------- */
 .dp-table{min-width:560px;display:grid;gap:6px}
 .dp-head,.dp-row{display:grid;grid-template-columns:84px minmax(120px,1fr) 18px minmax(120px,1fr) minmax(110px,.9fr);gap:12px;align-items:center}
@@ -4221,6 +4229,124 @@ function initScripts(){
 }
 initScripts();
 
+const CODE_HEAD="\"\"\"mini_gpt.py: a tiny GPT-2-style decoder-only transformer in PyTorch.\n\nRun:  pip install torch  &&  python mini_gpt.py\nIt trains in a few seconds on a CPU, then continues a prompt one token at a time.\nThe chunks below follow the steps of the \"Transformer decoder\" tab, in order.\n\"\"\"";
+const CODE=[{"id": "s0", "title": "Training: where the weights come from", "note": "Training is a loop: guess the next token at every position, measure the error, nudge every weight. The model class comes later; this only needs a model that maps token IDs to logits.", "code": "import re\nimport math\nimport torch\nimport torch.nn as nn\nimport torch.nn.functional as F\n\n\ndef train(model, ids, steps=400, batch=16, lr=3e-3):\n    \"\"\"ids: 1-D tensor holding the whole training text as token IDs.\"\"\"\n    T = model.cfg.block_size\n    opt = torch.optim.AdamW(model.parameters(), lr=lr)\n    for step in range(steps):\n        # random windows of text; the target is the same window shifted one token left\n        starts = torch.randint(0, len(ids) - T - 1, (batch,))\n        x = torch.stack([ids[s : s + T] for s in starts])          # (B, T)  inputs\n        y = torch.stack([ids[s + 1 : s + T + 1] for s in starts])  # (B, T)  next tokens\n        logits = model(x)                                          # (B, T, vocab)\n        loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1))\n        opt.zero_grad()\n        loss.backward()   # how much did each weight contribute to the error?\n        opt.step()        # nudge every weight a little to lower it\n        if step % 100 == 0:\n            print(f\"step {step:4d}  loss {loss.item():.3f}\")"},
+{"id": "s1", "title": "Tokenisation", "note": "Text becomes integer IDs, because the model can only do arithmetic. This toy splits on words and punctuation; GPT-2 uses byte-pair encoding with about 50,000 sub-word tokens.", "code": "class Tokenizer:\n    def __init__(self, corpus):\n        pieces = sorted(set(self.split(corpus)))\n        self.itos = [\"<unk>\"] + pieces                      # ID -> token\n        self.stoi = {t: i for i, t in enumerate(self.itos)} # token -> ID\n\n    @staticmethod\n    def split(text):\n        return re.findall(r\"\\w+|[^\\w\\s]\", text.lower())\n\n    def encode(self, text):\n        return [self.stoi.get(t, 0) for t in self.split(text)]\n\n    def decode(self, ids):\n        return \" \".join(self.itos[i] for i in ids)\n\n\nclass Config:\n    vocab_size = None   # filled in from the tokenizer\n    block_size = 32     # longest context the model can read\n    n_embd = 64         # numbers per token (GPT-2 small: 768)\n    n_head = 4          # attention heads per block (GPT-2 small: 12)\n    n_layer = 2         # decoder blocks stacked (GPT-2 small: 12)"},
+{"id": "se", "title": "Embeddings", "note": "Each token ID selects one row of a learned table. The row is that token's vector. Nothing about the token's meaning is hand-written; training shapes the table.", "code": "class TokenEmbedding(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.table = nn.Embedding(cfg.vocab_size, cfg.n_embd)  # one row per vocabulary entry\n\n    def forward(self, idx):          # idx: (B, T) integer IDs\n        return self.table(idx)       # (B, T, n_embd)  a lookup, not a calculation"},
+{"id": "s2", "title": "Positional encoding", "note": "Attention ignores word order by itself, so each position gets its own learned vector, added to the token vector. (The 2017 paper used fixed sine and cosine waves; GPT-2 learns them.)", "code": "class PositionEmbedding(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.table = nn.Embedding(cfg.block_size, cfg.n_embd)  # one row per position\n\n    def forward(self, T):\n        return self.table(torch.arange(T))   # (T, n_embd)\n\n# input to the first block:  x = TokenEmbedding(idx) + PositionEmbedding(T)"},
+{"id": "s3a", "title": "Q, K, V", "note": "Three learned matrices turn every token's vector into a query, a key and a value. The same matrices are used for every token; only the input x changes. Here they are packed into one Linear layer.", "code": "class QKV(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.proj = nn.Linear(cfg.n_embd, 3 * cfg.n_embd)  # W_Q, W_K, W_V side by side\n\n    def forward(self, x):                                   # x: (B, T, n_embd)\n        q, k, v = self.proj(x).chunk(3, dim=-1)             # each (B, T, n_embd)\n        return q, k, v                                      # query: what I look for; key: what I offer; value: what I hand over"},
+{"id": "s3", "title": "Masked attention", "note": "Each token scores every earlier token (query · key), the future is masked out, softmax turns the scores into weights, and the output is a weighted blend of the values.", "code": "def masked_attention(q, k, v):\n    d = q.size(-1)\n    T = q.size(-2)\n    scores = q @ k.transpose(-2, -1) / math.sqrt(d)               # (.., T, T) match score for every pair\n    causal = torch.tril(torch.ones(T, T, dtype=torch.bool))       # lower triangle = allowed to look at\n    scores = scores.masked_fill(~causal, float(\"-inf\"))           # hide the future\n    weights = F.softmax(scores, dim=-1)                           # each row sums to 1\n    return weights @ v                                            # weighted mix of earlier tokens' values"},
+{"id": "s4", "title": "Add & Norm", "note": "Add the layer's output back to its input (the residual path), and normalise so the numbers stay well-scaled. GPT-2 normalises before the layer (pre-norm); the 2017 paper did it after.", "code": "class AddNorm(nn.Module):\n    def __init__(self, cfg, layer):\n        super().__init__()\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.layer = layer\n\n    def forward(self, x):\n        return x + self.layer(self.norm(x))   # x + layer(norm(x))"},
+{"id": "s5", "title": "Multiple heads", "note": "Run attention several times side by side, each head on its own slice of the numbers, so each can look for a different kind of relationship. Join the results and mix them with one more matrix, W_O.", "code": "class MultiHeadAttention(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.h = cfg.n_head\n        self.qkv = QKV(cfg)\n        self.out = nn.Linear(cfg.n_embd, cfg.n_embd)          # W_O\n\n    def forward(self, x):\n        B, T, C = x.shape\n        q, k, v = self.qkv(x)\n        split = lambda t: t.view(B, T, self.h, C // self.h).transpose(1, 2)  # (B, heads, T, C/heads)\n        y = masked_attention(split(q), split(k), split(v))    # every head at once\n        y = y.transpose(1, 2).reshape(B, T, C)                # concatenate the heads\n        return self.out(y)                                    # mix them with W_O"},
+{"id": "s6", "title": "MLP", "note": "After attention has gathered context, each token passes alone through a small two-layer network: widen 4x, apply a non-linearity (GELU), narrow back. Then the block is complete.", "code": "class MLP(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(cfg.n_embd, 4 * cfg.n_embd),\n            nn.GELU(),                                        # the non-linearity\n            nn.Linear(4 * cfg.n_embd, cfg.n_embd),\n        )\n\n    def forward(self, x):\n        return self.net(x)\n\n\nclass Block(nn.Module):\n    \"\"\"One decoder block: attention then MLP, each wrapped in Add & Norm.\"\"\"\n    def __init__(self, cfg):\n        super().__init__()\n        self.attn = AddNorm(cfg, MultiHeadAttention(cfg))\n        self.mlp = AddNorm(cfg, MLP(cfg))\n\n    def forward(self, x):\n        return self.mlp(self.attn(x))"},
+{"id": "s7", "title": "Final softmax", "note": "Stack the blocks, normalise once more, then score every vocabulary token against the last vector (the unembedding). Softmax turns the scores into probabilities.", "code": "class GPT(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.cfg = cfg\n        self.tok = TokenEmbedding(cfg)\n        self.pos = PositionEmbedding(cfg)\n        self.blocks = nn.Sequential(*[Block(cfg) for _ in range(cfg.n_layer)])\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)   # the unembedding\n        self.head.weight = self.tok.table.weight   # GPT-2 reuses the embedding table here\n\n    def forward(self, idx):                                   # idx: (B, T)\n        x = self.tok(idx) + self.pos(idx.size(1))             # steps 2 and 3: embeddings + positions\n        x = self.blocks(x)                                    # the stack of blocks\n        return self.head(self.norm(x))                        # (B, T, vocab) raw scores, called logits\n\n\ndef next_token_probs(model, idx):\n    logits = model(idx)[:, -1, :]    # only the LAST token's vector predicts the next token\n    return F.softmax(logits, dim=-1) # (B, vocab) probabilities that add up to 1"},
+{"id": "s8", "title": "Next word", "note": "Choose one token from the probabilities. Greedy always takes the top one. Sampling rolls weighted dice; temperature sharpens or flattens the odds, and top-k drops the long tail.", "code": "def pick(logits, temperature=1.0, top_k=None, greedy=False):\n    if greedy:\n        return logits.argmax(dim=-1, keepdim=True)\n    logits = logits / temperature                              # <1 sharper, >1 flatter\n    if top_k:\n        cutoff = torch.topk(logits, top_k).values[..., -1:]\n        logits = logits.masked_fill(logits < cutoff, float(\"-inf\"))\n    probs = F.softmax(logits, dim=-1)\n    return torch.multinomial(probs, num_samples=1)             # weighted dice"},
+{"id": "s9", "title": "Generation loop", "note": "Append the chosen token to the text and run the whole model again. Repeat until enough tokens are written. This loop is why models answer one token at a time.", "code": "@torch.no_grad()\ndef generate(model, idx, n_new=12, **pick_args):\n    for _ in range(n_new):\n        window = idx[:, -model.cfg.block_size:]               # keep within the context length\n        logits = model(window)[:, -1, :]                      # last position only\n        nxt = pick(logits, **pick_args)\n        idx = torch.cat([idx, nxt], dim=1)                    # append and go round again\n    return idx\n\n\nif __name__ == \"__main__\":\n    torch.manual_seed(0)\n    prompt = __PROMPT__\n    corpus = (prompt + \" mat. \") * 3 + (\n        \"The dog sat on the rug. The cat chased the mouse. \"\n        \"The bird sat on the wall. The cat slept on the bed. \"\n    ) * 3   # a tiny corpus, so the model mostly memorises it (GPT-2 saw about 40 GB of text)\n    tok = Tokenizer(corpus + \" \" + prompt)\n    cfg = Config()\n    cfg.vocab_size = len(tok.itos)\n    model = GPT(cfg)\n    train(model, torch.tensor(tok.encode(corpus)))\n    start = torch.tensor([tok.encode(prompt)])                # (1, T)\n    print(tok.decode(generate(model, start, n_new=8, greedy=True)[0].tolist()))"}];
+/* ================= PYTHON CODE POP-UP (decoder steps) ================= */
+const CODE_ORDER=CODE.map(c=>c.id);
+const CW={win:null,panel:null,cur:null,all:false,lock:0};
+const codeSentence=()=>($('#prompt')?.value||'').trim()||'The cat sat on the';
+const codeSrc=c=>c.code.replace('__PROMPT__',JSON.stringify(codeSentence()));
+const codeFull=()=>CODE_HEAD+'\n\n'+CODE.map(codeSrc).join('\n\n\n')+'\n';
+function pyHL(code){
+  const re=/(#[^\n]*)|("""[\s\S]*?"""|f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|\b(def|class)(\s+)([A-Za-z_]\w*)|\b(def|class|return|import|from|for|in|if|else|elif|None|True|False|lambda|with|as|not|and|or|is|while|pass)\b|(@[A-Za-z_.]+)|\b(self)\b|\b(\d+(?:\.\d+)?(?:e-?\d+)?)\b/g;
+  let out='',last=0,m;
+  while((m=re.exec(code))){
+    out+=esc(code.slice(last,m.index));last=re.lastIndex;
+    if(m[1])out+=`<i class="c">${esc(m[1])}</i>`;
+    else if(m[2])out+=`<i class="s">${esc(m[2])}</i>`;
+    else if(m[3])out+=`<i class="k">${m[3]}</i>${m[4]}<i class="f">${m[5]}</i>`;
+    else if(m[6])out+=`<i class="k">${m[6]}</i>`;
+    else if(m[7])out+=`<i class="d">${esc(m[7])}</i>`;
+    else if(m[8])out+=`<i class="se">${m[8]}</i>`;
+    else out+=`<i class="n">${m[9]}</i>`;
+  }
+  return out+esc(code.slice(last));
+}
+function codeMeta(id){const sec=document.getElementById(id);return {name:sec.dataset.name,num:sec.dataset.num}}
+function codeHtml(id){
+  const i=CODE_ORDER.indexOf(id),c=CODE[i],m=codeMeta(id),upto=CW.all?CODE.length-1:i;
+  const nxt=CODE[i+1];
+  const blocks=CODE.slice(0,upto+1).map((b,k)=>{
+    const cur=k===i,later=k>i;
+    return `<section class="ck ${cur?'cur':later?'later':'old'}" ${cur?'id="ckCur"':''}><div class="ck-h"><span>${cur?'Step '+esc(codeMeta(b.id).num)+' · '+esc(b.title):esc(b.title)}</span>${cur?'<b>NEW</b>':later?'<em>later</em>':''}</div>${cur?`<p class="ck-note">${esc(b.note)}</p>`:''}<pre><code>${pyHL(codeSrc(b))}</code></pre></section>`}).join('');
+  return `<div class="ps-top"><span class="ps-tag">Python · step ${esc(m.num)}</span><span class="ps-sync" title="This code follows the section shown on the page."><i></i>in sync with the page</span><span class="ps-cnt">${i+1} of ${CODE.length}</span></div>
+  <h1>${esc(c.title)}</h1>
+  <div class="cd-tools"><button data-cd="copy" type="button">Copy full file</button><button data-cd="dl" type="button">Download mini_gpt.py</button><button data-cd="all" type="button" aria-pressed="${CW.all}">${CW.all?'Only up to this step':'Show the whole file'}</button></div>
+  <div class="cd-code">${blocks}</div>
+  ${!CW.all&&nxt?`<p class="cd-next">Next step adds: <b>${esc(nxt.title)}</b></p>`:''}
+  <div class="ps-nav"><button data-cd="prev" type="button" ${i===0?'disabled':''}>← Previous</button><button data-cd="next" type="button" ${i===CODE.length-1?'disabled':''}>Next →</button></div>`;
+}
+function codeVars(){const cs=getComputedStyle(document.documentElement);return ['--bg','--surface','--surface-2','--ink','--muted','--line','--accent','--accent-weak','--pos','--neg','--on-strong'].map(v=>`${v}:${cs.getPropertyValue(v).trim()}`).join(';')+';color-scheme:'+(cs.colorScheme||'light')}
+const CODE_CSS=PS_CSS+`
+.ck-note{margin:0;padding:10px 12px 0;font:400 14.5px/1.55 'IBM Plex Sans',system-ui,sans-serif;color:var(--ink)}
+h1{font-size:22px!important;margin:6px 0 10px!important}
+.cd-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.cd-tools button{font:500 12px 'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
+.cd-tools button:hover{border-color:var(--accent)}.cd-tools button[aria-pressed=true]{background:var(--accent-weak);border-color:var(--accent)}
+.cd-code{display:grid;gap:10px}
+.ck{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.ck-h{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;font:600 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line);background:var(--surface-2)}
+.ck-h b{color:var(--on-strong);background:var(--accent);border-radius:4px;padding:0 6px}.ck-h em{font-style:normal;opacity:.7}
+.ck pre{margin:0;padding:10px 12px;overflow-x:auto;font:500 12.5px/1.6 'IBM Plex Mono',ui-monospace,Menlo,monospace;tab-size:4}
+.ck.old{opacity:.62}.ck.later{opacity:.4}
+.ck.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}.ck.cur .ck-h{background:var(--accent-weak);color:var(--ink)}
+.ck i{font-style:normal}.ck .c{color:var(--muted);font-style:italic}.ck .s{color:var(--neg)}.ck .k{color:var(--accent);font-weight:600}.ck .f{color:var(--pos);font-weight:600}.ck .d{color:var(--pos)}.ck .n{color:var(--pos)}.ck .se{color:var(--muted)}
+.cd-next{margin:12px 0 0;font-size:13px;color:var(--muted)}.cd-next b{color:var(--ink)}`;
+function codeClick(e){
+  const doc=e.target.ownerDocument,b=e.target.closest('[data-cd]'),cl=e.target.closest('[data-close]');
+  if(cl){codeClosePanel();return}
+  if(!b)return;const a=b.dataset.cd;
+  if(a==='prev')codeStep(-1);else if(a==='next')codeStep(1);
+  else if(a==='all'){CW.all=!CW.all;codeShow(CW.cur,{focus:false})}
+  else if(a==='dl'){codeDownload()}
+  else if(a==='copy'){
+    const sel=()=>{const r=doc.createRange();r.selectNodeContents(doc.querySelector('.cd-code'));const s=doc.defaultView.getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected, press Ctrl+C'};
+    try{window.navigator.clipboard.writeText(codeFull()).then(()=>{b.textContent='Copied'},sel)}catch(err){sel()}
+    setTimeout(()=>{if(b.isConnected)b.textContent='Copy full file'},2500)}
+}
+function codeDownload(){
+  try{const u=URL.createObjectURL(new Blob([codeFull()],{type:'text/x-python'}));const a=document.createElement('a');a.href=u;a.download='mini_gpt.py';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){toast('Download is blocked here. Use Copy full file instead.')}
+}
+function codeWin(){
+  if(CW.win&&!CW.win.closed)return CW.win;
+  let w=null;try{w=window.open('','gptCode',`popup=yes,width=640,height=760,left=40,top=60,resizable=yes,scrollbars=yes`)}catch(e){}
+  if(!w)return null;
+  w.document.open();w.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Python code</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"><style>${CODE_CSS}</style></head><body><div id="root"></div></body></html>`);w.document.close();
+  w.document.addEventListener('click',codeClick);w.document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='PageDown')codeStep(1);else if(e.key==='ArrowLeft'||e.key==='PageUp')codeStep(-1)});
+  CW.win=w;return w;
+}
+function codeClosePanel(){if(CW.panel){CW.panel.remove();CW.panel=null}}
+const codeOpen=()=>(CW.win&&!CW.win.closed)||!!CW.panel;
+function codeShow(id,opts={}){
+  if(!CODE_ORDER.includes(id))return;
+  CW.cur=id;const w=codeWin(),html=codeHtml(id);
+  const scroll=root=>{const cur=root.querySelector('#ckCur');if(!cur)return;const box=root.id==='cdBody'?root:root.ownerDocument.scrollingElement;const top=root.id==='cdBody'?root.getBoundingClientRect().top:0;box.scrollTop=Math.max(0,cur.getBoundingClientRect().top-top+box.scrollTop-14)};
+  if(w){codeClosePanel();w.document.documentElement.setAttribute('style',codeVars());const r=w.document.getElementById('root');r.innerHTML=html;w.document.title='Python code · '+codeMeta(id).name;scroll(r);if(opts.focus!==false){try{w.focus()}catch(e){}}return}
+  if(!CW.panel){const p=document.createElement('div');p.id='codePanel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Python code');p.innerHTML=`<style>${CODE_CSS.replace('body{','#cdBody{').replace(/\*\{box-sizing:border-box\}/,'')}</style><button type="button" class="ps-x" data-close="1" aria-label="Close Python code">×</button><div id="cdBody"></div>`;p.addEventListener('click',codeClick);document.body.appendChild(p);CW.panel=p}
+  CW.panel.setAttribute('style',codeVars());const b=CW.panel.querySelector('#cdBody');b.innerHTML=html;scroll(b);
+}
+function codeSync(id){
+  CW.active=id;
+  if(!CODE_ORDER.includes(id)||!codeOpen()||Date.now()<CW.lock)return;
+  clearTimeout(CW.t);CW.t=setTimeout(()=>{if(codeOpen()&&CW.cur!==id)codeShow(id,{focus:false})},180);
+}
+function codeGo(id,focus=false){
+  clearTimeout(CW.t);CW.lock=Date.now()+900;codeShow(id,{focus});goToSection(id);
+  setTimeout(()=>{CW.lock=0;if(codeOpen()&&CW.active&&CODE_ORDER.includes(CW.active)&&CW.active!==CW.cur)codeShow(CW.active,{focus:false})},980);
+}
+function codeStep(d){const id=CODE_ORDER[CODE_ORDER.indexOf(CW.cur)+d];if(id)codeGo(id)}
+function initCode(){
+  CODE_ORDER.forEach(id=>{
+    const sec=document.getElementById(id);if(!sec||sec.querySelector('.code-link'))return;
+    const eb=sec.querySelector('.eyebrow');if(!eb)return;
+    const b=document.createElement('button');b.type='button';b.className='code-link';b.dataset.code=id;b.textContent='Python code ↗';b.title='Open the matching Python code for this step in a small window';
+    eb.appendChild(b);
+  });
+  document.addEventListener('click',e=>{const b=e.target.closest('.code-link');if(!b)return;const id=b.dataset.code;if(codeOpen()&&id===CW.cur)codeShow(id);else codeGo(id,true)});
+}
+initCode();
+
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
 const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),birdseye:$('#tabBird'),decoder:$('#tabDecoder'),demos:$('#tabDemos')};
@@ -4252,7 +4378,7 @@ function markActive(id){
   $$('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.s===id));
   $$('.arch .box').forEach(b=>b.classList.toggle('on',b.dataset.go===id||b.dataset.also===id));
   if(SECS.some(s=>s.id===id))jump.value=id;
-  psSync(id);
+  psSync(id);codeSync(id);
 }
 const played=new Set();
 const io=new IntersectionObserver(ents=>{
