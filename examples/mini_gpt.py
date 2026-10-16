@@ -156,6 +156,8 @@ class GPT(nn.Module):
         self.norm = nn.LayerNorm(cfg.n_embd)
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)   # the unembedding
         self.head.weight = self.tok.table.weight   # GPT-2 reuses the embedding table here
+        for table in (self.tok.table, self.pos.table):
+            nn.init.normal_(table.weight, std=0.02)   # small start values, as in GPT-2
 
     def forward(self, idx):                                   # idx: (B, T)
         x = self.tok(idx) + self.pos(idx.size(1))             # steps 2 and 3: embeddings + positions
