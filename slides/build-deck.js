@@ -704,11 +704,80 @@ if (FULL) {
 }
 
 // =====================================================================
+// V1. Tokens: what the model reads and what you pay for
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("Inputs", "09 · TOKENS AND COST", C.tok, "Tokens: what the model reads — and what you pay for",
+    "Before anything else, text is sliced into tokens. Tokens are also how usage is measured and billed.");
+  text(s, "One sentence, sliced by a GPT-4-style tokenizer", { x: 0.6, y: 1.8, w: 7, h: 0.26, fontSize: 11, bold: true, color: C.ink });
+  const toks = ["I", "can", "’t", "wait", "to", "ship", "my", "first", "AI", "feature", "."];
+  let x = 0.6;
+  const tx = [];
+  toks.forEach((t, i) => {
+    tx.push(x);
+    x += chip(s, t, x, 2.2, { size: 11, h: 0.42, fill: t === "’t" ? C.tok : C.tokL, line: C.tok, color: t === "’t" ? C.white : C.ink, anim: A(1, "rise", i * 70) }) + 0.06;
+  });
+  box(s, "11 tokens · 41 characters", 0.6, 2.8, 2.3, 0.34, { fill: C.ink, color: C.white, size: 10, bold: true, margin: 0, anim: A(1, "zoom", 900) });
+  // splits
+  s.addText([
+    { text: "“can’t” → “can” + “’t”  ", options: { bold: true, color: C.tok } },
+    { text: "the apostrophe piece is its own token, reused in don’t, won’t, isn’t…", options: { color: C.body } },
+  ], { x: 0.6, y: 3.3, w: 7.0, h: 0.3, fontFace: F, fontSize: 10.5, margin: 0, isTextBox: true, objectName: A(2, "fade") });
+  let x2 = 0.6;
+  [["tokenization", C.white, C.ink], ["→", null, null], ["token", C.tokL, C.ink], ["ization", C.tokL, C.ink]].forEach(([t, f, c], k) => {
+    if (!f) { text(s, t, { x: x2, y: 3.72, w: 0.3, h: 0.36, fontSize: 12, color: C.muted, align: "center", valign: "middle", objectName: A(2, "fade", 200) }); x2 += 0.35; return; }
+    x2 += chip(s, t, x2, 3.72, { size: 11, h: 0.36, fill: f, line: C.tok, color: c, anim: A(2, "fade", 150 + k * 120) }) + 0.06;
+  });
+  text(s, "fragments are reused across many words", { x: x2 + 0.15, y: 3.79, w: 3.6, h: 0.24, fontSize: 9.5, italic: true, color: C.muted, objectName: A(2, "fade", 500) });
+
+  [["≈ 4", "characters per token (English)"], ["100 → 75", "tokens ≈ words, roughly"], ["100k–200k+", "tokens in a modern vocabulary (GPT-2 had 50,257)"]].forEach(([big, small], k) => {
+    s.addText([
+      { text: big, options: { fontSize: 22, bold: true, color: C.tok, breakLine: true } },
+      { text: small, options: { fontSize: 10, color: C.body } },
+    ], { shape: S.ROUNDED_RECTANGLE, x: 0.6 + k * 2.37, y: 4.35, w: 2.22, h: 1.15, rectRadius: 0.1, fill: { color: C.tokL }, fontFace: F, valign: "middle", margin: [12, 10, 4, 4], objectName: A(3, "rise", k * 200) });
+  });
+  card(s, 0.6, 5.65, 6.96, 1.05, "Same text, different count", "Each model family has its own tokenizer, so the same prompt can be a different number of tokens — and a different bill — on different models.", { fill: C.bg2, ts: 11.5, bs: 10.5, anim: A(4, "rise") });
+
+  // invoice
+  rect(s, 7.85, 1.8, 4.85, 4.9, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line, anim: A(5, "fade") });
+  text(s, "Tokens are the invoice", { x: 8.05, y: 1.95, w: 4.4, h: 0.3, fontSize: 13, bold: true, color: C.out, objectName: A(5, "fade") });
+  text(s, "You pay per token: everything you send in, plus everything the model writes back.", { x: 8.05, y: 2.28, w: 4.45, h: 0.45, fontSize: 10, color: C.body, objectName: A(5, "fade") });
+  [["input", "prompt, chat history, documents", C.ffn, 2.6, "cheaper per token"], ["output", "the reply it generates", C.out, 1.2, "usually several × pricier per token"]].forEach(([t, d, c, w, note], k) => {
+    const y = 2.9 + k * 0.72;
+    text(s, t, { x: 8.05, y, w: 0.75, h: 0.3, fontSize: 11, bold: true, color: c, valign: "middle", objectName: A(5, "fade", 200 + k * 250) });
+    rect(s, 8.85, y + 0.04, w, 0.22, { fill: c, anim: A(5, "wipe", 250 + k * 250) });
+    text(s, `${d} · ${note}`, { x: 8.85, y: y + 0.3, w: 3.8, h: 0.22, fontSize: 8.5, color: C.muted, objectName: A(5, "fade", 350 + k * 250) });
+  });
+  text(s, "Example: a model writes a 120,000-token novel", { x: 8.05, y: 4.45, w: 4.5, h: 0.26, fontSize: 10.5, bold: true, color: C.ink, objectName: A(6, "fade") });
+  [["cheaper model", "~$5 per million output tokens", 0.6, "$0.60"], ["flagship model", "~$25 per million output tokens", 3.0, "$3.00"]].forEach(([t, d, w, cost], k) => {
+    const y = 4.82 + k * 0.62;
+    text(s, `${t} · ${d}`, { x: 8.05, y, w: 4.5, h: 0.22, fontSize: 9, color: C.muted, objectName: A(6, "fade", 150 + k * 300) });
+    rect(s, 8.05, y + 0.25, w * 0.95, 0.24, { fill: k ? C.out : "FDA4AF", anim: A(6, "wipe", 200 + k * 300) });
+    text(s, cost, { x: 8.05 + w * 0.95 + 0.08, y: y + 0.22, w: 0.8, h: 0.3, fontSize: 12, bold: true, color: C.out, valign: "middle", objectName: A(6, "fade", 450 + k * 300) });
+  });
+  text(s, "Same words, 5× the bill. Prices change often — the ratios are the lesson.", { x: 8.05, y: 6.1, w: 4.5, h: 0.45, fontSize: 9, italic: true, color: C.muted, objectName: A(6, "fade", 900) });
+
+  s.addNotes(`We saw that text becomes tokens. Two practical things are worth knowing about them.
+
+[CLICK] Here's a real sentence through a GPT-4-style tokenizer: “I can't wait to ship my first AI feature.” Eleven tokens for 41 characters. Most words are one token each.
+
+[CLICK] But “can't” splits into “can” and “'t” — the apostrophe piece is its own token, reused in don't, won't, isn't. Longer words split into reusable fragments: “tokenization” becomes “token” + “ization”. A vocabulary of reusable pieces can spell any text, the way 26 letters spell any English word.
+
+[CLICK] Rules of thumb for English: about 4 characters per token, so 100 tokens is roughly 75 words. GPT-2's vocabulary had 50,257 tokens; modern models use 100,000 to 200,000 or more.
+
+[CLICK] Each model family has its own tokenizer, so the same prompt can come out as a different number of tokens on different models.
+
+[CLICK] Why care? Because tokens are the unit of money. You don't pay per question or per minute — you pay per token, both the tokens you send in and the tokens the model writes back. Output is usually priced several times higher than input.
+
+[CLICK] An example from the source video: a model writes a 120,000-token novel. At about $5 per million output tokens that's 60 cents; on a flagship model at about $25 per million, it's $3. Same words, five times the bill. Prices move all the time, so treat these as illustrative — the ratios are what matter.`);
+}
+
+// =====================================================================
 // 4. Inside one decoder block
 // =====================================================================
 if (FULL) pres.addSection({ title: "The decoder block" });
 if (FULL) {
-  const s = contentSlide("The decoder block", "09 · INSIDE ONE BLOCK", C.att, "Inside one decoder block",
+  const s = contentSlide("The decoder block", "10 · INSIDE ONE BLOCK", C.att, "Inside one decoder block",
     "A block is a small pipeline. Every token’s vector flows through it and comes out richer.");
   const gap = 0.34, cy = 2.95, h = 0.95;
   const els = [
@@ -776,10 +845,72 @@ Remember the slogan: attention mixes, feed-forward transforms.`);
 }
 
 // =====================================================================
+// V2. Why attention was invented
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("The decoder block", "11 · WHY ATTENTION?", C.att, "Why attention was invented: the bottleneck",
+    "Older translation models squeezed a whole sentence into one fixed-size summary. The longer the sentence, the more detail was lost.");
+  const words = ["The", "house", "with", "the", "blue", "door", "near", "the", "old", "station", "was", "sold"];
+  const row = (y, step, keep) => {
+    let x = 0.85;
+    const xs = [];
+    words.forEach((w, i) => {
+      const cw = chipW(w, 10.5);
+      xs.push(x + cw / 2);
+      chip(s, w, x, y, { size: 10.5, h: 0.36, w: cw, fill: C.white, line: C.line, anim: keep ? undefined : A(step, "fade", i * 60) });
+      x += cw + 0.05;
+    });
+    return xs;
+  };
+  // BEFORE panel
+  rect(s, 0.6, 1.8, 12.1, 2.55, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line });
+  text(s, "BEFORE (2014) · sequence-to-sequence: one sticky note", { x: 0.85, y: 1.9, w: 7, h: 0.26, fontSize: 10, bold: true, color: C.muted, charSpacing: 1 });
+  row(2.3, 1);
+  text(s, "the encoder reads one word at a time, updates its note, and can never look back", { x: 0.85, y: 2.72, w: 7.2, h: 0.24, fontSize: 9.5, italic: true, color: C.muted, objectName: A(1, "fade", 800) });
+  line(s, 9.25, 2.48, 10.5, 2.48, { color: C.tok, w: 2, anim: A(2, "wipe") });
+  s.addText([
+    { text: "one fixed-size note", options: { bold: true, fontSize: 10.5, color: C.ink, breakLine: true } },
+    { text: "same size for 5 words or 50", options: { fontSize: 9, color: C.body } },
+  ], { shape: S.RECTANGLE, x: 10.6, y: 2.05, w: 1.85, h: 0.95, fill: { color: "FDE68A" }, fontFace: F, align: "center", valign: "middle", margin: 4, rotate: -3, shadow: { type: "outer", color: "94A3B8", opacity: 0.35, blur: 4, offset: 2, angle: 90 }, objectName: A(2, "zoom", 200) });
+  line(s, 11.52, 3.08, 11.52, 3.4, { color: C.tok, w: 2, anim: A(3, "fade") });
+  text(s, "decoder writes only from the note:", { x: 0.85, y: 3.5, w: 2.8, h: 0.36, fontSize: 10, color: C.body, valign: "middle", objectName: A(3, "fade") });
+  let ox = 3.7;
+  [["the house", true], ["was sold", true], ["blue … ?", false], ["near … ?", false], ["old … ?", false]].forEach(([t, ok], k) => {
+    ox += chip(s, t, ox, 3.5, { size: 10.5, h: 0.36, fill: ok ? C.tokL : C.bg2, line: ok ? C.tok : C.line, color: ok ? C.ink : C.faint, anim: A(3, "fade", 150 + k * 150) }) + 0.08;
+  });
+  text(s, "details blur — worse for longer sentences", { x: ox + 0.15, y: 3.56, w: 3.5, h: 0.26, fontSize: 10, bold: true, color: C.out, objectName: A(3, "fade", 900) });
+
+  // AFTER panel
+  rect(s, 0.6, 4.5, 12.1, 2.25, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.attL, anim: A(4, "fade") });
+  text(s, "THE FIX · attention: glance back at every word while writing", { x: 0.85, y: 4.6, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.att, charSpacing: 1, objectName: A(4, "fade") });
+  const xs = row(4.98, 4);
+  // writer chip and attention lines (relevance = thickness)
+  const wx = 10.0, wy = 6.05;
+  const rel = [0.05, 0.1, 0.05, 0.05, 0.6, 1.0, 0.1, 0.05, 0.05, 0.1, 0.05, 0.05];
+  xs.forEach((cx, i) => line(s, wx + 0.55, wy, cx, 5.36, { color: C.att, w: 0.5 + rel[i] * 4.5, head: false, anim: A(5, "fade", 100 + i * 60) }));
+  chip(s, "writing: “door”", wx, wy, { w: 1.4, h: 0.4, size: 10.5, fill: C.att, line: C.att, color: C.white, anim: A(5, "zoom") });
+  text(s, "line thickness = how much each source word is used right now", { x: 0.85, y: 6.2, w: 5.5, h: 0.24, fontSize: 9.5, italic: true, color: C.att, objectName: A(5, "fade", 900) });
+  text(s, "Born in machine translation (2014). Transformers (2017) kept only this idea: in a decoder, every token glances back at all earlier tokens.", { x: 0.85, y: 6.42, w: 9.0, h: 0.3, fontSize: 9.5, color: C.body, objectName: A(5, "fade", 1100) });
+
+  s.addNotes(`Why does attention exist at all? Because of a problem it solved.
+
+Before attention, the best translation systems were "sequence-to-sequence" models with two halves.
+[CLICK] The encoder reads your sentence one word at a time, in order, and keeps a single running summary — think of one sticky note. Read a word, update the note. It can never go back.
+[CLICK] Everything gets squeezed into that one fixed-size note — the same size whether the sentence has 5 words or 50.
+[CLICK] The decoder never sees your sentence. It writes the whole translation from the note alone. "The house… was sold" survives. But the blue door? The old station? They were crammed into the same tiny note and they blur. Researchers called this the bottleneck, and it got worse with longer sentences. It's like answering detailed questions about a book using only its summary.
+
+A human translator doesn't work that way: they glance back at the source as they write.
+[CLICK] That's exactly what attention added, in 2014, for machine translation: while writing each word, look back at every source word directly.
+[CLICK] When writing "door", the model pulls mostly from "door" and "blue" — the thick lines — and only a trace from the rest. No squeeze, so no lost detail.
+
+The transformer, in 2017, threw away the step-by-step note entirely and kept only attention. In a decoder like GPT, every token glances back at all the tokens before it — which is the masked self-attention we're about to see.`);
+}
+
+// =====================================================================
 // 5. Masked self-attention
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "10 · MASKED SELF-ATTENTION", C.att, "Masked self-attention: no peeking at the future",
+  const s = contentSlide("The decoder block", "12 · MASKED SELF-ATTENTION", C.att, "Masked self-attention: no peeking at the future",
     "Each token may look at itself and the tokens before it — never at tokens that come later.");
   const W = [[1], [0.35, 0.65], [0.04, 0.86, 0.1], [0.05, 0.2, 0.55, 0.2], [0.1, 0.08, 0.12, 0.5, 0.2]];
   const gx = 1.85, gy = 2.4, cs = 0.62, g = 0.05;
@@ -840,7 +971,7 @@ Analogy: reading a mystery novel with a card sliding down the page. You can use 
 // 6. Q, K, V
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "11 · HOW ATTENTION COMPUTES CONTEXT", C.att, "Queries, keys and values",
+  const s = contentSlide("The decoder block", "13 · HOW ATTENTION COMPUTES CONTEXT", C.att, "Queries, keys and values",
     "While processing “sat”, the model effectively asks: who is doing the sitting?");
   // Query
   s.addText([
@@ -904,10 +1035,62 @@ The formula in the corner is the whole thing. The √d just keeps scores from ge
 }
 
 // =====================================================================
+// V3. Context decides: what does "it" mean?
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("The decoder block", "14 · CONTEXT DECIDES", C.att, "Context decides what a word means",
+    "What does “it” refer to? Attention works it out fresh, every time, from the words around it.");
+  const sentence = (y, last, step, target, other, wT, wO, resultText) => {
+    const ws = ["The", "animal", "didn’t", "cross", "the", "street", "because", "it", "was", "too", last, "."];
+    let x = 0.6;
+    const cx = [];
+    ws.forEach((w, i) => {
+      const hl = w === last ? C.tok : w === "it" ? C.att : null;
+      const cw = chip(s, w, x, y, { size: 12, h: 0.44, fill: hl === C.att ? C.att : hl ? C.tokL : C.white, line: hl || C.line, color: hl === C.att ? C.white : C.ink, anim: A(step, "fade", i * 50) });
+      cx.push(x + cw / 2);
+      x += cw + 0.07;
+    });
+    const it = cx[7];
+    const arc = (to, top, w, anim0, label) => {
+      line(s, it, y - 0.02, it, top, { color: C.att, w, head: false, anim: A(step + 1, "fade", anim0) });
+      line(s, it, top, cx[to], top, { color: C.att, w, head: false, anim: A(step + 1, "wiper", anim0 + 100) });
+      line(s, cx[to], top, cx[to], y - 0.04, { color: C.att, w, anim: A(step + 1, "fade", anim0 + 450) });
+      text(s, label, { x: cx[to] - 0.62, y: top + 0.03, w: 0.55, h: 0.22, fontSize: 10, bold: true, color: C.att, align: "right", objectName: A(step + 1, "fade", anim0 + 500) });
+    };
+    // the farther word ("animal") gets the higher arc so the two never cross
+    arc(target, target === 1 ? y - 0.62 : y - 0.3, 5, 0, `${wT}%`);
+    arc(other, other === 1 ? y - 0.62 : y - 0.3, 1.5, 600, `${wO}%`);
+    box(s, resultText, x + 0.2, y - 0.02, 2.3, 0.48, { fill: C.attL, color: C.att, size: 11.5, bold: true, anim: A(step + 1, "zoom", 1200) });
+  };
+  sentence(2.65, "tired", 1, 1, 5, 70, 20, "“it” = the animal");
+  sentence(4.4, "wide", 3, 5, 1, 70, 20, "“it” = the street");
+  text(s, "Change one word and the weights flip. Remaining ~10% is spread over the other words; numbers are illustrative.", { x: 0.6, y: 5.0, w: 10, h: 0.24, fontSize: 9.5, italic: true, color: C.muted, objectName: A(4, "fade", 1500) });
+
+  [
+    ["Nothing memorised", "No rule says “streets don’t get tired”. The weights are computed fresh from the context, every time.", C.attL, C.att],
+    ["A soft lookup", "Like a dictionary where every key matches a little: you get a blend of all the values — not just the top hit, as a search engine would return.", C.posL, C.pos],
+    ["Same trick, longer reach", "“What should I teach him?” finds “Max, my new puppy” 40 messages back — if it’s still in the window.", C.tokL, C.tok],
+  ].forEach(([t, d, f, c], k) => card(s, 0.6 + k * 4.11, 5.4, 3.9, 1.35, t, d, { fill: f, tc: c, ts: 12, bs: 10.5, anim: A(5, "rise", k * 200) }));
+
+  s.addNotes(`Here's the most famous sentence in attention research, and it shows something the cat sentence can't.
+
+[CLICK] “The animal didn't cross the street because it was too tired.” What does “it” refer to? You didn't hesitate: the animal. Streets don't get tired.
+[CLICK] Nobody taught the model that rule. But the query from “it” is scored against every earlier key, and “animal” matches strongly: roughly 70% of the attention, 20% on “street”, the rest scattered. So from here on, the vector for “it” is mostly carrying “animal”.
+
+[CLICK] Now change ONE word: “…because it was too wide.”
+[CLICK] Same sentence, same word “it” — and the weights flip. “Wide” describes a street, so now “street” gets the strong match. Don't hold me to exact numbers; the point is where most of the attention lands.
+
+[CLICK] Three things to take from this:
+- Nothing was memorised and no rule was written. Attention weights are computed fresh from the context every single time.
+- It's a soft lookup. In code terms: a dictionary lookup where every key matches a little, and you get back a weighted blend of all the values. A search engine shows the top results and throws the rest away; attention throws nothing away.
+- The same mechanism reaches far: in a chat, “What tricks should I teach him?” can find “Max, my new golden retriever puppy” 40 messages earlier — as long as that message is still inside the context window. We'll come back to that.`);
+}
+
+// =====================================================================
 // 7. Multi-head attention
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "12 · MULTI-HEAD ATTENTION", C.att, "Multi-head attention: many perspectives at once",
+  const s = contentSlide("The decoder block", "15 · MULTI-HEAD ATTENTION", C.att, "Multi-head attention: many perspectives at once",
     "Several heads run in parallel, each with its own Q, K, V matrices — so each learns to look for something different.");
   const heads = [
     { t: "Head 1 · Subject", c: "7C3AED", d: "Every word checks who the sentence is about: the “cat” column lights up.",
@@ -960,7 +1143,7 @@ Important honesty point: nobody assigns these roles. They emerge from training, 
 // 8. Feed-forward network
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "13 · THE FEED-FORWARD NETWORK", C.ffn, "The feed-forward network: each token thinks on its own",
+  const s = contentSlide("The decoder block", "16 · THE FEED-FORWARD NETWORK", C.ffn, "The feed-forward network: each token thinks on its own",
     "Attention mixes information between tokens. The feed-forward network then transforms each token’s vector by itself.");
   chip(s, "the", 0.95, 1.85, { w: 0.85, h: 0.4, size: 12, fill: C.tokL, line: C.tok });
   text(s, "vector for the last “the”, after attention", { x: 1.9, y: 1.92, w: 4.2, h: 0.26, fontSize: 10, italic: true, color: C.muted });
@@ -1023,7 +1206,7 @@ Slogan to remember: attention mixes, feed-forward transforms. Next slide: a work
 // 9. The MLP up close: a worked example
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "14 · THE MLP UP CLOSE", C.ffn, "The MLP up close: what it does in every block",
+  const s = contentSlide("The decoder block", "17 · THE MLP UP CLOSE", C.ffn, "The MLP up close: what it does in every block",
     "Every block has its own MLP: thousands of “if I see this pattern → add that meaning” rules, applied to each token.");
 
   // ---- left: worked example ----
@@ -1098,7 +1281,7 @@ Honesty point: these neat labels are illustrative. Real neurons often respond to
 // 10. Stacking blocks
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("The decoder block", "15 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
+  const s = contentSlide("The decoder block", "18 · STACKING BLOCKS", C.att, "Stacking blocks: from spelling to meaning",
     "The same block design repeats many times — 12 in GPT-2 small, 96 in GPT-3. Each layer refines the vectors further.");
   const sx = 4.35, sw = 3.6, bh = 0.6, bg = 0.12;
   const by = (i) => 5.55 - i * (bh + bg);
@@ -1160,7 +1343,7 @@ This is a tendency, not a strict rule. Layers overlap a lot.`);
 // =====================================================================
 if (FULL) pres.addSection({ title: "Output and generation" });
 if (FULL) {
-  const s = contentSlide("Output and generation", "16 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
+  const s = contentSlide("Output and generation", "19 · FROM HIDDEN STATE TO PROBABILITIES", C.out, "From hidden state to probabilities",
     "Only the last token’s final vector is used to predict what comes next.");
   let x = 0.6;
   SENT.forEach((t, i) => {
@@ -1224,7 +1407,7 @@ These numbers are illustrative but realistic in shape.`);
 // 11. Choosing the next token
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("Output and generation", "17 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
+  const s = contentSlide("Output and generation", "20 · CHOOSING THE NEXT TOKEN", C.out, "Choosing the next token: decoding strategies",
     "The model gives probabilities. A decoding strategy turns them into one actual token.");
   const toks = ["mat", "floor", "sofa", "bed", "chair", "windowsill"];
   function bars(x, y, ps, o = {}) {
@@ -1293,7 +1476,7 @@ In practice, chat models typically combine a temperature with top-p. When you se
 // 12. Generation loop
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("Output and generation", "18 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
+  const s = contentSlide("Output and generation", "21 · THE AUTOREGRESSIVE LOOP", C.out, "The generation loop",
     "Predict, append, repeat — until the model emits an end token or hits a length limit.");
   const cx = 3.65, cy = 4.4, R = 1.8, RX = 2.15;
   rect(s, cx - RX, cy - R, 2 * RX, 2 * R, { shape: S.OVAL, line: C.line, lw: 2, dash: "dash" });
@@ -1349,10 +1532,146 @@ This loop is also why LLMs can't "go back and edit": each token is final once it
 }
 
 // =====================================================================
+// V4. The context window
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("Output and generation", "22 · THE CONTEXT WINDOW", C.out, "The context window: the model’s only memory",
+    "Everything the model can see in one request — instructions, conversation, documents and its own reply so far — counted in tokens.");
+  rect(s, 0.6, 1.8, 5.75, 3.65, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.out, dash: "dash" });
+  text(s, "CONTEXT WINDOW · fixed size, in tokens", { x: 0.8, y: 1.9, w: 5.3, h: 0.24, fontSize: 9.5, bold: true, color: C.out, charSpacing: 1 });
+  const roles = [
+    ["SYSTEM", "You are a support assistant for an online store. Keep answers short.", C.ink, C.white, 1],
+    ["USER", "Where’s my order #1138?", C.posL, C.ink, 2],
+    ["ASSISTANT", "It shipped yesterday and arrives Friday.", C.attL, C.ink, 2],
+    ["USER", "Can I change the delivery address?", C.posL, C.ink, 2],
+    ["ASSISTANT", "Yes — …  (being generated now)", C.white, C.muted, 2],
+  ];
+  roles.forEach(([r, t, f, c, st], k) => {
+    const y = 2.25 + k * 0.6;
+    s.addText([
+      { text: r + "   ", options: { bold: true, fontSize: 8.5, color: f === C.ink ? C.tokM : C.muted, charSpacing: 1 } },
+      { text: t, options: { color: c } },
+    ], { shape: S.ROUNDED_RECTANGLE, x: 0.8, y, w: 5.35, h: 0.5, rectRadius: 0.06, fill: { color: f }, line: k === 4 ? { color: C.line, width: 1, dashType: "dash" } : { type: "none" }, fontFace: F, fontSize: 10.5, valign: "middle", margin: [10, 8, 0, 0], objectName: A(st, "rise", k * 200) });
+  });
+  text(s, "What the model actually receives: one flat stream of tokens with special role markers", { x: 0.6, y: 5.58, w: 5.8, h: 0.22, fontSize: 9.5, bold: true, color: C.ink, objectName: A(3, "fade") });
+  box(s, "<|system|> You are a support assistant… <|user|> Where’s my order #1138? <|assistant|> It shipped yesterday… <|user|> Can I change the delivery address? <|assistant|>", 0.6, 5.85, 5.75, 0.62, { fill: C.bg2, color: C.body, size: 9, align: "left", valign: "middle", margin: [8, 8, 2, 2], font: F, anim: A(3, "fade", 200) });
+  text(s, "Marker tokens differ by model. The system message on top shapes every prediction below it.", { x: 0.6, y: 6.5, w: 5.8, h: 0.22, fontSize: 8.5, italic: true, color: C.muted, objectName: A(3, "fade", 400) });
+
+  // stateless: re-sent every turn
+  text(s, "Stateless: the whole chat is re-sent on every turn", { x: 6.8, y: 1.8, w: 5.9, h: 0.28, fontSize: 12, bold: true, color: C.ink, objectName: A(4, "fade") });
+  const seg = { S: [0.55, C.ink], U: [0.38, C.pos], A: [0.55, C.att] };
+  const bx = 7.55, limit = 4.6;
+  const turns = [["Turn 1", "SU", "≈ 150 tokens billed"], ["Turn 2", "SUAU", "≈ 320"], ["Turn 3", "SUAUAU", "≈ 520"]];
+  turns.forEach(([lab, segs, bill], k) => {
+    const y = 2.25 + k * 0.58;
+    text(s, lab, { x: 6.8, y, w: 0.7, h: 0.3, fontSize: 9.5, bold: true, color: C.muted, valign: "middle", objectName: A(4, "fade", k * 350) });
+    let x = bx;
+    [...segs].forEach((r) => { rect(s, x, y + 0.03, seg[r][0] - 0.03, 0.24, { fill: seg[r][1], anim: A(4, "wipe", k * 350 + 100) }); x += seg[r][0]; });
+    text(s, bill, { x: x + 0.08, y, w: 1.6, h: 0.3, fontSize: 9.5, color: C.out, valign: "middle", objectName: A(4, "fade", k * 350 + 250) });
+  });
+  // turn 40: window full, oldest falls off
+  const y40 = 4.15;
+  line(s, bx + limit, 2.15, bx + limit, y40 + 0.5, { color: C.out, w: 1.5, dash: "dash", head: false, anim: A(5, "fade") });
+  text(s, "window limit", { x: bx + limit - 1.1, y: 2.0, w: 1.05, h: 0.2, fontSize: 8.5, bold: true, color: C.out, align: "right", objectName: A(5, "fade") });
+  text(s, "Turn 40", { x: 6.8, y: y40, w: 0.7, h: 0.3, fontSize: 9.5, bold: true, color: C.muted, valign: "middle", objectName: A(5, "fade") });
+  let x40 = bx;
+  ["S", ..."AUAUAUAUA"].forEach((r, k) => { const w = k === 0 ? 0.55 : 0.45; rect(s, x40, y40 + 0.03, w - 0.03, 0.24, { fill: seg[r][1], anim: A(5, "wipe", 100 + k * 40) }); x40 += w; });
+  rect(s, bx + 0.55, y40 + 0.38, 0.8, 0.22, { fill: C.line, anim: A(5, "fade", 700) });
+  text(s, "← “Max, my puppy” (turn 3) fell out: gone", { x: bx + 1.4, y: y40 + 0.37, w: 3.5, h: 0.24, fontSize: 9, bold: true, color: C.out, objectName: A(5, "fade", 800) });
+
+  card(s, 6.8, 5.05, 2.88, 1.68, "How big?", [
+    "Early models: ~2k–4k tokens.",
+    "Frontier today: ~1M (≈ 7 thick novels); some advertise 10M.",
+  ], { fill: C.outL, tc: C.out, ts: 11.5, bs: 10, anim: A(6, "rise") });
+  card(s, 9.82, 5.05, 2.88, 1.68, "The control lever", [
+    "You don’t retrain the model to change its behaviour.",
+    "You change what’s in the window.",
+  ], { fill: C.attL, tc: C.att, ts: 11.5, bs: 10, anim: A(6, "rise", 200) });
+
+  s.addNotes(`The model predicts from "the text in front of it". What exactly counts as in front of it? The context window — maybe the most important number you're not thinking about.
+
+The context window is everything the model can see in a single request: instructions, the conversation so far, any documents, and the reply it's generating. All measured in tokens, and the size is fixed.
+
+[CLICK] It's organised into roles. At the top, the system message: standing instructions about who the model is and how to behave.
+[CLICK] Below it, user messages — the human — and assistant messages — the model's own earlier replies — turn by turn, ending with the reply being written right now.
+[CLICK] Underneath, all of this is flattened into ONE long stream of tokens, joined by special marker tokens the model was trained to recognise. The exact markers differ by model. The system message sits on top and quietly shapes every prediction below it.
+
+[CLICK] Here's what surprises most developers: between requests, the model remembers nothing. It is stateless. So how does a chatbot "remember"? On every turn, the app re-sends the entire conversation from the beginning. Turn 1, turn 2, turn 3 — the bar keeps growing, and you pay for all of it every time. The window IS the memory; there's nothing else underneath.
+
+[CLICK] And the window fills up. By turn 40, the oldest messages get dropped to fit. "Max, my puppy" from turn 3 isn't blurry — it's gone. As far as the model knows, Max never existed. (Many apps keep the system message and drop or summarise old turns; providers also offer prompt caching to make re-sent prefixes cheaper, but the tokens are still in the window.)
+
+[CLICK] Sizes: early models saw a couple of thousand tokens; frontier models now hold around a million — roughly seven thick novels — and some advertise ten million. And the control lever: you don't retrain a model to change its behaviour. You change what's sitting in the window.`);
+}
+
+// =====================================================================
+// V5. Long context has costs
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("Output and generation", "23 · LONG CONTEXT HAS COSTS", C.out, "Why long chats get slow, expensive — and confused",
+    "Attention over a growing window has three side effects. The fix is unglamorous, and every serious AI product uses it.");
+  const P = [0.6, 4.71, 8.82], pw = 3.9, py = 1.8, ph = 3.85;
+  P.forEach((x, k) => rect(s, x, py, pw, ph, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line, anim: A(k + 1, "fade") }));
+  // 1. quadratic
+  text(s, "① Work grows with the square", { x: 0.8, y: 1.92, w: 3.5, h: 0.28, fontSize: 12, bold: true, color: C.ink, objectName: A(1, "fade") });
+  const tri = (x, y, n, cs, step, d0) => {
+    for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) rect(s, x + j * (cs + 0.02), y + i * (cs + 0.02), cs, cs, { fill: C.attM, anim: A(step, "fade", d0 + i * 60) });
+  };
+  tri(0.85, 2.45, 4, 0.2, 1, 100);
+  text(s, "4 tokens\n10 comparisons", { x: 0.75, y: 3.4, w: 1.1, h: 0.45, fontSize: 9, bold: true, color: C.att, align: "center", objectName: A(1, "fade", 400) });
+  tri(2.15, 2.45, 8, 0.15, 1, 600);
+  text(s, "8 tokens\n36 comparisons", { x: 2.3, y: 3.85, w: 1.1, h: 0.45, fontSize: 9, bold: true, color: C.att, align: "center", objectName: A(1, "fade", 1100) });
+  text(s, "Every token is scored against every earlier token. Double the chat → about 4× the attention work. That’s why long chats slow down and giant windows are hard to build.", { x: 0.8, y: 4.45, w: 3.5, h: 1.1, fontSize: 10, color: C.body, objectName: A(1, "fade", 1200) });
+  // 2. spread thin
+  text(s, "② Focus spreads thin", { x: 4.91, y: 1.92, w: 3.5, h: 0.28, fontSize: 12, bold: true, color: C.ink, objectName: A(2, "fade") });
+  text(s, "softmax always splits exactly 100%", { x: 4.91, y: 2.25, w: 3.5, h: 0.22, fontSize: 9.5, italic: true, color: C.muted, objectName: A(2, "fade") });
+  text(s, "100 tokens in the window", { x: 4.91, y: 2.62, w: 3.5, h: 0.22, fontSize: 9.5, bold: true, color: C.ink, objectName: A(2, "fade", 100) });
+  rect(s, 4.91, 2.88, 0.85, 0.34, { fill: C.att, anim: A(2, "wipe", 200) });
+  [0.4, 0.3, 0.55, 0.25, 0.35, 0.45, 0.2].reduce((x, w, k) => { rect(s, x, 2.88, w - 0.02, 0.34, { fill: mix("FFFFFF", C.attM, 0.3 + (k % 3) * 0.15), anim: A(2, "wipe", 200) }); return x + w; }, 5.78);
+  text(s, "“Max” ≈ 25%", { x: 4.91, y: 3.25, w: 2, h: 0.22, fontSize: 9, bold: true, color: C.att, objectName: A(2, "fade", 500) });
+  text(s, "100,000 tokens in the window", { x: 4.91, y: 3.62, w: 3.5, h: 0.22, fontSize: 9.5, bold: true, color: C.ink, objectName: A(2, "fade", 700) });
+  rect(s, 4.91, 3.88, 3.5, 0.34, { fill: "EDE9FE", anim: A(2, "wipe", 800) });
+  for (let k = 0; k < 34; k++) rect(s, 4.95 + k * 0.102, 3.88, 0.012, 0.34, { fill: C.white, anim: A(2, "wipe", 800) });
+  rect(s, 5.4, 3.88, 0.025, 0.34, { fill: C.att, anim: A(2, "fade", 1100) });
+  text(s, "“Max” ≈ a sliver", { x: 4.91, y: 4.25, w: 2, h: 0.22, fontSize: 9, bold: true, color: C.att, objectName: A(2, "fade", 1100) });
+  text(s, "A detail from message 3 competes with a huge crowd for a tiny share of attention. Distant details fade.", { x: 4.91, y: 4.65, w: 3.5, h: 0.9, fontSize: 10, color: C.body, objectName: A(2, "fade", 1200) });
+  // 3. stale & gone
+  text(s, "③ Stale context, then gone", { x: 9.02, y: 1.92, w: 3.5, h: 0.28, fontSize: 12, bold: true, color: C.ink, objectName: A(3, "fade") });
+  const msgs = ["Max", "work", "dinner", "trip", "aside", "plans", "…", "ask"];
+  msgs.forEach((m, k) => {
+    const x = 9.02 + k * 0.43, gone = k < 1;
+    box(s, m, x, 2.55, 0.39, 0.5, { fill: gone ? C.bg2 : m === "ask" ? C.out : m === "aside" ? C.tokL : C.white, line: gone ? C.line : C.line, color: gone ? C.faint : m === "ask" ? C.white : C.ink, size: 7.5, bold: true, margin: 0, anim: A(3, "fade", k * 70) });
+  });
+  rect(s, 9.42, 2.45, 3.06, 0.7, { shape: S.ROUNDED_RECTANGLE, r: 0.08, line: C.out, lw: 1.5, dash: "dash", anim: A(3, "fade", 600) });
+  text(s, "window", { x: 11.58, y: 2.22, w: 0.9, h: 0.2, fontSize: 8.5, bold: true, color: C.out, align: "right", objectName: A(3, "fade", 600) });
+  line(s, 12.24, 3.07, 12.24, 3.55, { color: C.tok, w: 1.5, head: false, anim: A(3, "fade", 900) });
+  line(s, 12.24, 3.55, 10.94, 3.55, { color: C.tok, w: 1.5, head: false, anim: A(3, "wiper", 1000) });
+  line(s, 10.94, 3.55, 10.94, 3.08, { color: C.tok, w: 1.5, anim: A(3, "fade", 1300) });
+  text(s, "drift: locks onto an old tangent", { x: 9.02, y: 3.62, w: 3.5, h: 0.22, fontSize: 9, bold: true, color: C.tok, objectName: A(3, "fade", 1300) });
+  text(s, "Attention matches relevance, not freshness, so stale context can win. Past the limit, “Max” isn’t forgotten — it no longer exists.", { x: 9.02, y: 4.1, w: 3.5, h: 1.2, fontSize: 10, color: C.body, objectName: A(3, "fade", 1400) });
+
+  text(s, "THE ENGINEERING MOVES", { x: 0.6, y: 5.85, w: 4, h: 0.24, fontSize: 9.5, bold: true, color: C.out, charSpacing: 1, objectName: A(4, "fade") });
+  ["Start a fresh session", "Summarise, then restart", "Send only what’s relevant", "Restate key facts near your question"].forEach((t, k) => {
+    box(s, t, 0.6 + k * 3.07, 6.15, 2.92, 0.5, { fill: C.outL, color: C.out, size: 11, bold: true, anim: A(4, "rise", k * 150) });
+  });
+
+  s.addNotes(`Attention is powerful, but you pay for it. Three side effects, all of which you'll see in real products.
+
+[CLICK] One: the work grows with the square of the length. Every token is scored against every earlier token. 4 tokens means 10 comparisons; 8 tokens means 36. Double the conversation and you roughly quadruple the attention work. That's why long chats get slow, and why giant context windows are an engineering achievement.
+
+[CLICK] Two: focus spreads thin. Softmax always splits exactly 100% of attention across everything in the window. With 100 tokens, "Max" can easily get a big share. With 100,000 tokens, that same detail from message 3 is competing with an enormous crowd for a sliver. Distant details fade. (Research on long contexts also finds models use information in the middle of a long prompt less reliably than information at the start or end.)
+
+[CLICK] Three: stale context and the edge. Attention has no idea what's stale — it just matches relevance. So a new question can latch onto an old tangent and get answered with yesterday's context: drift. And past the window limit, old messages aren't blurry; they're gone.
+
+So when a long chat starts acting strangely — ignoring instructions, answering the wrong question — it's usually one of these: attention spread too thin, locked onto something stale, or the message you care about has fallen out of the window.
+
+[CLICK] The fix is wonderfully unglamorous: start fresh sessions; summarise long conversations and restart from the summary; send only what's relevant; and restate the key facts close to your question. Serious AI products do this quietly under the hood.`);
+}
+
+// =====================================================================
 // 13. Training vs inference
 // =====================================================================
 if (FULL) {
-  const s = contentSlide("Output and generation", "19 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
+  const s = contentSlide("Output and generation", "24 · TRAINING VS. INFERENCE", C.att, "Training vs. inference",
     "Same model, same mask — but training checks every position at once, while generation must go one step at a time.");
   // training panel
   rect(s, 0.6, 1.85, 6.0, 3.55, { shape: S.ROUNDED_RECTANGLE, r: 0.1, fill: C.card, line: C.line });
@@ -1403,7 +1722,7 @@ This is called teacher forcing: even if the model would have guessed “floor”
 // =====================================================================
 if (FULL) pres.addSection({ title: "Summary" });
 if (FULL) {
-  const s = contentSlide("Summary", "20 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
+  const s = contentSlide("Summary", "25 · PUTTING IT ALL TOGETHER", C.out, "Putting it all together",
     "Tokens → embeddings → decoder blocks → probabilities → next token, then repeat.");
   const nodes = [
     { t: "Text", d: "“The cat sat on the”", sh: "a string", w: 1.4, f: C.bg2, c: C.ink },
@@ -1465,11 +1784,43 @@ if (FULL) {
 }
 
 // =====================================================================
+// V6. What the mechanism explains in practice
+// =====================================================================
+if (FULL) {
+  const s = contentSlide("Summary", "26 · WHAT THIS EXPLAINS", C.out, "What the mechanism explains in practice",
+    "“A next-token predictor reading a fixed window of tokens.” Most everyday LLM behaviour follows from that one sentence.");
+  const rows = [
+    ["It runs on tokens", "You pay per token", "input plus output; output is usually priced higher.", C.tok],
+    ["The window is its only memory", "It forgets between requests", "apps re-send the whole chat each turn, so long chats cost more and run slower.", C.pos],
+    ["Every token attends to every earlier token", "Long context is costly and fuzzy", "work grows with the square; focus spreads thin. Start fresh, summarise, trim.", C.att],
+    ["It continues the text it is given", "Wording steers the answer", "the system message, examples and phrasing shape a prediction; it is not a database query.", C.ffn],
+    ["Attention finds what is relevant, not what is true", "It can be fluent, confident and wrong", "nothing in the formula checks facts (hallucination). Ground it in sources; verify what matters.", C.out],
+  ];
+  rows.forEach(([cause, head, detail, c], k) => {
+    const y = 1.85 + k * 0.97;
+    box(s, cause, 0.6, y, 4.4, 0.8, { fill: mix("FFFFFF", c, 0.14), color: c, size: 12, bold: true, align: "left", margin: [14, 10, 0, 0], anim: A(k + 1, "rise") });
+    line(s, 5.08, y + 0.4, 5.6, y + 0.4, { color: c, w: 2, anim: A(k + 1, "wipe", 250) });
+    s.addText([
+      { text: head + ": ", options: { bold: true, color: C.ink } },
+      { text: detail, options: { color: C.body } },
+    ], { shape: S.ROUNDED_RECTANGLE, x: 5.7, y, w: 7.0, h: 0.8, rectRadius: 0.08, fill: { color: k === 4 ? C.outL : C.card }, line: { color: k === 4 ? C.out : C.line, width: 1 }, fontFace: F, fontSize: 11.5, valign: "middle", margin: [14, 10, 0, 0], objectName: A(k + 1, "rise", 400) });
+  });
+
+  s.addNotes(`Before the takeaways, let's turn the mechanism into practical intuition. One sentence: a language model is a next-token predictor reading a fixed window of tokens. Almost every quirk you'll meet falls out of it.
+
+[CLICK] It runs on tokens — so you pay per token, for what you send and what it writes, and output usually costs more.
+[CLICK] The window is its only memory — so it forgets between requests, and chat apps re-send the whole history every turn, which is why long chats cost more and get slower.
+[CLICK] Every token attends to every earlier token — so long context is expensive and focus spreads thin. Start fresh sessions, summarise, trim what you send.
+[CLICK] It continues the text it's given — so your wording, examples and system message steer the answer. You're shaping a prediction, not querying a database.
+[CLICK] And the big one. Attention finds what's RELEVANT, not what's TRUE. Nothing in softmax(QKᵀ/√d)·V checks facts. The model predicts plausible continuations, so it can produce a fluent, confident, perfectly worded answer that is completely wrong — a hallucination — and nothing inside it knows. The practical answers: ground it in real sources (put the facts in the window), and verify anything that matters.`);
+}
+
+// =====================================================================
 // 15. Key takeaways
 // =====================================================================
 if (FULL) {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Summary" });
-  text(s, "21 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
+  text(s, "27 · KEY TAKEAWAYS", { x: 0.8, y: 0.55, w: 8, h: 0.26, fontSize: 10, bold: true, color: C.tokM, charSpacing: 2 });
   s.addText("Five things to remember", { x: 0.8, y: 0.85, w: 11, h: 0.6, fontFace: F, fontSize: 28, bold: true, color: C.white, margin: 0, isTextBox: true });
   const items = [
     ["The decoder is causal", "Each token sees only the past. The mask enforces this in training and in generation.", "64748B"],
