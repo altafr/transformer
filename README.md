@@ -58,3 +58,12 @@ No build step. Either:
 **Presenter scripts**: every section (24 across all four tabs) has a small "Presenter script" link in its header. It opens a short, plain-English spoken script (about 40 to 60 seconds each, roughly 19 minutes in total) in a small pop-up window with Previous / Next and a Copy button, plus a one-line cue for what to click. The script window stays in sync with the page: it switches automatically when the presented section changes (scrolling, Present-mode arrow keys, the side menu or the tab bar), and its Previous / Next buttons (or the arrow keys inside it) move the page to that section too. If pop-ups are blocked (for example inside a Claude artifact), the same script appears in a small in-page window instead. The scripts live in the `SCRIPTS` object in `index.html`.
 
 **Structured presenter notes** (decoder tab): every decoder section's Presenter notes now carry your talk track from the presentation script (running example "Approve the invoice if"), the analogy and where it breaks, the transition, likely questions and slip-ups to avoid. Items added during review are tagged "added" and corrections "fixed". The opening section also has a table mapping your script's steps to the page's sections.
+
+## Single-file build
+
+`tools/build-single.mjs` bundles the site and the three Three.js films into one self-contained HTML file (about 2.2 MB, works offline apart from web fonts):
+
+```
+mkdir build && cd build && npm init -y && npm i three@0.169.0 esbuild
+node ../tools/build-single.mjs .. ../inside-the-decoder.html
+```
