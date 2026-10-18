@@ -95,16 +95,6 @@ def masked_attention(q, k, v):
     weights = F.softmax(scores, dim=-1)                           # each row sums to 1
     return weights @ v                                            # weighted mix of earlier tokens' values
 
-#@@ s4 | Add & Norm | Add the layer's output back to its input (the residual path), and normalise so the numbers stay well-scaled. GPT-2 normalises before the layer (pre-norm); the 2017 paper did it after.
-class AddNorm(nn.Module):
-    def __init__(self, cfg, layer):
-        super().__init__()
-        self.norm = nn.LayerNorm(cfg.n_embd)
-        self.layer = layer
-
-    def forward(self, x):
-        return x + self.layer(self.norm(x))   # x + layer(norm(x))
-
 #@@ s5 | Multiple heads | Run attention several times side by side, each head on its own slice of the numbers, so each can look for a different kind of relationship. Join the results and mix them with one more matrix, W_O.
 class MultiHeadAttention(nn.Module):
     def __init__(self, cfg):
@@ -121,7 +111,17 @@ class MultiHeadAttention(nn.Module):
         y = y.transpose(1, 2).reshape(B, T, C)                # concatenate the heads
         return self.out(y)                                    # mix them with W_O
 
-#@@ s6 | MLP | After attention has gathered context, each token passes alone through a small two-layer network: widen 4x, apply a non-linearity (GELU), narrow back. Then the block is complete.
+#@@ s4 | Add & Norm | Add the layer's output back to its input (the residual path), and normalise so the numbers stay well-scaled. GPT-2 normalises before the layer (pre-norm); the 2017 paper did it after.
+class AddNorm(nn.Module):
+    def __init__(self, cfg, layer):
+        super().__init__()
+        self.norm = nn.LayerNorm(cfg.n_embd)
+        self.layer = layer
+
+    def forward(self, x):
+        return x + self.layer(self.norm(x))   # x + layer(norm(x))
+
+#@@ s6 | MLP | After attention has gathered context, each token passes alone through a small two-layer network: widen 4x, apply a non-linearity (GELU), narrow back. This is where much of the model's stored knowledge lives.
 class MLP(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -134,7 +134,7 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-
+#@@ sk | Stacked blocks | One block is attention plus MLP, each wrapped in Add & Norm. Its output has the same shape as its input, so it feeds straight into the next block, which has its own weights. GPT-2 small stacks 12.
 class Block(nn.Module):
     """One decoder block: attention then MLP, each wrapped in Add & Norm."""
     def __init__(self, cfg):
@@ -145,14 +145,18 @@ class Block(nn.Module):
     def forward(self, x):
         return self.mlp(self.attn(x))
 
-#@@ s7 | Final softmax | Stack the blocks, normalise once more, then score every vocabulary token against the last vector (the unembedding). Softmax turns the scores into probabilities.
+# n_layer blocks, one after another: the output of block k is the input of block k+1
+def stack_of_blocks(cfg):
+    return nn.Sequential(*[Block(cfg) for _ in range(cfg.n_layer)])
+
+#@@ s7 | Final softmax | After the stack, normalise once more, then score every vocabulary token against the last vector (the unembedding). Softmax turns the scores into probabilities.
 class GPT(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
         self.tok = TokenEmbedding(cfg)
         self.pos = PositionEmbedding(cfg)
-        self.blocks = nn.Sequential(*[Block(cfg) for _ in range(cfg.n_layer)])
+        self.blocks = stack_of_blocks(cfg)
         self.norm = nn.LayerNorm(cfg.n_embd)
         self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)   # the unembedding
         self.head.weight = self.tok.table.weight   # GPT-2 reuses the embedding table here
@@ -161,7 +165,7 @@ class GPT(nn.Module):
 
     def forward(self, idx):                                   # idx: (B, T)
         x = self.tok(idx) + self.pos(idx.size(1))             # steps 2 and 3: embeddings + positions
-        x = self.blocks(x)                                    # the stack of blocks
+        x = self.blocks(x)                                    # the stack of blocks (step 6)
         return self.head(self.norm(x))                        # (B, T, vocab) raw scores, called logits
 
 

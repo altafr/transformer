@@ -727,6 +727,23 @@ body.present .bv-mini.in{display:grid}
 .ml-short>div{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;align-content:start}
 .ml-short b{font:700 15px var(--display)}.ml-short p{margin:0;font-size:14px}
 @media (max-width:820px){.ml-split,.ml-short{grid-template-columns:minmax(0,1fr)}.ml-sl label,.ml-wr{grid-template-columns:92px minmax(0,1fr) 54px}}
+/* ---------- step 6: stacked blocks ---------- */
+.kb .strip{margin:0}
+.kb .lbl{font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kb .chg{font:500 12px var(--mono);color:var(--muted)}.kb .chg b{color:var(--accent)}
+.kb .att{display:flex;flex-wrap:wrap;gap:3px}
+.kb .att span{font:500 11px var(--mono);padding:2px 6px;border-radius:5px;border:1px solid var(--line);color:var(--ink)}
+.kb .att span.me{outline:1.5px solid var(--accent)}
+.sk-reach{display:grid;gap:4px}
+.sk-rr{display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px;align-items:center;font:500 12px var(--mono);color:var(--muted)}
+.sk-rc{display:grid;gap:3px}
+.sk-rc span{padding:5px 4px;border-radius:5px;text-align:center;color:var(--ink);font:500 11px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk-ex{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.sk-card{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;align-content:start}
+.sk-s{font:700 17px var(--display)}
+.sk-r{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;font-size:14px;align-items:baseline}
+.sk-r b{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+@media (max-width:900px){.sk-ex{grid-template-columns:minmax(0,1fr)}.sk-r{grid-template-columns:minmax(0,1fr);gap:2px}}
 /* ---------- engine ---------- */
 
 .engine{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--mono);color:var(--muted);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -920,7 +937,7 @@ body.present footer{display:none}
         <p class="tldr"><b>In short</b>Multiplying and adding only gives straight lines. A bend, like an IF rule, lets stacked layers learn curves and “it depends” patterns.</p>
         <p class="lede">Most of what a neural network does is multiply and add. Those steps are <strong>linear</strong>: the output moves in a straight line with the input, and however many you chain together, you still get one straight-line rule. A <strong>non-linearity</strong> is a small bend inserted between them, such as “if the number is negative, make it zero”. It is the same idea as an IF in a workflow. With bends in between, each layer can build on the one before.</p>
         <div class="example"><b>Example</b>A shipping fee is <em>free below $50, then 5% of the amount above $50</em>. A straight line cannot do that, because the rule changes at $50. The fee is max(0, 0.05 × (order − 50)): the “max with zero” is the bend.</div>
-        <div class="key"><b>Where it is used</b>Inside the MLP of every block (decoder step 6), between its two matrices. Real models use smooth versions of the same bend called GELU or SiLU. The squash you tuned in the neuron demo was also a bend.</div>
+        <div class="key"><b>Where it is used</b>Inside the MLP of every block (decoder step 5), between its two matrices. Real models use smooth versions of the same bend called GELU or SiLU. The squash you tuned in the neuron demo was also a bend.</div>
       </div>
       <div class="viz" id="vBend">
         <span class="label">1 · Stacking straight steps gives one straight step</span>
@@ -1181,7 +1198,7 @@ body.present footer{display:none}
         <path class="res" d="M36 132 H26 V244 H40 M36 272 H26 V384 H40"/>
         <text class="cap" x="12" y="192" transform="rotate(-90 12 192)">residual</text>
         <rect class="frame" x="18" y="128" width="296" height="290" rx="14"/>
-        <text class="cap" x="30" y="412">DECODER BLOCK × N</text>
+        <text class="cap" x="30" y="412">DECODER BLOCK</text><g class="box" data-go="sk"><rect x="196" y="398" width="112" height="22" rx="11"/><text class="num" x="208" y="413">6 · stacked × N</text></g>
         <path class="loop" d="M290 532 H326 V36 H290"/>
         <text class="cap" x="332" y="300" transform="rotate(90 332 300)">9 · append &amp; repeat</text>
         <circle class="pulse" r="4"><animateMotion dur="5s" repeatCount="indefinite" path="M165 36 V532 H326 V36 H165"/></circle>
@@ -1189,15 +1206,15 @@ body.present footer{display:none}
         <g class="box" data-go="s1"><rect x="40" y="14" width="250" height="44" rx="10"/><text class="num" x="54" y="32">1</text><text x="70" y="32">Tokenize</text><text class="io" id="heroIn" x="70" y="49">The cat sat on the</text></g>
         <g class="box" data-go="s2"><rect x="40" y="78" width="250" height="40" rx="10"/><text class="num" x="54" y="102">2</text><text x="70" y="103">Embed + positional encoding</text></g>
         <g class="box" data-go="s3a" data-also="s3"><rect x="40" y="146" width="250" height="60" rx="10"/><text class="num" x="54" y="172">3</text><text x="70" y="172">Masked multi-head</text><text x="70" y="190">attention</text></g>
-        <g class="box" data-go="s5"><rect x="226" y="154" width="54" height="44" rx="6"/><rect x="232" y="160" width="42" height="32" rx="4"/><text class="num" x="238" y="180">5 · ×4</text></g>
+        <g class="box" data-go="s5"><rect x="226" y="154" width="54" height="44" rx="6"/><rect x="232" y="160" width="42" height="32" rx="4"/><text class="num" x="236" y="180">3c · ×4</text></g>
         <g class="box" data-go="s4"><rect x="40" y="226" width="250" height="36" rx="10"/><text class="num" x="54" y="248">4</text><text x="70" y="249">Add &amp; Norm</text></g>
-        <g class="box" data-go="s6"><rect x="40" y="286" width="250" height="56" rx="10"/><text class="num" x="54" y="310">6</text><text x="70" y="310">MLP (feed-forward)</text><text class="cap" x="70" y="328">16 → 64 → 16</text></g>
+        <g class="box" data-go="s6"><rect x="40" y="286" width="250" height="56" rx="10"/><text class="num" x="54" y="310">5</text><text x="70" y="310">MLP (feed-forward)</text><text class="cap" x="70" y="328">16 → 64 → 16</text></g>
         <g class="box" data-go="s4"><rect x="40" y="366" width="250" height="36" rx="10"/><text class="num" x="54" y="388">4</text><text x="70" y="389">Add &amp; Norm</text></g>
         <g class="box" data-go="s7"><rect x="40" y="446" width="250" height="40" rx="10"/><text class="num" x="54" y="470">7</text><text x="70" y="471">Linear + softmax</text></g>
         <g class="box" data-go="s8"><rect x="40" y="510" width="250" height="44" rx="10"/><text class="num" x="54" y="528">8</text><text x="70" y="528">Next token</text><text class="io" id="heroOut" x="70" y="545">“mat”</text></g>
         <g class="box" data-go="s0"><rect x="40" y="580" width="250" height="40" rx="10" style="stroke-dasharray:4 3"/><text class="num" x="54" y="604">0</text><text x="70" y="605">Training: where the weights come from</text></g>
       </svg>
-      <details class="notes"><summary>Presenter notes · Your script: Opening</summary><h4 class="pn-h">Your talk track (Opening)</h4><div class="pn-say"><p>An LLM does exactly one thing: given the text so far, it predicts the next token. Everything we cover today is the machinery that makes that one prediction good. Then we repeat it, one token at a time, to produce a full answer.</p></div><p><b>Slide cue:</b> running example <code>Approve the invoice if</code> → <code>?</code>. On this page, press the <b>Approve the invoice if</b> button under the title (or type it in the box at the top) so the audience sees your words, not the cat.</p><h4 class="pn-h">How your script lines up with this page</h4><div class="pn-tbl"><table><thead><tr><th>Your script</th><th>Section on this page</th></tr></thead><tbody><tr><td>Opening</td><td>Overview (this section)</td></tr><tr><td>Step 1 · Text → tokens → embeddings</td><td>1 Tokenization, and 1b Embeddings up close</td></tr><tr><td>Step 2 · Position</td><td>2 Positional encoding</td></tr><tr><td>Step 3 · Decoder block overview</td><td>Start of 3a Q, K, V (norm and residual: 4 Add &amp; Norm)</td></tr><tr><td>Step 4 · Query, key, value</td><td>3a Q, K, V and 3b Masked attention</td></tr><tr><td>Step 5 · Causal mask</td><td>3b Masked attention</td></tr><tr><td>Step 6 · Multi-head attention</td><td>5 Multiple heads</td></tr><tr><td>Step 7 · Feed-forward network (MLP)</td><td>6 MLP</td></tr><tr><td>Step 8 · Stacking and next-token probabilities</td><td>7 Final softmax (stacking: end of 6 MLP)</td></tr><tr><td>Step 9 · Sampling</td><td>8 Next word</td></tr><tr><td>Step 10 · Loop and KV cache (not written yet)</td><td>9 Generation loop</td></tr></tbody></table></div><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>So is it just autocomplete? <span class="pn-new">added</span></dt><dd>In mechanism, yes: one next-token prediction at a time. What makes it useful is how good that prediction is. To predict well across billions of examples, it has to capture grammar, facts and patterns. Chat assistants get an extra training stage on examples of good answers, so the continuation reads like a helpful reply.</dd><dt>Is it looking the answer up online or in a database? <span class="pn-new">added</span></dt><dd>No. Everything comes from numbers fixed at training time plus the text you give it. Search or tools only happen if the product adds them around the model.</dd><dt>Does it learn from our conversation? <span class="pn-new">added</span></dt><dd>Not inside the model: the numbers are frozen when it is in use. Within a chat it only “remembers” because earlier text is sent in again each time (see the loop).</dd><dt>Why do I get a different answer each time? <span class="pn-new">added</span></dt><dd>The next word is picked with a bit of randomness (see Next word). With the randomness turned down, answers become much more repeatable.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><ul class="slip"><li>Don’t say it “looks up” or “searches for” the answer. <span class="pn-new">added</span></li><li>Don’t say it plans the whole answer first. It produces one token at a time. <span class="pn-new">added</span></li><li>After Step 1, say “token”, not “word”, or the audience will not know when you mean which. <span class="pn-new">added</span></li><li>The page numbers its sections differently from your script (it has extra sections for Training, Embeddings and Add &amp; Norm). Refer to sections by name, not number. <span class="pn-new">added</span></li><li>The page opens with “The cat sat on the”. Use the new preset button so it matches your slides. The numbers on the page are demo numbers, not what a real model gives for your sentence. <span class="pn-new">added</span></li></ul></details>
+      <details class="notes"><summary>Presenter notes · Your script: Opening</summary><h4 class="pn-h">Your talk track (Opening)</h4><div class="pn-say"><p>An LLM does exactly one thing: given the text so far, it predicts the next token. Everything we cover today is the machinery that makes that one prediction good. Then we repeat it, one token at a time, to produce a full answer.</p></div><p><b>Slide cue:</b> running example <code>Approve the invoice if</code> → <code>?</code>. On this page, press the <b>Approve the invoice if</b> button under the title (or type it in the box at the top) so the audience sees your words, not the cat.</p><h4 class="pn-h">How your script lines up with this page</h4><div class="pn-tbl"><table><thead><tr><th>Your script</th><th>Section on this page</th></tr></thead><tbody><tr><td>Opening</td><td>Overview (this section)</td></tr><tr><td>Step 1 · Text → tokens → embeddings</td><td>1 Tokenization, and 1b Embeddings up close</td></tr><tr><td>Step 2 · Position</td><td>2 Positional encoding</td></tr><tr><td>Step 3 · Decoder block overview</td><td>Start of 3a Q, K, V (norm and residual: 4 Add &amp; Norm)</td></tr><tr><td>Step 4 · Query, key, value</td><td>3a Q, K, V and 3b Masked attention</td></tr><tr><td>Step 5 · Causal mask</td><td>3b Masked attention</td></tr><tr><td>Step 6 · Multi-head attention</td><td>3c Multiple heads</td></tr><tr><td>Step 7 · Feed-forward network (MLP)</td><td>5 MLP</td></tr><tr><td>Step 8 · Stacking and next-token probabilities</td><td>6 Stacked blocks, then 7 Final softmax</td></tr><tr><td>Step 9 · Sampling</td><td>8 Next word</td></tr><tr><td>Step 10 · Loop and KV cache (not written yet)</td><td>9 Generation loop</td></tr></tbody></table></div><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>So is it just autocomplete? <span class="pn-new">added</span></dt><dd>In mechanism, yes: one next-token prediction at a time. What makes it useful is how good that prediction is. To predict well across billions of examples, it has to capture grammar, facts and patterns. Chat assistants get an extra training stage on examples of good answers, so the continuation reads like a helpful reply.</dd><dt>Is it looking the answer up online or in a database? <span class="pn-new">added</span></dt><dd>No. Everything comes from numbers fixed at training time plus the text you give it. Search or tools only happen if the product adds them around the model.</dd><dt>Does it learn from our conversation? <span class="pn-new">added</span></dt><dd>Not inside the model: the numbers are frozen when it is in use. Within a chat it only “remembers” because earlier text is sent in again each time (see the loop).</dd><dt>Why do I get a different answer each time? <span class="pn-new">added</span></dt><dd>The next word is picked with a bit of randomness (see Next word). With the randomness turned down, answers become much more repeatable.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><ul class="slip"><li>Don’t say it “looks up” or “searches for” the answer. <span class="pn-new">added</span></li><li>Don’t say it plans the whole answer first. It produces one token at a time. <span class="pn-new">added</span></li><li>After Step 1, say “token”, not “word”, or the audience will not know when you mean which. <span class="pn-new">added</span></li><li>The page numbers its sections differently from your script (it has extra sections for Training, Embeddings and Add &amp; Norm). Refer to sections by name, not number. <span class="pn-new">added</span></li><li>The page opens with “The cat sat on the”. Use the new preset button so it matches your slides. The numbers on the page are demo numbers, not what a real model gives for your sentence. <span class="pn-new">added</span></li></ul></details>
     </section>
 
     <!-- ============ 0 TRAINING ============ -->
@@ -1349,7 +1366,7 @@ body.present footer{display:none}
             <h3 class="subh" style="font-size:20px">Context moves the vector later</h3>
             <svg id="edBank" viewBox="0 0 360 300" style="width:100%;max-width:420px" aria-label="the word bank moving toward river or money"></svg>
             <div class="left" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="edB1" type="button">“I sat on the river bank”</button><button class="btn" id="edB2" type="button">“I paid money into the bank”</button></div>
-            <p class="note">The table gives “bank” one starting vector for both meanings. The attention layers after it (steps 3 to 5) mix in the surrounding words, so by the later layers the two “bank”s point to different places.</p>
+            <p class="note">The table gives “bank” one starting vector for both meanings. The attention layers after it (steps 3 and 6) mix in the surrounding words, so by the later layers the two “bank”s point to different places.</p>
           </div>
         </div>
       </div>
@@ -1495,35 +1512,15 @@ body.present footer{display:none}
       <details class="notes"><summary>Presenter notes · Your script: Step 4 (rest) and Step 5</summary><h4 class="pn-h">Your talk track (Step 4: scoring and mixing)</h4><div class="pn-say"><p>To decide who matters, each token’s query is compared with every token’s key using a dot product. A high score means ‘highly relevant to me’. We then divide by the square root of the key dimension. Dot products grow as vectors get longer; without this scaling the next step, softmax, becomes extreme and learning stalls.</p><p>Softmax turns each token’s scores into <em>weights</em>: all positive, summing to 1, like percentages of attention. Finally, we use those weights to take a weighted average of the <em>value</em> vectors. The result for each token is a <em>context vector</em>: a blend of information from the tokens it attended to.</p></div><p><b>Slide cue:</b> <code>Attention(Q, K, V) = softmax( Q·Kᵀ / √d_k + mask ) · V</code> (shown once, not belaboured).</p><p><b>Running example:</b> for <code>if</code> (position 3), its query is scored against the keys of <code>Approve</code>, <code> the</code>, <code> invoice</code>, <code> if</code>. Illustrative weights: 0.10, 0.05, 0.60, 0.25. The output for <code>if</code> is that weighted blend of the four value vectors, so it now “knows” the invoice is <b>the thing being approved</b>.</p><ul><li>Attention ≈ a soft lookup or weighted join: query against index tags, return the content.</li><li>Breaks: it isn’t a hard match. Every row contributes in proportion to its weight, and the whole thing is differentiable, so training can tune it.</li></ul><h4 class="pn-h">Your talk track (Step 5: the causal mask)</h4><div class="pn-say"><p>We generate text left to right, so a token must never see the future. Before softmax, we apply a mask: every score for a later token is set to minus infinity. After softmax, those become exactly zero. The result: each token attends only to itself and the tokens before it.</p><p>In our example, ‘ the’ can see ‘Approve’ and itself, but not ‘ invoice’ or ‘ if’. This also makes training efficient: the model processes the whole sentence at once, yet every position behaves as if it were predicting its next word with no peeking.</p></div><p><b>Slide cue (4×4 grid, ✓ = visible):</b></p><div class="pn-tbl"><table><thead><tr><th>Token ↓ sees →</th><th>Approve</th><th>the</th><th>invoice</th><th>if</th></tr></thead><tbody><tr><td><b>Approve</b></td><td>✓</td><td></td><td></td><td></td></tr><tr><td><b>the</b></td><td>✓</td><td>✓</td><td></td><td></td></tr><tr><td><b>invoice</b></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><b>if</b></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr></tbody></table></div><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>Why divide by √d<sub>k</sub>?</dt><dd>Dot-product scores grow with vector size. Without scaling, softmax saturates and gradients vanish.</dd><dt>Why minus infinity, not zero?</dt><dd>A score of 0 still gets positive weight after softmax (e<sup>0</sup> = 1). Minus infinity gives exactly zero weight, and the remaining weights still sum to 1.</dd><dt>Is the mask only for training? <span class="pn-new fix">fixed</span></dt><dd>No. It is used in training, and also when the model reads your prompt in one go. Only during the one-token-at-a-time generation phase does it become unnecessary, because the new token simply sees everything before it. We revisit this with the KV cache.</dd><dt>Where do the weights 0.10, 0.05, 0.60, 0.25 come from? <span class="pn-new">added</span></dt><dd>They are illustrative. In a real model they differ for every head, every layer and every sentence.</dd><dt>Can a word use words that come later? <span class="pn-new">added</span></dt><dd>Not inside one pass: each position only uses earlier text. The model simply predicts the next token from everything before it.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><div class="pn-fix"><b>Corrected from your draft (1)</b>Your running example says <code>if</code> “knows the invoice is the subject”. In “Approve the invoice if”, the invoice is the <b>object</b> of “approve” (the thing being approved); the subject is implied (“you”). Say “knows what is being approved”.</div><div class="pn-fix"><b>Corrected from your draft (2)</b>Your Q&amp;A says “at generation time there are no future tokens anyway”. That is only true of the one-token-at-a-time phase. When the model first reads the prompt, all prompt tokens are processed together and the mask is still needed. See the “Is the mask only for training?” answer above.</div><ul class="slip"><li>Softmax gives a <em>probability distribution</em> (positive, sums to 1), not a “normal distribution”.</li><li>Order of operations: scores → scale → mask → softmax → <b>weights × V</b> → <em>then</em> concatenate heads → <b>output projection</b>.</li><li>Each token attends to <em>itself and earlier</em> tokens, not only earlier ones.</li><li>In Step 4 you say “compared with every token’s key”. The mask in Step 5 then removes later ones. Say “every earlier token’s key, and its own; the next slide shows why”. <span class="pn-new">added</span></li><li>Don’t present the 0.10 / 0.05 / 0.60 / 0.25 weights as what a real model does. They illustrate the idea. <span class="pn-new">added</span></li></ul><h4 class="pn-h">On this page</h4><ul><li>Dividing by √d<sub>k</sub> keeps the scores in a range where softmax does not saturate.</li><li>The mask sets future positions to −∞, and e<sup>−∞</sup> = 0, so they get exactly zero weight.</li><li>The first token can only attend to itself. The last token can see the entire prompt, which is why its vector is used to predict the next word.</li><li>This all happens as one matrix multiply, so a GPU processes every position in parallel during training.</li></ul></details>
     </section>
 
-    <!-- ============ 4 ADD & NORM ============ -->
-    <section id="s4" data-name="Add & Norm" data-num="4">
+    <!-- ============ 3c MULTI HEADS ============ -->
+    <section id="s5" data-name="Multiple heads" data-num="3c">
       <div class="sec-head">
-        <div class="eyebrow">Step 4 of 9</div>
-        <h2>Add &amp; Norm: keep the original, keep it steady</h2>
-        <p class="tldr"><b>In short</b>Add the change to the original, then rescale the numbers so they stay in a sensible range.</p>
-        <p class="lede">Attention’s output is not used on its own. It is <strong>added back</strong> to the vector that went in (a residual connection), so the model only has to learn what to change. Then <strong>layer normalization</strong> rescales each token’s vector to mean 0 and standard deviation 1, which keeps numbers stable through dozens of stacked layers.</p>
-        <div class="example"><b>Example</b>Think of track changes in a document. Attention proposes edits, and the residual keeps the original text so nothing is lost. Normalising is like evening out the volume: the numbers [3, 9, 6] become [−1.22, 1.22, 0], with average 0 and spread 1.</div>
-        <div class="formula">x₁ = LayerNorm( x + Attention(x) ) &nbsp;&nbsp; LayerNorm(v) = γ · (v − mean) / std + β</div>
-      </div>
-      <div class="viz" id="v4">
-        <div class="viz-bar">
-          <div class="left"><span class="label">Token</span><div class="tokpick" id="s4Tok"></div></div>
-          <button class="btn play" data-play="s4" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
-        </div>
-        <div id="s4Bars" style="display:grid;gap:14px"></div>
-      </div>
-      <details class="notes"><summary>Presenter notes · Mentioned inside your Step 3</summary><h4 class="pn-h">Your talk track (from Step 3)</h4><div class="pn-say"><p>Around each sub-step sit two helpers: a <em>normalisation</em> layer that keeps the numbers stable, and a <em>residual connection</em> that adds the sub-step’s result back onto its input, so nothing is lost.</p><p>Think of the vectors as a payload moving down a pipeline: each sub-step reads the payload, adds something to it, and passes it on.</p></div><div class="pn-fix"><b>Suggested wording (not in your script yet)</b><b>Residual:</b> the block returns <em>input + change</em>, so the model only has to learn what to change, and earlier information is never lost. <b>Normalisation:</b> rescales each token’s numbers to a steady range, so values don’t drift or blow up across dozens of layers.</div><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>Why add the input back? <span class="pn-new">added</span></dt><dd>So nothing is lost and the block only has to learn a correction. It also gives training a direct path through many layers.</dd><dt>What does normalising do? <span class="pn-new">added</span></dt><dd>It rescales each token’s vector to a steady average and spread, so numbers stay in a workable range from layer to layer.</dd><dt>Why does your slide put Norm before the sub-step and this page after? <span class="pn-new">added</span></dt><dd>Two layouts exist. The 2017 paper normalises after the add (shown here). GPT-2 onward and most modern models normalise before each sub-step, which trains more stably in deep stacks.</dd><dt>Is it LayerNorm everywhere? <span class="pn-new">added</span></dt><dd>Many modern models, such as Llama, use RMSNorm, a simpler relative of LayerNorm. Same purpose.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><ul class="slip"><li>Name the helpers (normalisation, residual connection). “Other matrix calculations” will sound vague to this audience.</li><li>Residual adds; it does not overwrite. Say “adds to the payload”.</li><li>Don’t mix the two layouts. Pick pre-norm for the modern story and say that this page shows the original. <span class="pn-new">added</span></li></ul><h4 class="pn-h">On this page</h4><ul><li>The residual path is a highway: gradients flow straight through it, which is what makes 100‑layer networks trainable.</li><li>Watch the stats column: after LayerNorm the mean is 0.00 and the standard deviation is 1.00, whatever the input was.</li><li>The original paper normalizes after adding (post-norm, shown here). GPT‑2 and most modern models normalize before each sub-layer (pre-norm).</li></ul></details>
-    </section>
-
-    <!-- ============ 5 MULTI HEADS ============ -->
-    <section id="s5" data-name="Multiple heads" data-num="5">
-      <div class="sec-head">
-        <div class="eyebrow">Step 5 of 9</div>
+        <div class="eyebrow">Step 3c of 9</div>
         <h2>Multi-head: many ways of looking, in parallel</h2>
         <p class="tldr"><b>In short</b>Several attention “heads” read the sentence in different ways at the same time; their findings are then combined.</p>
         <p class="lede">One attention pattern cannot capture everything. So the model runs several <strong>heads</strong> side by side, each with its own Q, K and V weights and a slice of the vector. One head may track the previous word, another the subject of the sentence. Their outputs are <strong>concatenated</strong> and mixed by one more matrix, W<sub>O</sub>.</p>
         <div class="example"><b>Example</b>For the word “mat” in “The cat sat on the mat”: one head looks at the word just before it (“the”), another at the verb (“sat”), another at the start of the sentence. It is like several people reading the same sentence, each with a different question in mind.</div>
-        <div class="key"><b>Heads work in parallel and never talk to each other</b>Head 1’s queries only meet head 1’s keys and values; head 2 only meets head 2, and so on. Each head is free to specialise, for example one in grammar and another in meaning. Steps 3a to 5 together form one <em>self-attention unit</em>: a T × C matrix goes in and a T × C matrix comes out.</div>
+        <div class="key"><b>Heads work in parallel and never talk to each other</b>Head 1’s queries only meet head 1’s keys and values; head 2 only meets head 2, and so on. Each head is free to specialise, for example one in grammar and another in meaning. Steps 3a to 3c together form one <em>self-attention unit</em>: a T × C matrix goes in and a T × C matrix comes out.</div>
       </div>
       <div class="viz" id="v5eq">
         <div style="display:grid;gap:10px;max-width:780px">
@@ -1567,10 +1564,30 @@ body.present footer{display:none}
       <details class="notes"><summary>Presenter notes · Your script: Step 6</summary><h4 class="pn-h">Your talk track (Step 6: multi-head attention)</h4><div class="pn-say"><p>One attention pattern isn’t enough. A token may need to track grammar, a nearby word and meaning, all at once. So we run several attention <em>heads</em> in parallel. Each head has its own query, key and value weights and works on a smaller slice of the vector; for example, 32 heads of 128 numbers each in a 4096-wide model. Each head can learn a different pattern.</p><p>We then <em>concatenate</em> the heads’ outputs and pass them through one more learned matrix, the <em>output projection</em>, which mixes them back into a single vector of the original width. That is the output of the attention sub-step, and the residual connection adds it back onto the block’s input.</p></div><p><b>Say if asked:</b> “Each head asks a different question” is a useful intuition, but heads are not guaranteed to be neatly interpretable, and some are redundant.</p><p><b>Transition:</b> “Attention moves information <em>between</em> tokens. Next, the feed-forward network processes what each token has gathered.”</p><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>Do the heads really specialise?</dt><dd>Partly. Some track the previous token or syntax, others are less clear. Don’t overclaim.</dd><dt>How many heads do real models have? <span class="pn-new">added</span></dt><dd>GPT-2 small has 12 per layer. A 7-billion-parameter Llama model has 32.</dd><dt>Why not one big head? <span class="pn-new">added</span></dt><dd>One head must blend everything into a single set of weights. Several heads can each follow a different pattern for about the same cost.</dd><dt>What is the output projection for? <span class="pn-new">added</span></dt><dd>It mixes what the separate heads found into one vector of the original width.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><div class="pn-fix"><b>Nuance for modern models</b>Your line “each head has its own query, key and value weights” is the original design. Many current models (for example Llama 3 and Mistral 7B) use <em>grouped-query attention</em>: several query heads share one key/value head, which shrinks the memory used per token. If an expert asks, say so. It matters again at the KV cache.</div><ul class="slip"><li>Order of operations: scores → scale → mask → softmax → <b>weights × V</b> → <em>then</em> concatenate heads → <b>output projection</b>. Don’t say “concatenate, then multiply by the value matrix”.</li><li>The output projection W<sub>O</sub> belongs <em>inside</em> each block’s attention sub-step, not at the end of the model.</li><li>Distinguish weight matrices (learned) from the Q, K, V vectors they produce.</li><li>The four heads on this page are shaped to resemble known head types (previous token, first token, self, content match). Say they are illustrative. <span class="pn-new">added</span></li></ul><h4 class="pn-h">On this page</h4><ul><li>The four patterns here are deliberately shaped to resemble head types that researchers have found in trained models: previous-token heads, heads that park on the first token, and content-matching heads.</li><li>Walk the equation left to right using the “Walk through it” button: score, mask + softmax, take values, concat + W<sup>O</sup>, output. The pieces of the equation light up as you go, and you can click any piece.</li><li>Heads are cheap: splitting 16 dims into 4 × 4 costs the same compute as one big head.</li><li>GPT‑2 small has 12 heads in each of its 12 layers, 144 heads in total.</li></ul></details>
     </section>
 
-    <!-- ============ 6 MLP ============ -->
-    <section id="s6" data-name="MLP" data-num="6">
+    <!-- ============ 4 ADD & NORM ============ -->
+    <section id="s4" data-name="Add & Norm" data-num="4">
       <div class="sec-head">
-        <div class="eyebrow">Step 6 of 9</div>
+        <div class="eyebrow">Step 4 of 9</div>
+        <h2>Add &amp; Norm: keep the original, keep it steady</h2>
+        <p class="tldr"><b>In short</b>Add the change to the original, then rescale the numbers so they stay in a sensible range.</p>
+        <p class="lede">Attention’s output is not used on its own. It is <strong>added back</strong> to the vector that went in (a residual connection), so the model only has to learn what to change. Then <strong>layer normalization</strong> rescales each token’s vector to mean 0 and standard deviation 1, which keeps numbers stable through dozens of stacked layers.</p>
+        <div class="example"><b>Example</b>Think of track changes in a document. Attention proposes edits, and the residual keeps the original text so nothing is lost. Normalising is like evening out the volume: the numbers [3, 9, 6] become [−1.22, 1.22, 0], with average 0 and spread 1.</div>
+        <div class="formula">x₁ = LayerNorm( x + Attention(x) ) &nbsp;&nbsp; LayerNorm(v) = γ · (v − mean) / std + β</div>
+      </div>
+      <div class="viz" id="v4">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Token</span><div class="tokpick" id="s4Tok"></div></div>
+          <button class="btn play" data-play="s4" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div id="s4Bars" style="display:grid;gap:14px"></div>
+      </div>
+      <details class="notes"><summary>Presenter notes · Mentioned inside your Step 3</summary><h4 class="pn-h">Your talk track (from Step 3)</h4><div class="pn-say"><p>Around each sub-step sit two helpers: a <em>normalisation</em> layer that keeps the numbers stable, and a <em>residual connection</em> that adds the sub-step’s result back onto its input, so nothing is lost.</p><p>Think of the vectors as a payload moving down a pipeline: each sub-step reads the payload, adds something to it, and passes it on.</p></div><div class="pn-fix"><b>Suggested wording (not in your script yet)</b><b>Residual:</b> the block returns <em>input + change</em>, so the model only has to learn what to change, and earlier information is never lost. <b>Normalisation:</b> rescales each token’s numbers to a steady range, so values don’t drift or blow up across dozens of layers.</div><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>Why add the input back? <span class="pn-new">added</span></dt><dd>So nothing is lost and the block only has to learn a correction. It also gives training a direct path through many layers.</dd><dt>What does normalising do? <span class="pn-new">added</span></dt><dd>It rescales each token’s vector to a steady average and spread, so numbers stay in a workable range from layer to layer.</dd><dt>Why does your slide put Norm before the sub-step and this page after? <span class="pn-new">added</span></dt><dd>Two layouts exist. The 2017 paper normalises after the add (shown here). GPT-2 onward and most modern models normalise before each sub-step, which trains more stably in deep stacks.</dd><dt>Is it LayerNorm everywhere? <span class="pn-new">added</span></dt><dd>Many modern models, such as Llama, use RMSNorm, a simpler relative of LayerNorm. Same purpose.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><ul class="slip"><li>Name the helpers (normalisation, residual connection). “Other matrix calculations” will sound vague to this audience.</li><li>Residual adds; it does not overwrite. Say “adds to the payload”.</li><li>Don’t mix the two layouts. Pick pre-norm for the modern story and say that this page shows the original. <span class="pn-new">added</span></li></ul><h4 class="pn-h">On this page</h4><ul><li>The residual path is a highway: gradients flow straight through it, which is what makes 100‑layer networks trainable.</li><li>Watch the stats column: after LayerNorm the mean is 0.00 and the standard deviation is 1.00, whatever the input was.</li><li>The original paper normalizes after adding (post-norm, shown here). GPT‑2 and most modern models normalize before each sub-layer (pre-norm).</li></ul></details>
+    </section>
+
+    <!-- ============ 5 MLP ============ -->
+    <section id="s6" data-name="MLP" data-num="5">
+      <div class="sec-head">
+        <div class="eyebrow">Step 5 of 9</div>
         <h2>The MLP: each word thinks on its own</h2>
         <p class="tldr"><b>In short</b>Attention gathers information from other words; the MLP then works on each word alone and adds what the model knows.</p>
         <p class="lede">Attention lets words share information with each other. The <strong>MLP</strong> (also called the feed-forward network) then works on <strong>each word separately</strong>: it widens the word’s vector to 4× its size, applies a bend called GELU, and shrinks it back. Research suggests much of a model’s factual knowledge is stored in these weights. A second Add &amp; Norm follows.</p>
@@ -1592,19 +1609,7 @@ body.present footer{display:none}
           </div>
         </div>
         <div id="s6Rows" style="display:grid;gap:10px"></div>
-        <div style="display:grid;gap:10px">
-          <span class="label">Then the whole block repeats</span>
-          <p class="note">Steps 3 to 6 form one decoder block. Its output feeds the next identical block (with its own weights). Real models stack many:</p>
-          <div class="scroll-x"><table class="stack-table">
-            <thead><tr><th>Model</th><th>Layers</th><th>Heads / layer</th><th>Vector size</th></tr></thead>
-            <tbody>
-              <tr class="me"><td>This demo</td><td>1</td><td>4</td><td>16</td></tr>
-              <tr><td>GPT‑2 small (2019)</td><td>12</td><td>12</td><td>768</td></tr>
-              <tr><td>GPT‑2 XL (2019)</td><td>48</td><td>25</td><td>1,600</td></tr>
-              <tr><td>GPT‑3 175B (2020)</td><td>96</td><td>96</td><td>12,288</td></tr>
-            </tbody>
-          </table></div>
-        </div>
+        <div style="display:grid;gap:10px"><span class="label">Then the block is complete</span><p class="note">Steps 3 to 5 together make one decoder block: attention, Add &amp; Norm, MLP, Add &amp; Norm. Next, that block is stacked many times.</p><div><button class="btn" type="button" data-tabgo="decoder" data-sec="sk">See how stacked blocks work on the token vectors →</button></div></div>
       </div>
       <div class="viz" id="v6b">
         <div style="display:grid;gap:10px;max-width:760px">
@@ -1628,6 +1633,88 @@ body.present footer{display:none}
         <p class="note">This is a hand-built toy in which every neuron has one clear meaning. In real models a fact is spread over many neurons, and each neuron helps with many facts, but the principle is the same. Research on GPT-style models found that feed-forward layers act like key–value memories (Geva et al., 2021) and that factual associations can be located and edited in specific MLP layers (Meng et al., 2022). Outside transformers, a plain MLP is useful on its own for tasks like predicting house prices, credit risk or which product to recommend from a row of numbers.</p>
       </div>
       <details class="notes"><summary>Presenter notes · Your script: Step 7</summary><h4 class="pn-h">Your talk track (Step 7: the feed-forward network, MLP)</h4><div class="pn-say"><p>After attention has gathered information from other tokens, the second sub-step is the feed-forward network, or MLP. If attention is the <em>communication</em> step, the MLP is the <em>computation</em> step.</p><p>Here is how it works. It takes each token’s vector and expands it to a much wider layer, roughly two-and-a-half to four times wider; for example, 768 numbers expand to 3,072 in GPT-2, and 4096 to around 11,000 in a Llama-style model. It then passes the result through a <em>non-linear activation function</em> and shrinks it back to the original width. That non-linearity matters: without it, stacked layers would collapse into one single matrix multiplication and the network could not learn complex patterns.</p><p>Two things to remember. First, the MLP works on <em>each token separately</em>, with the same weights for every position. It never mixes tokens; only attention does that. Second, it holds most of the block’s parameters, roughly two-thirds. Researchers think the MLPs act like a memory where much of the model’s factual knowledge is stored, though this is still being studied.</p><p>The result is added back onto the token’s vector through the residual connection, and the block is complete.</p></div><p><b>Slide cue (diagram):</b> per-token vector (width d) → expand (≈2.5 to 4× wider) → non-linear activation → shrink back (width d) → add to input. Caption: “Attention = tokens talk to each other. MLP = each token thinks on its own.”</p><h4 class="pn-h">Analogy, and where it breaks</h4><ul><li>Attention ≈ a team meeting where people gather information. MLP ≈ each person returning to their desk to process their notes alone. For this audience: attention is a join across rows; the MLP is a calculated column applied identically to every row.</li><li>Breaks: the “formula” is learned, non-linear and very large; it is not hand-written logic.</li></ul><p><b>Transition:</b> “We have now seen one full block. A model stacks dozens of them. But where does the actual next-word prediction come from? Only after the last block.”</p><h4 class="pn-h">Likely questions</h4><dl class="qa"><dt>Why do we need the non-linearity?</dt><dd>Without it, the two linear layers would multiply into one linear layer and add no expressive power. (The Key concepts tab has a two-minute demo.)</dd><dt>Does the MLP see neighbouring tokens?</dt><dd>No. It is strictly per token; all cross-token information flow happens in attention.</dd><dt>Where does next-word prediction happen?</dt><dd>At the very end of the network: final normalisation, then a linear <em>unembedding</em> layer that scores every token in the vocabulary, then softmax. This is covered in the next step.</dd><dt>What is stored in the MLPs?</dt><dd>A widely held view, supported by interpretability research, is factual associations and patterns. It is a working hypothesis, not a settled fact; don’t overclaim.</dd><dt>Why that width? <span class="pn-new">added</span></dt><dd>A design choice found to work well: it gives each token room to compute before shrinking back. Models use different ratios.</dd></dl><h4 class="pn-h">Slip-ups to avoid</h4><div class="pn-fix"><b>Corrected from your draft</b>You wrote “roughly three to four times wider; for example 4096 numbers expand to around 11,000”. 11,000 ÷ 4,096 is about <b>2.7×</b>, not three to four. The original design is 4× (GPT-2: 768 → 3,072); Llama-style models use a gated variant at about 2.7× (4,096 → 11,008). Say “between about 2.5 and 4 times wider”, as in the talk track above.</div><ul class="slip"><li>The MLP does <b>not</b> predict the next word. The final unembedding layer does, after all blocks.</li><li>It is not “just a linear multiplication”: it is linear, then a non-linear activation (GELU, SiLU or SwiGLU, depending on the model), then linear.</li><li>Say “per token, same weights at every position”. Don’t imply it looks across the sentence.</li><li>Attention’s softmax is also a non-linearity. Don’t say the block is “linear until the MLP”; say the MLP adds an explicit bend for each token. <span class="pn-new">added</span></li><li>The Eiffel Tower demo is a hand-built toy where one neuron holds one fact. Real models spread each fact over many neurons. Say so before the audience takes it literally. <span class="pn-new">added</span></li></ul><h4 class="pn-h">On this page</h4><ul><li>Roughly two thirds of a transformer’s parameters live in these MLP layers.</li><li>For the fact-lookup example: attention gathers (“this is about the Eiffel Tower, and it asks for a place”), the MLP recalls (“that means Paris”). Switch the neuron off, then use “Edit a fact” to show that knowledge lives in the weights.</li><li>Nothing crosses between tokens here. The same weights run on every position independently.</li><li>After N blocks, each token’s vector has absorbed context from everything before it.</li></ul></details>
+    </section>
+
+    <!-- ============ 6 STACKED BLOCKS ============ -->
+    <section id="sk" data-name="Stacked blocks" data-num="6">
+      <div class="sec-head">
+        <div class="eyebrow">Step 6 of 9</div>
+        <h2>Stacked blocks: the same recipe, again and again</h2>
+        <p class="tldr"><b>In short</b>One block gathers (attention) and thinks (MLP). The next block starts from that result, so every pass can build on what the last one wrote.</p>
+        <p class="lede">Steps 3 to 5 make one <strong>decoder block</strong>: attention, Add &amp; Norm, MLP, Add &amp; Norm. Its output is the same shape as its input, one vector per token, so it can go straight into another block that has <strong>its own, different learned weights</strong>. GPT‑2 small stacks 12 blocks and GPT‑3 stacks 96. The token vectors keep flowing upward, and each block reads them and adds a small change on top, using the residual path from step 4.</p>
+        <div class="example"><b>Example</b>Think of editing a draft in rounds. Round one fixes the obvious problems. Round two starts from a draft that is already better, so it can notice things round one could not. One round could never do it all, because each round depends on the improvements made by the one before.</div>
+        <div class="key"><b>Why depth helps</b>Attention moves information <em>one hop</em> per block. If block 1 tells “bank” that it belongs to a river, block 2 lets “sat” read that improved “bank”. With 12 or 96 blocks, facts can hop many times, and every MLP can combine what has arrived before passing it on.</div>
+      </div>
+      <div class="viz" id="vk">
+        <div class="viz-bar">
+          <div class="left"><span class="label">Follow this token up the stack</span><div class="tokpick" id="skTok"></div></div>
+          <button class="btn play" data-play="sk" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>Replay</button>
+        </div>
+        <div class="blocks" id="skGrid"></div>
+        <div style="display:grid;gap:8px">
+          <span class="label">Where this token’s information comes from, after each block</span>
+          <div id="skReach" class="sk-reach"></div>
+          <p class="note">Each row adds one more block. After block 1 the token mostly draws on itself and the words it looked at directly. After more blocks it also draws on what <em>those</em> words had gathered, so the reach spreads. Brighter means a larger share of the token’s information came from that word (attention rollout, a standard way to track this).</p>
+        </div>
+        <p class="note">These four blocks use random weights, because this page does not train a model. Block 1 is the block you followed through steps 3 to 5. The numbers mean nothing, but the mechanics are real: same shape in and out, a different set of weights in each block, and each block changing the vectors it receives.</p>
+      </div>
+      <div class="viz" id="vk2">
+        <div style="display:grid;gap:10px;max-width:780px">
+          <span class="label">What stacking buys you: two examples</span>
+          <h3 class="subh">Each block can use what the earlier blocks wrote</h3>
+          <p class="note" style="font-size:15px;color:var(--ink)">In a trained model the work is spread out and messy, and no single block owns one job. Researchers do see a rough tendency: earlier blocks lean toward nearby words and surface patterns, middle blocks toward meaning and facts, and later blocks toward getting ready to predict. Read the examples as an illustration of that tendency.</p>
+        </div>
+        <div class="sk-ex">
+          <div class="sk-card">
+            <div class="sk-s">“She sat on the river bank”</div>
+            <div class="sk-r"><b>Early blocks</b><span>“bank” attends to “river”. The MLP marks it as the edge of a river, not a place that holds money.</span></div>
+            <div class="sk-r"><b>Middle blocks</b><span>Other words now read the improved “bank”. “sat” learns the scene is outdoors, by the water.</span></div>
+            <div class="sk-r"><b>Late blocks</b><span>The last vector holds “a person resting by a river”, so continuations like “and”, “watching” or “.” beat “account”.</span></div>
+          </div>
+          <div class="sk-card">
+            <div class="sk-s">“The Eiffel Tower is located in”</div>
+            <div class="sk-r"><b>Early blocks</b><span>“in” attends to “located” and to “Eiffel Tower”, and learns that a place is being asked for.</span></div>
+            <div class="sk-r"><b>Middle blocks</b><span>An MLP recalls what it stored about the Eiffel Tower: it is in Paris, in France. This is the lookup from step 5.</span></div>
+            <div class="sk-r"><b>Late blocks</b><span>The last vector now says “a city name is expected, and it is Paris”. The unembedding in step 7 turns that into a high score for “Paris”.</span></div>
+          </div>
+        </div>
+        <div class="goals">
+          <div class="goal"><b>Same recipe, new weights</b><p>Every block is built the same way. What differs is what it has learned, so each one looks at the sentence differently.</p></div>
+          <div class="goal"><b>A shared workspace</b><p>Each token’s vector is a workspace that every block reads and adds to. Because of the residual path, early information is never thrown away.</p></div>
+          <div class="goal"><b>Depth is composition</b><p>One wide layer could in theory do a lot, but depth lets simple pieces build on each other, which uses far fewer numbers.</p></div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <span class="label">Real models stack many</span>
+          <div class="scroll-x"><table class="stack-table">
+            <thead><tr><th>Model</th><th>Blocks</th><th>Heads / block</th><th>Vector size</th></tr></thead>
+            <tbody>
+              <tr class="me"><td>This demo</td><td>1 computed, 3 illustrative</td><td>4</td><td>16</td></tr>
+              <tr><td>GPT‑2 small (2019)</td><td>12</td><td>12</td><td>768</td></tr>
+              <tr><td>GPT‑2 XL (2019)</td><td>48</td><td>25</td><td>1,600</td></tr>
+              <tr><td>GPT‑3 175B (2020)</td><td>96</td><td>96</td><td>12,288</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">The blocks run one after another, so the work for one new token goes through all of them in sequence. That is one reason bigger models answer more slowly.</p>
+        </div>
+      </div>
+      <details class="notes"><summary>Presenter notes</summary>
+        <h4 class="pn-h">How to use this step</h4>
+        <p>Say it as a recap, then raise it a level: “We have just built one block. Now we repeat it.” Pick a token in the demo and press Replay, then show the reach rows spreading. Finish on the two examples.</p>
+        <h4 class="pn-h">Likely questions</h4>
+        <dl class="qa">
+          <dt>Do the blocks share weights?</dt><dd>No. Each block has its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, W<sub>O</sub> and MLP weights. The recipe is the same; the numbers differ.</dd>
+          <dt>Is it true that early blocks do grammar and late blocks do meaning?</dt><dd>As a rough tendency, yes, and researchers have shown it for several models. It is not a clean rule, and tasks are spread across blocks. Present it as a tendency.</dd>
+          <dt>Why not one huge block?</dt><dd>A very wide single layer needs far more numbers to do what several smaller steps do together. Depth lets the model reuse and combine intermediate results.</dd>
+          <dt>Do later blocks still see the original word?</dt><dd>Yes, through the residual path. The original vector is carried upward and each block adds to it.</dd>
+          <dt>Is the reach picture a real measurement?</dt><dd>It is real arithmetic on this page’s random weights, so the pattern is a demonstration, not a finding about a trained model.</dd>
+        </dl>
+        <h4 class="pn-h">Slip-ups to avoid</h4>
+        <ul class="slip">
+          <li>Do not say each block “does one job”. Say “tends to”.</li>
+          <li>Do not say the blocks are copies. The recipe is shared, the weights are not.</li>
+          <li>The other tabs in this site may call this step “stacking” or “repeated blocks”; it is the same thing. In your own script it is the first half of Step 8.</li>
+        </ul>
+      </details>
     </section>
 
     <!-- ============ 7 SOFTMAX ============ -->
@@ -1719,7 +1806,7 @@ body.present footer{display:none}
     </section>
 
     <footer>
-      <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block on your exact text in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights, so you can see every intermediate number. Head patterns in steps 3 and 5 get a small nudge so they resemble patterns seen in trained models.</p>
+      <p><strong>How the numbers are made.</strong> Steps 1 to 6 run a real, tiny decoder block on your exact text in your browser (16‑dim vectors, 4 heads, a 64‑neuron MLP) with fixed random weights, so you can see every intermediate number. Head patterns in steps 3b and 3c get a small nudge so they resemble patterns seen in trained models.</p>
       <p><strong>The training demo.</strong> Step 0 really trains a tiny model in your browser by gradient descent: 2 numbers per word, a next-word output layer, and the sentences shown plus yours. Real models train a full transformer the same way.</p>
       <p><strong>Where the predictions come from.</strong> Steps 7 to 9 call a real language model with your exact text every time. Opened as a local file or a normal web page, the site downloads GPT‑2 (distilgpt2) and runs it in your browser, which gives true tokens and true probabilities. Inside Claude, where downloads are blocked, it asks Claude for the next token and its estimated probabilities instead. The badge at the top shows which model is live.</p>
       <p>Based on Vaswani et al., <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">“Attention Is All You Need”</a> (2017), and the GPT family of decoder-only models.</p>
@@ -2356,7 +2443,7 @@ function matHTML(M,labels,{mx,big,groups,tipName='dim'}={}){
 const stripHTML=(v,mx,lbl='')=>`<div class="strip">${v.map((x,j)=>`<i class="c" style="background:${divColor(x,mx)}" data-tip="${esc(lbl)}dim ${j}: ${x.toFixed(3)}"></i>`).join('')}</div>`;
 function tokPicker(el,onPick){
   el.innerHTML=S.toks.map((t,i)=>`<button type="button" class="chip" data-i="${i}" aria-pressed="${i===S.sel}"><span class="t">${esc(t.text)}</span></button>`).join('');
-  el.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;S.sel=+b.dataset.i;onPick()};
+  el.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;S.sel=+b.dataset.i;onPick();if(el.id!=='skTok'&&typeof renderStack==='function')renderStack()};
 }
 
 /* ================= STEP 1 ================= */
@@ -3097,6 +3184,56 @@ function renderMeta(){
   });
 }
 
+/* ================= STEP 6: STACKED BLOCKS ================= */
+const SK_N=4;
+const SK_W=[201,202,203].map(sd=>({Wq:randMat(D,D,.38,sd),Wk:randMat(D,D,.38,sd+10),Wv:randMat(D,D,.38,sd+20),Wo:randMat(D,D,.32,sd+30),W1:randMat(D,FF,.32,sd+40),b1:randMat(1,FF,.25,sd+50)[0],W2:randMat(FF,D,.16,sd+60)}));
+function skRun(){
+  const N=S.N,res=[];
+  res.push({inp:S.X0,out:S.X2,att:Array.from({length:N},(_,i)=>Array.from({length:N},(_,j)=>S.heads.reduce((s,h)=>s+h.P[i][j],0)/NH))});
+  let X=S.X2;
+  SK_W.forEach(W=>{
+    const Q=matmul(X,W.Wq),K=matmul(X,W.Wk),V=matmul(X,W.Wv),att=Array.from({length:N},()=>Array(N).fill(0)),concat=X.map(()=>[]);
+    for(let h=0;h<NH;h++){
+      const a=h*DK,b=a+DK,q=colsOf(Q,a,b),k=colsOf(K,a,b),v=colsOf(V,a,b);
+      const P=q.map((qi,i)=>softmax(k.map((kj,j)=>j>i?-Infinity:dot(qi,kj)/Math.sqrt(DK))));
+      P.forEach((r,i)=>r.forEach((p,j)=>{att[i][j]+=p/NH}));
+      matmul(P,v).forEach((r,i)=>concat[i].push(...r));
+    }
+    const X1=addM(X,matmul(concat,W.Wo)).map(layerNorm);
+    const H=matmul(X1,W.W1).map(r=>r.map((v,j)=>gelu(v+W.b1[j])));
+    const out=addM(X1,matmul(H,W.W2)).map(layerNorm);
+    res.push({inp:X,out,att});X=out;
+  });
+  let R=Array.from({length:N},(_,i)=>Array.from({length:N},(_,j)=>i===j?1:0));
+  res.forEach(r=>{const M=r.att.map((row,i)=>row.map((p,j)=>.5*p+(i===j?.5:0)));R=matmul(M,R);r.reach=R.map(x=>[...x])});
+  return res;
+}
+function renderStack(){
+  if(!S.toks||!S.toks.length||!$('#skGrid'))return;
+  const run=skRun(),i=S.sel,lab=S.labels;
+  tokPicker($('#skTok'),()=>{renderStack();playStack()});
+  const mx=Math.max(...run.flatMap(r=>r.out[i].map(Math.abs)),1e-6);
+  const norm=v=>Math.sqrt(v.reduce((s,x)=>s+x*x,0));
+  $('#skGrid').innerHTML=run.map((r,b)=>{
+    const d=r.out[i].map((x,k)=>x-r.inp[i][k]),cos=r.out[i].reduce((t,x,k)=>t+x*r.inp[i][k],0)/((norm(r.out[i])*norm(r.inp[i]))||1);
+    return `<div class="blk kb${b===0?' me':''}"><h4>Block ${b+1} <span class="muted">${b===0?'(steps 3 to 5)':'(random weights)'}</span></h4>
+      <span class="lbl">Vector out</span>${stripHTML(r.out[i],mx,`block ${b+1} · `)}
+      <span class="lbl">What this block added</span>${stripHTML(d,Math.max(...d.map(Math.abs),1e-6),`change · `)}
+      <span class="chg">similarity to its input: <b>${cos.toFixed(2)}</b> (1 = unchanged)</span>
+      <span class="lbl">Looked at (attention, 4 heads averaged)</span>
+      <div class="att">${lab.map((w,j)=>j>i?'':`<span class="${j===i?'me':''}" style="background:${attColor(Math.min(.85,r.att[i][j]),'--accent')};color:var(--${r.att[i][j]>.5?'on-strong':'ink'})" title="${esc(w.trim())}: ${Math.round(r.att[i][j]*100)}%">${esc(w.trim())}</span>`).join('')}</div>
+    </div>`}).join('')+`<div class="blk more"><h4>… up to block 12</h4><p>in GPT‑2 small; 96 in GPT‑3</p></div>`;
+  const cols=`repeat(${lab.length},minmax(0,1fr))`;
+  $('#skReach').innerHTML=`<div class="sk-rr"><span></span><div class="sk-rc" style="grid-template-columns:${cols}">${lab.map(w=>`<span style="color:var(--muted)">${esc(w.trim())}</span>`).join('')}</div></div>`+
+    run.map((r,b)=>`<div class="sk-rr"><span>after block ${b+1}</span><div class="sk-rc" style="grid-template-columns:${cols}">${lab.map((w,j)=>`<span style="background:${attColor(Math.min(.85,r.reach[i][j]),'--accent')};color:var(--${r.reach[i][j]>.5?'on-strong':'ink'})" title="${esc(w.trim())}: ${Math.round(r.reach[i][j]*100)}%">${j>i?'':Math.round(r.reach[i][j]*100)+'%'}</span>`).join('')}</div></div>`).join('');
+}
+async function playStack(){
+  renderStack();
+  const cards=$$('#skGrid .kb'),rows=$$('#skReach .sk-rr').slice(1);
+  await stagger(cards,RM?0:420);
+  await stagger(rows,RM?0:260);
+}
+
 /* ================= STEP 7 ================= */
 function render7(){
   const last=S.N-1,v=S.X2[last];
@@ -3221,11 +3358,11 @@ function renderAll(predDelay=800){
   const p=currentText();
   $('#heroPrompt').textContent=`“${p}”`;
   $('#heroIn').textContent=p.length>30?p.slice(0,29)+'…':p;
-  render1();render2();renderQKV();renderCmp();renderBlocks();render3();render4();render5();renderEq();render6();render7();render8();resetGen();renderMeta();
+  render1();render2();renderQKV();renderCmp();renderBlocks();render3();render4();render5();renderEq();render6();renderStack();render7();render8();resetGen();renderMeta();
   if(TR.lastText!==p){TR.lastText=p;trReset()}
   schedulePrediction(predDelay);
 }
-const PLAY={v1:()=>bvGo(BV.stage),c1:playDot,c2:playSoft,c3:playBend,s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
+const PLAY={sk:()=>playStack(),v1:()=>bvGo(BV.stage),c1:playDot,c2:playSoft,c3:playBend,s5eq:playEq,se:()=>{emReset();emStart()},o3:()=>{trxReset();trxPlay()},b2:()=>playNeuron(),b4:()=>playInference(),s0:()=>{trReset();trStart()},s3a:playQKV,s1:play1,s2:play2,s3:play3,s4:play4,s5:()=>{play5();playEq()},s6:()=>{play6();playMF()},s7:play7,s8:play8,s9:()=>{if(!gen.running){gen.running=true;setPlayLabel();genLoop()}}};
 
 /* ================= events ================= */
 let deb;
@@ -3789,7 +3926,7 @@ const BVS=[
  scale:'Real MLPs widen about 4×, and hold much of the model’s stored knowledge. Neuron meanings here are made up for the story.',
  vis:()=>{const lit=bvM.lit,names={5:'a condition follows “if”',14:'money, invoices',23:'business wording'};
   return `<div class="bv-mlp">${bvA(`<div class="bv-col"><b>“if” after attention</b>${bvStrip(bvM.R)}</div>`,0)}${bvA(`<div class="bv-col"><b>Widen to 32 neurons, switch some on</b><div class="bv-dots">${bvM.act.map((a,i)=>`<i style="--a:${a.toFixed(2)}" ${lit[i]?`class="on" data-n="${Object.keys(lit).indexOf(String(i))+1}"`:''}></i>`).join('')}</div><div class="bv-legend">${Object.keys(lit).map((k,n)=>`<span><b>${n+1}</b> ${names[k]}</span>`).join('')}</div></div>`,300)}${bvA(`<div class="bv-col"><b>Squeeze back to 8, nudging the next-word odds toward</b><div class="bv-chipsrow">${['the','it','all','payment'].map(w=>`<span class="bv-pill">${w}</span>`).join('')}</div></div>`,700)}</div>`}},
-{g:'B',t:'Stack the block',sec:'s4',
+{g:'B',t:'Stack the block',sec:'sk',
  what:'Attention plus MLP is one block. Add-and-norm steps keep the numbers tidy around each part. The output of one block is the input to the next, and the same recipe repeats with different learned weights.',
  why:'One pass only does a little. Stacking lets early blocks handle simple patterns and later blocks build on them with more abstract ideas, ending with a list rich enough to predict the next word.',
  scale:'GPT-2 small stacks 12 blocks. GPT-3 stacks 96. Every word gets a final list, but only the LAST word’s final vector (here, the one for “if”) is used to predict the next token. The earlier words still matter: through attention they fed their information into that last vector at every block. (During training, every position is scored at once, each predicting its own next word. At generation time only the last one is used.)',
@@ -4073,6 +4210,14 @@ s6:{say:[
 "Switch that neuron off and the fact disappears. Press Edit a fact and the model now says “Rome”. This is how research teams find and change knowledge inside real models."],
 show:"Click a neuron to switch it off, then press Edit a fact."},
 
+sk:{say:[
+"Steps 3 to 5 gave us one decoder block: attention, then the MLP, each with an Add and Norm. Now we repeat it.",
+"The output of one block has exactly the shape of its input, one vector per token. So it goes straight into the next block, which has its own, different weights. GPT-2 small stacks twelve blocks. GPT-3 stacks ninety-six.",
+"Why does that help? Attention moves information one hop per block. In “She sat on the river bank”, an early block tells “bank” that it belongs to a river. A later block lets “sat” read that improved “bank” and learn the scene is outdoors. Each block builds on what the previous one wrote.",
+"On screen, pick a word and press Replay. Each card is one block. It shows the vector it produced, how much it changed it, and which words it looked at. The rows below show where the word’s information comes from, spreading wider with every block. These blocks use random weights, so the numbers are a demonstration of the mechanics.",
+"Next, the last word’s vector from the top of the stack is turned into scores for every word."],
+show:"Pick a word, press Replay, then read the two examples underneath."},
+
 s7:{say:[
 "Only the last word’s vector is needed to predict what comes next. The model gives every word in its vocabulary a score, and softmax turns those scores into percentages that add up to one hundred.",
 "For example, after “The cat sat on the”, “mat” gets about thirty percent, “sofa” sixteen and “floor” twelve.",
@@ -4208,7 +4353,7 @@ d1:{say:[
 "If the frame stays blank, use Open in a new tab."],
 show:"Load the demo before the session starts."}
 };
-const PS_ORDER=['b0','b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','v1','intro','s0','s1','se','s2','s3a','s3','s4','s5','s6','s7','s8','s9','d1'];
+const PS_ORDER=['b0','b1','b2','b3','b4','b5','b6','c1','c2','c3','o1','o2','o3','o4','v1','intro','s0','s1','se','s2','s3a','s3','s5','s4','s6','sk','s7','s8','s9','d1'];
 const PS_TAB={tabBasics:'Basics',tabConcepts:'Concept',tabOverview:'Overview',tabBird:'Bird’s-eye',tabDecoder:'Decoder',tabDemos:'Demo'};
 const PS={win:null,panel:null};
 function psMeta(id){const sec=document.getElementById(id),shell=sec.closest('.shell');const tab=PS_TAB[shell.id];const num=sec.dataset.num;return {name:sec.dataset.name,label:id==='intro'?'Decoder · Overview':`${tab} ${tab==='Decoder'?'step ':''}${num}`}}
@@ -4298,10 +4443,11 @@ const CODE=[{"id": "s0", "title": "Training: where the weights come from", "note
 {"id": "s2", "title": "Positional encoding", "note": "Attention ignores word order by itself, so each position gets its own learned vector, added to the token vector. (The 2017 paper used fixed sine and cosine waves; GPT-2 learns them.)", "code": "class PositionEmbedding(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.table = nn.Embedding(cfg.block_size, cfg.n_embd)  # one row per position\n\n    def forward(self, T):\n        return self.table(torch.arange(T))   # (T, n_embd)\n\n# input to the first block:  x = TokenEmbedding(idx) + PositionEmbedding(T)"},
 {"id": "s3a", "title": "Q, K, V", "note": "Three learned matrices turn every token's vector into a query, a key and a value. The same matrices are used for every token; only the input x changes. Here they are packed into one Linear layer.", "code": "class QKV(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.proj = nn.Linear(cfg.n_embd, 3 * cfg.n_embd)  # W_Q, W_K, W_V side by side\n\n    def forward(self, x):                                   # x: (B, T, n_embd)\n        q, k, v = self.proj(x).chunk(3, dim=-1)             # each (B, T, n_embd)\n        return q, k, v                                      # query: what I look for; key: what I offer; value: what I hand over"},
 {"id": "s3", "title": "Masked attention", "note": "Each token scores every earlier token (query · key), the future is masked out, softmax turns the scores into weights, and the output is a weighted blend of the values.", "code": "def masked_attention(q, k, v):\n    d = q.size(-1)\n    T = q.size(-2)\n    scores = q @ k.transpose(-2, -1) / math.sqrt(d)               # (.., T, T) match score for every pair\n    causal = torch.tril(torch.ones(T, T, dtype=torch.bool))       # lower triangle = allowed to look at\n    scores = scores.masked_fill(~causal, float(\"-inf\"))           # hide the future\n    weights = F.softmax(scores, dim=-1)                           # each row sums to 1\n    return weights @ v                                            # weighted mix of earlier tokens' values"},
-{"id": "s4", "title": "Add & Norm", "note": "Add the layer's output back to its input (the residual path), and normalise so the numbers stay well-scaled. GPT-2 normalises before the layer (pre-norm); the 2017 paper did it after.", "code": "class AddNorm(nn.Module):\n    def __init__(self, cfg, layer):\n        super().__init__()\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.layer = layer\n\n    def forward(self, x):\n        return x + self.layer(self.norm(x))   # x + layer(norm(x))"},
 {"id": "s5", "title": "Multiple heads", "note": "Run attention several times side by side, each head on its own slice of the numbers, so each can look for a different kind of relationship. Join the results and mix them with one more matrix, W_O.", "code": "class MultiHeadAttention(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.h = cfg.n_head\n        self.qkv = QKV(cfg)\n        self.out = nn.Linear(cfg.n_embd, cfg.n_embd)          # W_O\n\n    def forward(self, x):\n        B, T, C = x.shape\n        q, k, v = self.qkv(x)\n        split = lambda t: t.view(B, T, self.h, C // self.h).transpose(1, 2)  # (B, heads, T, C/heads)\n        y = masked_attention(split(q), split(k), split(v))    # every head at once\n        y = y.transpose(1, 2).reshape(B, T, C)                # concatenate the heads\n        return self.out(y)                                    # mix them with W_O"},
-{"id": "s6", "title": "MLP", "note": "After attention has gathered context, each token passes alone through a small two-layer network: widen 4x, apply a non-linearity (GELU), narrow back. Then the block is complete.", "code": "class MLP(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(cfg.n_embd, 4 * cfg.n_embd),\n            nn.GELU(),                                        # the non-linearity\n            nn.Linear(4 * cfg.n_embd, cfg.n_embd),\n        )\n\n    def forward(self, x):\n        return self.net(x)\n\n\nclass Block(nn.Module):\n    \"\"\"One decoder block: attention then MLP, each wrapped in Add & Norm.\"\"\"\n    def __init__(self, cfg):\n        super().__init__()\n        self.attn = AddNorm(cfg, MultiHeadAttention(cfg))\n        self.mlp = AddNorm(cfg, MLP(cfg))\n\n    def forward(self, x):\n        return self.mlp(self.attn(x))"},
-{"id": "s7", "title": "Final softmax", "note": "Stack the blocks, normalise once more, then score every vocabulary token against the last vector (the unembedding). Softmax turns the scores into probabilities.", "code": "class GPT(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.cfg = cfg\n        self.tok = TokenEmbedding(cfg)\n        self.pos = PositionEmbedding(cfg)\n        self.blocks = nn.Sequential(*[Block(cfg) for _ in range(cfg.n_layer)])\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)   # the unembedding\n        self.head.weight = self.tok.table.weight   # GPT-2 reuses the embedding table here\n        for table in (self.tok.table, self.pos.table):\n            nn.init.normal_(table.weight, std=0.02)   # small start values, as in GPT-2\n\n    def forward(self, idx):                                   # idx: (B, T)\n        x = self.tok(idx) + self.pos(idx.size(1))             # steps 2 and 3: embeddings + positions\n        x = self.blocks(x)                                    # the stack of blocks\n        return self.head(self.norm(x))                        # (B, T, vocab) raw scores, called logits\n\n\ndef next_token_probs(model, idx):\n    logits = model(idx)[:, -1, :]    # only the LAST token's vector predicts the next token\n    return F.softmax(logits, dim=-1) # (B, vocab) probabilities that add up to 1"},
+{"id": "s4", "title": "Add & Norm", "note": "Add the layer's output back to its input (the residual path), and normalise so the numbers stay well-scaled. GPT-2 normalises before the layer (pre-norm); the 2017 paper did it after.", "code": "class AddNorm(nn.Module):\n    def __init__(self, cfg, layer):\n        super().__init__()\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.layer = layer\n\n    def forward(self, x):\n        return x + self.layer(self.norm(x))   # x + layer(norm(x))"},
+{"id": "s6", "title": "MLP", "note": "After attention has gathered context, each token passes alone through a small two-layer network: widen 4x, apply a non-linearity (GELU), narrow back. This is where much of the model's stored knowledge lives.", "code": "class MLP(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(cfg.n_embd, 4 * cfg.n_embd),\n            nn.GELU(),                                        # the non-linearity\n            nn.Linear(4 * cfg.n_embd, cfg.n_embd),\n        )\n\n    def forward(self, x):\n        return self.net(x)"},
+{"id": "sk", "title": "Stacked blocks", "note": "One block is attention plus MLP, each wrapped in Add & Norm. Its output has the same shape as its input, so it feeds straight into the next block, which has its own weights. GPT-2 small stacks 12.", "code": "class Block(nn.Module):\n    \"\"\"One decoder block: attention then MLP, each wrapped in Add & Norm.\"\"\"\n    def __init__(self, cfg):\n        super().__init__()\n        self.attn = AddNorm(cfg, MultiHeadAttention(cfg))\n        self.mlp = AddNorm(cfg, MLP(cfg))\n\n    def forward(self, x):\n        return self.mlp(self.attn(x))\n\n# n_layer blocks, one after another: the output of block k is the input of block k+1\ndef stack_of_blocks(cfg):\n    return nn.Sequential(*[Block(cfg) for _ in range(cfg.n_layer)])"},
+{"id": "s7", "title": "Final softmax", "note": "After the stack, normalise once more, then score every vocabulary token against the last vector (the unembedding). Softmax turns the scores into probabilities.", "code": "class GPT(nn.Module):\n    def __init__(self, cfg):\n        super().__init__()\n        self.cfg = cfg\n        self.tok = TokenEmbedding(cfg)\n        self.pos = PositionEmbedding(cfg)\n        self.blocks = stack_of_blocks(cfg)\n        self.norm = nn.LayerNorm(cfg.n_embd)\n        self.head = nn.Linear(cfg.n_embd, cfg.vocab_size, bias=False)   # the unembedding\n        self.head.weight = self.tok.table.weight   # GPT-2 reuses the embedding table here\n        for table in (self.tok.table, self.pos.table):\n            nn.init.normal_(table.weight, std=0.02)   # small start values, as in GPT-2\n\n    def forward(self, idx):                                   # idx: (B, T)\n        x = self.tok(idx) + self.pos(idx.size(1))             # steps 2 and 3: embeddings + positions\n        x = self.blocks(x)                                    # the stack of blocks (step 6)\n        return self.head(self.norm(x))                        # (B, T, vocab) raw scores, called logits\n\n\ndef next_token_probs(model, idx):\n    logits = model(idx)[:, -1, :]    # only the LAST token's vector predicts the next token\n    return F.softmax(logits, dim=-1) # (B, vocab) probabilities that add up to 1"},
 {"id": "s8", "title": "Next word", "note": "Choose one token from the probabilities. Greedy always takes the top one. Sampling rolls weighted dice; temperature sharpens or flattens the odds, and top-k drops the long tail.", "code": "def pick(logits, temperature=1.0, top_k=None, greedy=False):\n    if greedy:\n        return logits.argmax(dim=-1, keepdim=True)\n    logits = logits / temperature                              # <1 sharper, >1 flatter\n    if top_k:\n        cutoff = torch.topk(logits, top_k).values[..., -1:]\n        logits = logits.masked_fill(logits < cutoff, float(\"-inf\"))\n    probs = F.softmax(logits, dim=-1)\n    return torch.multinomial(probs, num_samples=1)             # weighted dice"},
 {"id": "s9", "title": "Generation loop", "note": "Append the chosen token to the text and run the whole model again. Repeat until enough tokens are written. This loop is why models answer one token at a time.", "code": "@torch.no_grad()\ndef generate(model, idx, n_new=12, **pick_args):\n    for _ in range(n_new):\n        window = idx[:, -model.cfg.block_size:]               # keep within the context length\n        logits = model(window)[:, -1, :]                      # last position only\n        nxt = pick(logits, **pick_args)\n        idx = torch.cat([idx, nxt], dim=1)                    # append and go round again\n    return idx\n\n\nif __name__ == \"__main__\":\n    torch.manual_seed(0)\n    prompt = __PROMPT__\n    corpus = (prompt + \" mat. \") * 3 + (\n        \"The dog sat on the rug. The cat chased the mouse. \"\n        \"The bird sat on the wall. The cat slept on the bed. \"\n    ) * 3   # a tiny corpus, so the model mostly memorises it (GPT-2 saw about 40 GB of text)\n    tok = Tokenizer(corpus + \" \" + prompt)\n    cfg = Config()\n    cfg.vocab_size = len(tok.itos)\n    model = GPT(cfg)\n    train(model, torch.tensor(tok.encode(corpus)))\n    start = torch.tensor([tok.encode(prompt)])                # (1, T)\n    print(tok.decode(generate(model, start, n_new=8, greedy=True)[0].tolist()))"}];
 const CODE_ORDER=CODE.map(c=>c.id);
