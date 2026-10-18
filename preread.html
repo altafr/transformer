@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Before the Decoder</title>
+<meta name="description" content="An 18-minute pre-read: what a model is, how a neural network learns, and the three ideas (dot product, softmax, non-linearity) you need before the decoder session.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky contents list beside it on wide screens; small hands-on widgets sit inline where an idea needs them. */
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --surface-2:#E8EBF1; --ink:#171A22; --muted:#566073; --line:#D8DCE5;
+  --accent:#4B3FD1; --accent-weak:#E6E3FA; --on-accent:#FFFFFF; --pos:#D9731A; --neg:#0F8F84;
+  --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1117; --surface:#171A23; --surface-2:#222633; --ink:#E9EBF1; --muted:#9AA3B5; --line:#2C3140;
+  --accent:#9D96FF; --accent-weak:#2A2658; --on-accent:#0F1117; --pos:#F29A4A; --neg:#38C4B3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1117; --surface:#171A23; --surface-2:#222633; --ink:#E9EBF1; --muted:#9AA3B5; --line:#2C3140;
+  --accent:#9D96FF; --accent-weak:#2A2658; --on-accent:#0F1117; --pos:#F29A4A; --neg:#38C4B3; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--sans);padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px}
+header.top{max-width:1080px;margin:0 auto;padding-block:44px 28px;display:grid;gap:14px}
+.kicker{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 clamp(36px,6vw,64px)/1.02 var(--display);letter-spacing:-.025em;margin:0;text-wrap:balance}
+.dek{font-size:clamp(18px,2.2vw,21px);max-width:60ch;margin:0;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 13px var(--mono);color:var(--muted)}
+nav.toc{position:sticky;top:20px;align-self:start;display:grid;gap:2px;font-size:14px}
+nav.toc b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+nav.toc a{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;padding:6px 8px;border-radius:8px;color:var(--muted);text-decoration:none;line-height:1.35}
+nav.toc a i{font:500 12px var(--mono);font-style:normal}
+nav.toc a:hover{color:var(--ink)}nav.toc a.on{background:var(--accent-weak);color:var(--ink)}
+main{min-width:0;display:grid;gap:64px}
+section{min-width:0;display:grid;gap:16px;max-width:68ch}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;gap:12px;justify-content:space-between}
+.eyebrow span:last-child{color:var(--muted)}
+h2{font:800 clamp(26px,3.6vw,36px)/1.1 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h3{font:700 20px/1.25 var(--display);margin:8px 0 0}
+p{margin:0}
+.say{font-size:19px;border-left:3px solid var(--accent);padding-left:14px}
+.key{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:4px}
+.key b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+ul.pts{margin:0;padding-left:20px;display:grid;gap:6px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+td.a{color:var(--neg);font-weight:600}td.d{color:var(--pos);font-weight:600}
+code,.mono{font:500 .9em var(--mono)}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.tool>.tl{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.row{display:grid;grid-template-columns:130px minmax(0,1fr) 54px;gap:10px;align-items:center;font-size:15px}
+.row input{width:100%;accent-color:var(--accent)}
+.row output{font:500 13px var(--mono);text-align:right;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.btn{font:500 14px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}.btn[aria-pressed=true]{background:var(--accent-weak);border-color:var(--accent)}
+.big{font:800 clamp(28px,4vw,40px) var(--display);letter-spacing:-.02em}
+.eq{font:500 14px/1.7 var(--mono);color:var(--ink);background:var(--surface-2);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:64px minmax(0,1fr) 52px;gap:10px;align-items:center;font:500 13px var(--mono)}
+.bar .tr{height:16px;border-radius:4px;background:var(--surface-2);overflow:hidden}.bar .tr i{display:block;height:100%;background:var(--accent);transition:width .15s}
+.bar span:last-child{text-align:right;color:var(--muted)}
+.prods{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font:500 14px var(--mono)}
+.prods span.p{padding:3px 9px;border-radius:8px;background:var(--surface-2)}
+.prods span.p.pos{background:color-mix(in srgb,var(--neg) 24%,var(--surface))}.prods span.p.neg{background:color-mix(in srgb,var(--pos) 26%,var(--surface))}
+svg.plot{width:100%;max-width:420px;height:auto;display:block}
+svg.plot text{font:500 11px var(--mono);fill:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:4px;align-content:start;background:var(--surface)}
+.card b{font:700 16px var(--display)}.card p{font-size:14.5px;color:var(--muted)}
+dl.gl{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:8px 16px;margin:0;font-size:15.5px}
+dl.gl dt{font-weight:600}dl.gl dd{margin:0;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 14px}
+details.qa+details.qa{margin-top:-4px}
+details.qa summary{cursor:pointer;font-weight:600}
+details.qa p{margin-top:8px;color:var(--muted);font-size:16px}
+footer{max-width:1080px;margin:56px auto 0;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+@media (max-width:900px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:28px}
+  nav.toc{position:static;display:flex;flex-wrap:wrap;gap:6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  nav.toc b{width:100%}nav.toc a{grid-template-columns:auto;padding:4px 10px;border:1px solid var(--line);border-radius:999px}nav.toc a i{display:none}
+  .grid3{grid-template-columns:minmax(0,1fr)}
+  dl.gl{grid-template-columns:minmax(0,1fr)}dl.gl dd{margin-bottom:6px}
+}
+@media (max-width:520px){.row{grid-template-columns:96px minmax(0,1fr) 46px}.bar{grid-template-columns:52px minmax(0,1fr) 46px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="kicker">Pre-read · about 18 minutes</div>
+  <h1>Before the Decoder</h1>
+  <p class="dek">Everything the decoder session assumes you know: what a model is, how a neural network learns, and three small ideas (dot product, softmax, non-linearity) that appear in every step.</p>
+  <div class="meta"><span>7 short parts</span><span>4 hands-on widgets</span><span>No maths beyond multiplying and adding</span></div>
+</header>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <a href="#p1"><i>1</i>What is a model?</a>
+  <a href="#p2"><i>2</i>Why deep learning</a>
+  <a href="#p3"><i>3</i>A neuron is a set of dials</a>
+  <a href="#p4"><i>4</i>Training and inference</a>
+  <a href="#p5"><i>5</i>Three key ideas</a>
+  <a href="#p6"><i>6</i>Architectures and scale</a>
+  <a href="#p7"><i>7</i>What comes next</a>
+</nav>
+
+<main>
+
+<section id="p1">
+  <div class="eyebrow"><span>1 · What is a model?</span><span>2 min</span></div>
+  <h2>A rule found from examples</h2>
+  <p class="say">A model is a rule, learned from examples, that predicts something new.</p>
+  <p>Try this. A café owner wrote down whether each day was busy.</p>
+  <div class="tw"><table>
+    <tr><th>Day</th><th>Sky</th><th>Temperature</th><th>Busy?</th></tr>
+    <tr><td>Weekday</td><td>Sunny</td><td>Warm</td><td class="d">Quiet</td></tr>
+    <tr><td>Weekday</td><td>Rainy</td><td>Warm</td><td class="a">Busy</td></tr>
+    <tr><td>Weekend</td><td>Sunny</td><td>Cold</td><td class="a">Busy</td></tr>
+    <tr><td>Weekend</td><td>Rainy</td><td>Warm</td><td class="a">Busy</td></tr>
+    <tr><td>Weekday</td><td>Rainy</td><td>Cold</td><td class="a">Busy</td></tr>
+    <tr><td>Weekend</td><td>Sunny</td><td>Warm</td><td class="a">Busy</td></tr>
+  </table></div>
+  <p>Will a <b>weekday, sunny, cold</b> day be busy? Most people ignore the temperature, notice that busy days are weekends or rainy days, and answer “quiet”. That rule in your head is a model.</p>
+  <div class="key"><b>Words we will use</b>
+    <span><b style="color:var(--ink);font:600 15px var(--sans);letter-spacing:0;text-transform:none">Training data</b> are the rows you studied. <b style="color:var(--ink);font:600 15px var(--sans);letter-spacing:0;text-transform:none">Features</b> are the columns that describe a row. The <b style="color:var(--ink);font:600 15px var(--sans);letter-spacing:0;text-transform:none">label</b> is the answer column. A <b style="color:var(--ink);font:600 15px var(--sans);letter-spacing:0;text-transform:none">prediction</b> is the model’s answer for a row it has not seen, also called <b style="color:var(--ink);font:600 15px var(--sans);letter-spacing:0;text-transform:none">inference</b>.</span></div>
+  <p><b>Machine learning</b> is getting a computer to find that rule itself. It handles many more columns than a person can hold in mind: a bank can weigh eight, eighty or eight hundred facts about a loan at once.</p>
+</section>
+
+<section id="p2">
+  <div class="eyebrow"><span>2 · Why deep learning</span><span>2 min</span></div>
+  <h2>Classic machine learning needs someone to pick the columns</h2>
+  <p>For a loan, the columns already mean something: income, debt, late payments. A person chose and cleaned them. That is fine for tables of facts.</p>
+  <p>Now picture a photo. It is millions of numbers (pixels), and one pixel on its own means nothing. A model that learns “the ink is at these pixel positions” stops working when the letter moves a few pixels to the side. A person could hand-design better features, such as “has a long horizontal stroke on top”, but for photos, speech and language there are far too many to list.</p>
+  <div class="key"><b>The idea behind deep learning</b>Let the model learn the features too. Stack many layers: early layers find simple patterns (edges, letter shapes), later layers combine them into richer ones (faces, words, meaning). Nobody writes the features down.</div>
+</section>
+
+<section id="p3">
+  <div class="eyebrow"><span>3 · A neuron is a set of dials</span><span>3 min</span></div>
+  <h2>One neuron, three dials</h2>
+  <p>A neural network is a function: numbers go in, a number comes out. Its building block is the <b>neuron</b>. It multiplies each input by a <b>weight</b> (a dial), adds them up, adds a <b>bias</b> (one more dial), and squashes the result into a smooth 0-to-1 answer.</p>
+  <p>Example: is a fruit good to eat? Describe it with two numbers between 0 and 1: sweetness 0.8 and softness 0.5. Turn the dials and watch the answer.</p>
+  <div class="tool" id="neuron">
+    <div class="tl">Try it · one neuron</div>
+    <div class="row"><label for="nw1">Sweetness dial</label><input id="nw1" type="range" min="-4" max="4" step="0.1" value="0"><output id="nw1o"></output></div>
+    <div class="row"><label for="nw2">Softness dial</label><input id="nw2" type="range" min="-4" max="4" step="0.1" value="0"><output id="nw2o"></output></div>
+    <div class="row"><label for="nb">Bias dial</label><input id="nb" type="range" min="-4" max="4" step="0.1" value="0"><output id="nbo"></output></div>
+    <div class="eq" id="neq"></div>
+    <div class="big" id="nout"></div>
+    <div class="seg"><button class="btn" type="button" data-p="0,0,0">Untrained: all dials at 0</button><button class="btn" type="button" data-p="3,1,-2.2">After training (illustrative)</button></div>
+  </div>
+  <p>With every dial at zero the neuron can only shrug (50%). Setting the dials well is the whole job, and nobody does it by hand.</p>
+</section>
+
+<section id="p4">
+  <div class="eyebrow"><span>4 · Training and inference</span><span>3 min</span></div>
+  <h2>Two phases: learn the dials, then use them</h2>
+  <div class="grid3" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <div class="card"><b>Training</b><p>Happens once, before anyone uses the model. Show it examples with known answers. Guess, measure how wrong the guess was (the <b>loss</b>), nudge every dial slightly to reduce it, repeat millions of times.</p></div>
+    <div class="card"><b>Inference</b><p>Happens every time you use the model. The dials are frozen. Numbers go in, one pass forward, an answer comes out. Nothing inside changes, and no right answer is needed.</p></div>
+  </div>
+  <p>Chatting with an AI model is inference. The model does not learn from your chat; it was trained earlier. This matters in the decoder session: “where do these matrices come from?” always has the same answer, they were set during training.</p>
+  <div class="key"><b>For a language model, training means</b>Take a huge amount of text. At every position, hide the next word and ask the model to predict it. Measure the error, nudge the dials. After enough rounds the dials hold what it takes to continue text sensibly.</div>
+</section>
+
+<section id="p5">
+  <div class="eyebrow"><span>5 · Three key ideas</span><span>5 min</span></div>
+  <h2>Dot product, softmax, non-linearity</h2>
+  <p>You will see these three in almost every step of the decoder. Each is small.</p>
+
+  <h3>Dot product: a match score</h3>
+  <p>Multiply two lists of numbers position by position, then add. A big positive result means the lists point the same way; near zero means unrelated; negative means opposite. Attention uses this to score how well one word matches another.</p>
+  <div class="tool" id="dot">
+    <div class="tl">Try it · dot product of two lists</div>
+    <div class="mono" style="font-size:13px;color:var(--muted)">A is fixed: [2, 1, 0]. Move B.</div>
+    <div class="row"><label for="d0">B first</label><input id="d0" type="range" min="-3" max="3" step="1" value="2"><output id="d0o"></output></div>
+    <div class="row"><label for="d1">B second</label><input id="d1" type="range" min="-3" max="3" step="1" value="1"><output id="d1o"></output></div>
+    <div class="row"><label for="d2">B third</label><input id="d2" type="range" min="-3" max="3" step="1" value="0"><output id="d2o"></output></div>
+    <div class="prods" id="dprods" aria-live="polite"></div>
+    <div class="big" id="dres"></div>
+  </div>
+
+  <h3>Softmax: scores into shares of 100%</h3>
+  <p>Raw scores can be any number. Softmax turns a list of scores into percentages that add up to 100%, keeping the order: the biggest score gets the biggest share. The model uses it for attention weights and for the final choice of next word. A <b>temperature</b> setting flattens or sharpens the shares.</p>
+  <div class="tool" id="soft">
+    <div class="tl">Try it · softmax with temperature</div>
+    <div class="row"><label for="s0">Score: cat</label><input id="s0" type="range" min="-3" max="4" step="0.1" value="2"><output id="s0o"></output></div>
+    <div class="row"><label for="s1">Score: dog</label><input id="s1" type="range" min="-3" max="4" step="0.1" value="1"><output id="s1o"></output></div>
+    <div class="row"><label for="s2">Score: bird</label><input id="s2" type="range" min="-3" max="4" step="0.1" value="0.1"><output id="s2o"></output></div>
+    <div class="row"><label for="st">Temperature</label><input id="st" type="range" min="0.2" max="3" step="0.1" value="1"><output id="sto"></output></div>
+    <div class="bars" id="sbars" aria-live="polite"></div>
+  </div>
+
+  <h3>Non-linearity: the bend</h3>
+  <p>Multiplying and adding only ever gives a straight-line relationship, and stacking straight-line steps just gives another straight line. A small bend between layers, such as <b>ReLU</b> (“output the input, but never below zero”), lets a stack of layers follow curves and combine facts. The decoder uses a smoother cousin called GELU inside its MLP.</p>
+  <div class="tool" id="relu">
+    <div class="tl">Try it · straight line versus bend</div>
+    <div class="row"><label for="rx">Input x</label><input id="rx" type="range" min="-3" max="3" step="0.1" value="-1.5"><output id="rxo"></output></div>
+    <svg class="plot" viewBox="0 0 420 220" role="img" aria-label="Plot of a straight line and a ReLU bend">
+      <line x1="35" y1="110" x2="395" y2="110" stroke="var(--line)"/><line x1="215" y1="15" x2="215" y2="205" stroke="var(--line)"/>
+      <polyline fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4" points="35,200 395,20"/>
+      <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="35,110 215,110 395,20"/>
+      <circle id="ldot" r="5" fill="none" stroke="var(--muted)" stroke-width="2" cx="215" cy="110"/>
+      <circle id="rdot" r="6" fill="var(--pos)" cx="215" cy="110"/>
+      <text x="40" y="36">dashed: straight line (output = x)</text><text x="40" y="52" style="fill:var(--accent)">solid: ReLU (output = max(0, x))</text>
+    </svg>
+    <div class="mono" id="rres" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="p6">
+  <div class="eyebrow"><span>6 · Architectures and scale</span><span>2 min</span></div>
+  <h2>The wiring is a design choice</h2>
+  <p>The fruit neuron has 3 dials. A small fruit network has 13. GPT-3 has about 175 billion. The ingredients are the same, only the count and the wiring change. The wiring, called the <b>architecture</b>, is a design decision that researchers make to suit the data.</p>
+  <div class="grid3">
+    <div class="card"><b>Plain layers (MLP)</b><p>Every neuron feeds the next layer. Good for tables of facts.</p></div>
+    <div class="card"><b>Convolutional (CNN)</b><p>Small windows slide over the input. Built for images, where nearby pixels belong together.</p></div>
+    <div class="card"><b>Recurrent (RNN)</b><p>Reads a sequence in order and carries a memory. An earlier approach to text and sound.</p></div>
+    <div class="card"><b>Transformer</b><p>Every item can look at every other item through attention. The design behind modern language models, and the subject of the session.</p></div>
+    <div class="card"><b>Encoder / decoder</b><p>The two halves of the original transformer. Encoders read, decoders write. Chat models use the decoder half only.</p></div>
+    <div class="card"><b>Still evolving</b><p>New wiring keeps appearing as people find better fits for a problem. Nothing here is fixed.</p></div>
+  </div>
+</section>
+
+<section id="p7">
+  <div class="eyebrow"><span>7 · What comes next</span><span>1 min</span></div>
+  <h2>Where these ideas show up in the decoder session</h2>
+  <div class="tw"><table>
+    <tr><th>You read here</th><th>You will see it in</th></tr>
+    <tr><td>Training: guess, measure, nudge</td><td>Step 0, where the weights come from</td></tr>
+    <tr><td>Text becomes numbers</td><td>Tokenization and embeddings</td></tr>
+    <tr><td>Dot product</td><td>Attention: query-key match scores</td></tr>
+    <tr><td>Softmax</td><td>Attention weights, and the final next-word probabilities</td></tr>
+    <tr><td>Non-linearity</td><td>The MLP inside every block</td></tr>
+    <tr><td>Inference: dials frozen</td><td>The loop that writes one word at a time</td></tr>
+  </table></div>
+
+  <h3>Words you will hear</h3>
+  <dl class="gl">
+    <dt>Token</dt><dd>A piece of text, often a word or part of one, that becomes a whole number.</dd>
+    <dt>Embedding</dt><dd>A list of numbers that stands for a token.</dd>
+    <dt>Weight, parameter</dt><dd>One of the dials. All of them together are the model.</dd>
+    <dt>Layer</dt><dd>One stage of computation. Deep means many layers.</dd>
+    <dt>Loss</dt><dd>A number measuring how wrong the model’s answer was.</dd>
+    <dt>Logits</dt><dd>Raw scores before softmax turns them into percentages.</dd>
+    <dt>Context window</dt><dd>How much text the model can read at once.</dd>
+  </dl>
+
+  <h3>Check yourself</h3>
+  <details class="qa"><summary>What is the difference between training and inference?</summary><p>Training sets the dials from examples with known answers. Inference uses frozen dials to answer a new input.</p></details>
+  <details class="qa"><summary>Why can’t a model of fixed pixel positions recognise a shifted letter?</summary><p>Each of its dials belongs to one pixel position. Move the shape and the dials no longer line up. Deep learning learns shape-level features instead.</p></details>
+  <details class="qa"><summary>What does a large positive dot product tell you?</summary><p>The two lists point the same way, so they match well.</p></details>
+  <details class="qa"><summary>What does softmax guarantee about its output?</summary><p>Every value is between 0 and 1 and they add up to 100%, with the largest score getting the largest share.</p></details>
+  <details class="qa"><summary>Why add a bend (non-linearity) between layers?</summary><p>Without it a stack of layers collapses into one straight-line step. The bend lets the network follow curves and combine facts.</p></details>
+  <details class="qa"><summary>When you chat with an AI model, is it learning from you?</summary><p>No. The dials are frozen at that point. It only reads the text you give it in the conversation.</p></details>
+</section>
+
+</main>
+</div>
+
+<footer>Pre-read for the “Inside the Decoder” session. Every number in the widgets is illustrative. Design: Altaf Rehmani.</footer>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const sg=z=>1/(1+Math.exp(-z)),f1=v=>(+v).toFixed(1),sgn=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(1);
+/* neuron */
+function neuron(){
+  const w1=+$('#nw1').value,w2=+$('#nw2').value,b=+$('#nb').value,z=w1*.8+w2*.5+b,p=sg(z);
+  $('#nw1o').textContent=f1(w1);$('#nw2o').textContent=f1(w2);$('#nbo').textContent=f1(b);
+  $('#neq').textContent=`(${f1(w1)} × 0.8) + (${f1(w2)} × 0.5) + (${f1(b)}) = ${z.toFixed(2)}  →  squash → ${p.toFixed(2)}`;
+  $('#nout').textContent=`Good to eat? ${Math.round(p*100)}%`;
+}
+$$('#neuron input').forEach(i=>i.addEventListener('input',neuron));
+$$('#neuron [data-p]').forEach(b=>b.addEventListener('click',()=>{const [a,c,d]=b.dataset.p.split(',');$('#nw1').value=a;$('#nw2').value=c;$('#nb').value=d;neuron()}));
+/* dot */
+function dot(){
+  const A=[2,1,0],B=['d0','d1','d2'].map(i=>+$('#'+i).value);
+  B.forEach((v,i)=>$('#d'+i+'o').textContent=v);
+  const P=A.map((a,i)=>a*B[i]),S=P.reduce((x,y)=>x+y,0);
+  $('#dprods').innerHTML=A.map((a,i)=>`<span class="p ${P[i]>0?'pos':P[i]<0?'neg':''}">${a} × ${B[i]} = ${P[i]}</span>`).join('<span>+</span>');
+  $('#dres').textContent=`Sum = ${S}  ${S>2?'· strong match':S<0?'· opposite':'· weak match'}`;
+}
+$$('#dot input').forEach(i=>i.addEventListener('input',dot));
+/* softmax */
+function soft(){
+  const sc=[0,1,2].map(i=>+$('#s'+i).value),T=+$('#st').value;
+  sc.forEach((v,i)=>$('#s'+i+'o').textContent=f1(v));$('#sto').textContent=f1(T);
+  const m=Math.max(...sc),e=sc.map(v=>Math.exp((v-m)/T)),s=e.reduce((a,b)=>a+b,0),p=e.map(v=>v/s),n=['cat','dog','bird'];
+  $('#sbars').innerHTML=p.map((v,i)=>`<div class="bar"><span>${n[i]}</span><span class="tr"><i style="width:${v*100}%"></i></span><span>${Math.round(v*100)}%</span></div>`).join('');
+}
+$$('#soft input').forEach(i=>i.addEventListener('input',soft));
+/* relu */
+function relu(){
+  const x=+$('#rx').value;$('#rxo').textContent=f1(x);
+  const cx=215+x*60,y=Math.max(0,x);
+  $('#rdot').setAttribute('cx',cx);$('#rdot').setAttribute('cy',110-y*30);
+  $('#ldot').setAttribute('cx',cx);$('#ldot').setAttribute('cy',110-x*30);
+  $('#rres').textContent=`x = ${f1(x)}  ·  straight line gives ${f1(x)}  ·  ReLU gives ${f1(y)}`;
+}
+$('#rx').addEventListener('input',relu);
+/* contents highlight */
+const links=$$('nav.toc a'),secs=$$('main section');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-20% 0px -70% 0px'});
+secs.forEach(s=>io.observe(s));
+neuron();dot();soft();relu();
+})();
+</script>
+</body>
+</html>
