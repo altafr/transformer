@@ -159,10 +159,11 @@ export class Overlay {
   }
 
   // Loss curve panel: one point per training step; `upto` (fractional) reveals them in order.
-  lossChart(x, y, values, upto, a) {
+  // opts: vmax (y range), ticks ([index, label] pairs; default one per point), xLabel.
+  lossChart(x, y, values, upto, a, opts = {}) {
     if (a <= 0.001) return;
     const c = this.ctx; c.save();
-    const w = 380, h = 230, px = x + 56, py = y + 64, pw = w - 84, ph = h - 112, vmax = 1.4;
+    const w = 380, h = 230, px = x + 56, py = y + 64, pw = w - 84, ph = h - 112, vmax = opts.vmax ?? 1.4;
     this.scrim(x, y, w, h, 22, a * 0.95);
     c.globalAlpha = a; c.textBaseline = 'middle';
     c.fillStyle = INK; c.font = `700 22px ${SANS}`; c.fillText('Loss (error)', x + 24, y + 34);
@@ -172,8 +173,8 @@ export class Overlay {
     c.fillStyle = '#7b8199'; c.font = `500 14px ${MONO}`;
     [0, 0.5, 1.0].forEach((v) => c.fillText(v.toFixed(1), px - 10, py + ph - (v / vmax) * ph));
     c.textAlign = 'center';
-    values.forEach((_, i) => c.fillText(String(i), px + (i / (values.length - 1)) * pw, py + ph + 18));
-    c.fillText('training step', px + pw / 2, py + ph + 38);
+    (opts.ticks ?? values.map((_, i) => [i, String(i)])).forEach(([i, l]) => c.fillText(l, px + (i / (values.length - 1)) * pw, py + ph + 18));
+    c.fillText(opts.xLabel ?? 'training step', px + pw / 2, py + ph + 38);
     const pts = values.map((v, i) => [px + (i / (values.length - 1)) * pw, py + ph - (v / vmax) * ph]);
     const n = Math.min(values.length - 1, Math.floor(upto));
     c.strokeStyle = INDIGO; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath();
@@ -181,11 +182,34 @@ export class Overlay {
     const f = upto - n;
     if (n < values.length - 1 && f > 0) c.lineTo(pts[n][0] + (pts[n + 1][0] - pts[n][0]) * f, pts[n][1] + (pts[n + 1][1] - pts[n][1]) * f);
     c.stroke();
+    const dots = opts.dots ?? true;
     for (let i = 0; i <= n; i++) {
+      if (!dots && i !== n) continue;
       c.beginPath(); c.arc(...pts[i], i === n ? 6 : 4.5, 0, Math.PI * 2); c.fillStyle = i === n ? INDIGO : '#a5a1f2'; c.fill();
     }
     c.fillStyle = INDIGO; c.font = `600 17px ${MONO}`; c.textAlign = 'left';
     c.fillText(values[n].toFixed(2), Math.min(pts[n][0] + 12, x + w - 60), pts[n][1] - 16);
+    c.restore();
+  }
+
+  // Simple two-column table panel; rows reveal one by one (`shown` is fractional), `hi` marks the active row.
+  panel(x, y, title, rows, shown, a, hi = -1) {
+    if (a <= 0.001) return;
+    const c = this.ctx; c.save();
+    const w = 620, rowH = 54, h = 86 + rows.length * rowH + 14;
+    this.scrim(x, y, w, h, 22, a * 0.95);
+    c.globalAlpha = a; c.textBaseline = 'middle';
+    c.fillStyle = INK; c.font = `700 24px ${SANS}`; c.fillText(title, x + 26, y + 40);
+    rows.forEach((r, i) => {
+      const ra = Math.max(0, Math.min(1, shown - i));
+      if (ra <= 0) return;
+      const yy = y + 92 + i * rowH;
+      c.globalAlpha = a * ra;
+      if (i === hi) { this.rr(x + 14, yy - 22, w - 28, 44, 12); c.fillStyle = 'rgba(79,70,229,0.12)'; c.fill(); }
+      c.fillStyle = i === hi ? INDIGO : INK; c.font = `600 22px ${SANS}`; c.textAlign = 'left'; c.fillText(r[0], x + 28, yy);
+      c.font = `600 22px ${MONO}`; c.textAlign = 'right'; c.fillText(r[1], x + w - 28, yy);
+      if (r[2]) { c.font = `500 15px ${MONO}`; c.fillStyle = '#7b8199'; c.fillText(r[2], x + w - 28, yy + 21); }
+    });
     c.restore();
   }
 

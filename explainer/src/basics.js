@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { clamp, lerp, seg, ease, eout, back, smooth, win, pulse } from './util.js';
 import { clay, setDissolve, glowMat, PAL } from './materials.js';
-import { Overlay, SANS } from './overlay.js';
+import { Overlay } from './overlay.js';
 import { createStage, H } from './stage.js';
+import { labelTexture, makeDial } from './parts.js';
 
 // "How a Neural Network Learns": a 45-second companion film. A tiny network decides cat / dog / bird
 // from three features; every wire carries a clay dial whose angle is its weight. Every frame is a
@@ -49,15 +50,6 @@ const mix = (a, b, k) => tmpC.copy(col(a)).lerp(col(b), clamp(k)).clone();
 
 // ---------------------------------------------------------------- build
 const O = {};
-function labelTexture(text) {
-  const c = document.createElement('canvas'); c.width = 768; c.height = 192;
-  const x = c.getContext('2d');
-  x.font = `600 92px ${SANS}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff';
-  x.fillText(text, 384, 104);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-  return tex;
-}
-
 function build() {
   // Input tiles
   O.inputs = FEATURES.map((f, i) => {
@@ -75,23 +67,14 @@ function build() {
   // Wires with a dial on each
   const wire = (a, b) => tube(new THREE.LineCurve3(new THREE.Vector3(...a), new THREE.Vector3(...b)), 0.022, glowMat(0x9aa3c0, 0.15), 24);
   O.wires = [];
-  const gauge = new THREE.TorusGeometry(0.25, 0.02, 8, 48, Math.PI * 1.5);
-  const knobGeo = new THREE.CylinderGeometry(0.17, 0.19, 0.14, 36);
-  const pointerGeo = new RoundedBoxGeometry(0.04, 0.13, 0.03, 1, 0.012);
-  const arrowGeo = new THREE.ConeGeometry(0.06, 0.15, 16);
   for (let layer = 1; layer <= 2; layer++) for (let tgt = 0; tgt < 3; tgt++) for (let src = 0; src < 3; src++) {
     const a = layer === 1 ? [IN_X, Y[src], 0] : [HID_X + NODE_R, Y[src], 0];
     const b = layer === 1 ? [HID_X - NODE_R, Y[tgt], 0] : [OUT_X - NODE_R, Y[tgt], 0];
     const f = DIAL_F[tgt];
     const pos = [lerp(a[0], b[0], f), lerp(a[1], b[1], f), 0.08];
-    const g = new THREE.Group(); g.position.set(...pos); scene.add(g);
-    const gm = mesh(gauge, glowMat(0xb9b4ad, 0.1), { cast: false, parent: g }); gm.rotation.z = -Math.PI / 4;
-    const pivot = new THREE.Group(); g.add(pivot);
-    const knob = mesh(knobGeo, clay(0xffffff, { rim: 0.15 }), { parent: pivot }); knob.rotation.x = Math.PI / 2;
-    const ptr = mesh(pointerGeo, clay(PAL.ink), { cast: false, parent: pivot }); ptr.position.set(0, 0.09, 0.08);
-    const arrow = mesh(arrowGeo, glowMat(PAL.coral, 0.9), { cast: false, parent: g }); arrow.position.set(0, 0.36, 0.05);
+    const dial = makeDial(stage, pos);
     const ws = layer === 1 ? W1S[tgt][src] : W2S[tgt][src], we = layer === 1 ? W1E[tgt][src] : W2E[tgt][src];
-    O.wires.push({ layer, src, tgt, a, b, f, pos, tube: wire(a, b), dial: g, pivot, knob, gauge: gm, arrow, ws, we, n: O.wires.length });
+    O.wires.push({ layer, src, tgt, a, b, f, pos, tube: wire(a, b), dial, ws, we, n: O.wires.length });
   }
   O.beads = inst(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff }), O.wires.length, { cast: false });
 
@@ -187,20 +170,15 @@ function update(t) {
 
     const ds = back(seg(t, 2.0 + 0.04 * w.n, 2.45 + 0.04 * w.n));
     const wv = weightAt(w, t);
-    w.dial.scale.setScalar(Math.max(ds, 1e-4)); w.dial.visible = ds > 0.01;
-    w.pivot.rotation.z = -clamp(wv, -1.45, 1.45) * 1.55;
-    w.knob.material.color.copy(mix(PAL.sky, PAL.peach, smooth(-0.08, 0.08, wv)));
+    w.dial.g.scale.setScalar(Math.max(ds, 1e-4)); w.dial.g.visible = ds > 0.01;
+    w.dial.set(wv, clamp(wv, -1.45, 1.45) * 1.55);
     const multiply = isFocus ? pulse(t, 7.85 + 1.6 * w.src, 0.18) : 0;
-    w.knob.material.userData.u.uGlow.value = 0.6 * multiply;
+    w.dial.knob.material.userData.u.uGlow.value = 0.6 * multiply;
     const dim = (1 - 0.65 * focusDot * (isFocus ? 0 : 1)) * (1 - 0.5 * focusL2 * (w.layer === 1 ? 1 : 0));
-    w.gauge.material.opacity = dim; w.gauge.material.transparent = true;
+    w.dial.gauge.material.opacity = dim;
     // Turning hint during training: an arrow on the side the dial is about to move to
     const turning = [...Array(STEPS)].reduce((a, _, s) => a + win(t, stepT(s) + 0.7, stepT(s) + 1.7, 0.15, 0.2), 0);
-    const dir = Math.sign(w.we - w.ws) || 1;
-    w.arrow.visible = turning > 0.02 && Math.abs(w.we - w.ws) > 0.02;
-    w.arrow.scale.setScalar(Math.max(turning, 1e-3));
-    w.arrow.position.set(0.16 * -dir, 0.36, 0.05);
-    w.arrow.rotation.z = dir > 0 ? -Math.PI / 2 : Math.PI / 2;
+    w.dial.hint(Math.abs(w.we - w.ws) > 0.02 ? turning : 0, Math.sign(w.we - w.ws) || 1);
 
     const b = bead(w, t);
     if (b && b.size > 0) {

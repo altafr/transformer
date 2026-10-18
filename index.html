@@ -1168,7 +1168,7 @@ body.present footer{display:none}
           <a class="btn" href="#s1">Scroll through the steps</a>
           <button class="btn" type="button" data-tabgo="basics">New to neural networks? Start with the basics</button>
           <button class="btn" type="button" data-tabgo="overview">See the full transformer first</button>
-          <button class="btn" type="button" data-tabgo="film">Watch the two 45-second films</button>
+          <button class="btn" type="button" data-tabgo="film">Watch the animated films</button>
         </div>
         <div class="formula" style="margin-top:22px;max-width:520px">next token = f<sub>θ</sub>(tokens) · θ = all learned numbers</div>
         <div class="presets"><span class="label">Try a prompt</span><button class="btn" type="button" data-prompt="Approve the invoice if">Approve the invoice if</button><button class="btn" type="button" data-prompt="The cat sat on the">The cat sat on the</button><button class="btn" type="button" data-prompt="The robots will bring">The robots will bring</button><button class="btn" type="button" data-prompt="Once upon a time, there was a">Once upon a time…</button><button class="btn" type="button" data-prompt="The capital of France is">The capital of France is</button></div>
@@ -1739,7 +1739,7 @@ body.present footer{display:none}
         <h2>You already build models in your head</h2>
         <p class="tldr"><b>In short</b>A model is a rule learned from examples that predicts something new. Machine learning finds the rule for us. It works well on tables of facts, and struggles with pictures, sound and language.</p>
         <p class="lede">Four short rounds. Answer each one yourself before you press anything. Notice what your own mind does. Then watch a machine do the same job on a problem too big for a person.</p>
-        <div><button class="btn" type="button" data-tabgo="film">Prefer a quick overview first? Watch the 45-second film on how a neural network learns →</button></div>
+        <div><button class="btn" type="button" data-tabgo="film" data-sec="fb">Prefer a quick overview first? Watch this tab as a 50-second film →</button></div>
       </div>
 
       <div class="viz" id="mlR1">
@@ -2128,12 +2128,29 @@ body.present footer{display:none}
 
 <div class="shell" id="tabFilm" hidden>
   <nav class="rail" aria-label="Animated explainers">
-    <div class="cap">Two 45-second films</div>
+    <div class="cap">Three short films</div>
   </nav>
   <main>
-    <section id="f0" data-name="How a neural network learns" data-num="1">
+    <section id="fb" data-name="Deep learning basics" data-num="1">
       <div class="sec-head">
-        <div class="eyebrow">Film 1 · deep learning basics · 45 seconds</div>
+        <div class="eyebrow">Film 1 · the Deep learning basics tab in 50 seconds</div>
+        <h2>Deep learning basics</h2>
+        <p class="tldr"><b>In short</b>A model is a rule learned from examples. A neural network is a box of dials; training turns them, inference uses them frozen, and the same parts scale to 175 billion dials.</p>
+        <p class="lede">The film follows this site’s basics tab. It opens with a 8×8 picture of a <strong>T</strong>: a simple model that learned <em>where the ink is</em> fails as soon as the letter shifts. Then the <strong>13-dial fruit network</strong>: one neuron multiplies, adds and squashes (0.8 × 6 + 0.5 × 0 − 3 = 1.8 → σ = 0.86); <strong>training</strong> on 60 fruits turns every dial while the shaded map settles into “sweet, but not mushy”; <strong>inference</strong> answers a new fruit with the dials frozen. It closes with the jump to GPT-scale dial counts and four architectures: MLP, CNN, RNN and transformer.</p>
+        <div class="key"><b>Real numbers</b>The training scene replays a real run: the fruit network is trained in your browser when the film loads (2,500 passes of gradient descent on the same 60 fruits every time), and the dials, the map, the error count and the loss curve all come from that run.</div>
+      </div>
+      <iframe class="film-frame" id="filmFrameDL" data-src="explainer/deep-learning-basics.html?embed" title="Animated explainer: deep learning basics" loading="lazy" allow="fullscreen"></iframe>
+      <p class="note">Design: <a href="https://altafrehmani.netlify.app/" target="_blank" rel="noopener">Altaf Rehmani</a>. Runs live in your browser with Three.js and WebGL. <a href="explainer/deep-learning-basics.html" target="_blank" rel="noopener">Open it on its own page ↗</a></p>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Play it as the opener for the Deep learning basics tab, then do the interactive rounds live.</li>
+        <li>0–8.5 s what is a model (T vs L) · 8.5–14.5 s box of dials · 14.5–21.5 s one neuron · 21.5–32 s training · 32–38 s inference · 38–44 s scale · 44–50 s architectures.</li>
+        <li>The pixel model is a hand-made toy weight map, not a trained model; say “illustrative” if asked. The fruit network is real and trained live.</li>
+      </ul></details>
+    </section>
+
+    <section id="f0" data-name="How a neural network learns" data-num="2">
+      <div class="sec-head">
+        <div class="eyebrow">Film 2 · dot product, softmax and training · 45 seconds</div>
         <h2>How a neural network learns</h2>
         <p class="tldr"><b>In short</b>A neural network is a box of dials. A forward pass is dot products, bends and a softmax; training turns the dials until the right answer becomes likely.</p>
         <p class="lede">A tiny network decides <strong>cat, dog or bird</strong> from three features of a photo. Every wire carries a dial: its <strong>weight</strong>. Watch one neuron compute a <strong>dot product</strong> (multiply each input by its dial, then add), a <strong>ReLU</strong> bend negative values to zero, and <strong>softmax</strong> turn scores into probabilities. The untrained network guesses “dog”, so <strong>training</strong> sends the error backwards and turns every dial a little, step after step, until the loss falls and “cat” wins.</p>
@@ -2148,9 +2165,9 @@ body.present footer{display:none}
       </ul></details>
     </section>
 
-    <section id="f1" data-name="How a decoder transformer predicts the next token" data-num="2">
+    <section id="f1" data-name="How a decoder transformer predicts the next token" data-num="3">
       <div class="sec-head">
-        <div class="eyebrow">Film 2 · animated recap · 45 seconds</div>
+        <div class="eyebrow">Film 3 · animated recap · 45 seconds</div>
         <h2>How a decoder transformer predicts the next token</h2>
         <p class="tldr"><b>In short</b>One short film of everything in the decoder tab: tokens, attention, MLP, scoring the vocabulary, and the loop that appends one token at a time.</p>
         <p class="lede">The prompt “The cat sat on the” becomes token vectors with position information, passes through a stack of decoder blocks (causal self-attention, then an MLP, in every block), and the <strong>final position’s</strong> hidden state is compared with one learned weight vector per vocabulary token. Softmax turns the scores into probabilities, a decoding rule picks “ mat”, and the new token is appended before the model predicts again, reusing its <strong>KV cache</strong>.</p>
