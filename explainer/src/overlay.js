@@ -158,13 +158,44 @@ export class Overlay {
     c.restore();
   }
 
-  chapter(n, label, a, progress) {
+  // Loss curve panel: one point per training step; `upto` (fractional) reveals them in order.
+  lossChart(x, y, values, upto, a) {
+    if (a <= 0.001) return;
+    const c = this.ctx; c.save();
+    const w = 380, h = 230, px = x + 56, py = y + 64, pw = w - 84, ph = h - 112, vmax = 1.4;
+    this.scrim(x, y, w, h, 22, a * 0.95);
+    c.globalAlpha = a; c.textBaseline = 'middle';
+    c.fillStyle = INK; c.font = `700 22px ${SANS}`; c.fillText('Loss (error)', x + 24, y + 34);
+    c.font = `500 15px ${MONO}`; c.fillStyle = '#7b8199'; c.textAlign = 'right'; c.fillText('lower is better', x + w - 22, y + 34);
+    c.strokeStyle = '#d9d6d0'; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(px, py); c.lineTo(px, py + ph); c.lineTo(px + pw, py + ph); c.stroke();
+    c.fillStyle = '#7b8199'; c.font = `500 14px ${MONO}`;
+    [0, 0.5, 1.0].forEach((v) => c.fillText(v.toFixed(1), px - 10, py + ph - (v / vmax) * ph));
+    c.textAlign = 'center';
+    values.forEach((_, i) => c.fillText(String(i), px + (i / (values.length - 1)) * pw, py + ph + 18));
+    c.fillText('training step', px + pw / 2, py + ph + 38);
+    const pts = values.map((v, i) => [px + (i / (values.length - 1)) * pw, py + ph - (v / vmax) * ph]);
+    const n = Math.min(values.length - 1, Math.floor(upto));
+    c.strokeStyle = INDIGO; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath();
+    for (let i = 0; i <= n; i++) i ? c.lineTo(...pts[i]) : c.moveTo(...pts[i]);
+    const f = upto - n;
+    if (n < values.length - 1 && f > 0) c.lineTo(pts[n][0] + (pts[n + 1][0] - pts[n][0]) * f, pts[n][1] + (pts[n + 1][1] - pts[n][1]) * f);
+    c.stroke();
+    for (let i = 0; i <= n; i++) {
+      c.beginPath(); c.arc(...pts[i], i === n ? 6 : 4.5, 0, Math.PI * 2); c.fillStyle = i === n ? INDIGO : '#a5a1f2'; c.fill();
+    }
+    c.fillStyle = INDIGO; c.font = `600 17px ${MONO}`; c.textAlign = 'left';
+    c.fillText(values[n].toFixed(2), Math.min(pts[n][0] + 12, x + w - 60), pts[n][1] - 16);
+    c.restore();
+  }
+
+  chapter(n, label, a, progress, count = 7) {
     if (a <= 0.001) return;
     const c = this.ctx; c.save(); c.globalAlpha = a * 0.9;
     c.font = `600 18px ${MONO}`; c.fillStyle = INDIGO; c.textBaseline = 'middle';
     c.fillText(`0${n}`, 56, this.H - 52);
     c.fillStyle = INK2; c.font = `500 18px ${MONO}`; c.fillText(label, 92, this.H - 52);
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < count; i++) {
       this.rr(56 + i * 34, this.H - 30, 28, 4, 2); c.fillStyle = i < n - 1 ? '#a5a1f2' : i === n - 1 ? INDIGO : '#d9d6d0';
       c.globalAlpha = a * (i === n - 1 ? 0.35 + 0.65 * progress : 0.9); c.fill();
     }

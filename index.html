@@ -790,7 +790,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="birdseye" aria-pressed="false">Bird’s-eye view</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="film" aria-pressed="false">Animated explainer</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="birdseye" aria-pressed="false">Bird’s-eye view</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="film" aria-pressed="false">Animated explainers</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -2125,13 +2125,30 @@ body.present footer{display:none}
 </div>
 
 <div class="shell" id="tabFilm" hidden>
-  <nav class="rail" aria-label="Animated explainer">
-    <div class="cap">The whole loop in 45 seconds</div>
+  <nav class="rail" aria-label="Animated explainers">
+    <div class="cap">Two 45-second films</div>
   </nav>
   <main>
-    <section id="f1" data-name="Animated explainer" data-num="1">
+    <section id="f0" data-name="How a neural network learns" data-num="1">
       <div class="sec-head">
-        <div class="eyebrow">Animated recap · 45 seconds</div>
+        <div class="eyebrow">Film 1 · deep learning basics · 45 seconds</div>
+        <h2>How a neural network learns</h2>
+        <p class="tldr"><b>In short</b>A neural network is a box of dials. A forward pass is dot products, bends and a softmax; training turns the dials until the right answer becomes likely.</p>
+        <p class="lede">A tiny network decides <strong>cat, dog or bird</strong> from three features of a photo. Every wire carries a dial: its <strong>weight</strong>. Watch one neuron compute a <strong>dot product</strong> (multiply each input by its dial, then add), a <strong>ReLU</strong> bend negative values to zero, and <strong>softmax</strong> turn scores into probabilities. The untrained network guesses “dog”, so <strong>training</strong> sends the error backwards and turns every dial a little, step after step, until the loss falls and “cat” wins.</p>
+        <div class="key"><b>How to use it</b>Press play, drag the timeline, or jump to a chapter. Space plays and pauses; the arrow keys step one frame. All numbers are illustrative.</div>
+      </div>
+      <iframe class="film-frame" id="filmFrameBasics" data-src="explainer/basics.html?embed" title="Animated explainer: how a neural network learns" loading="lazy" allow="fullscreen"></iframe>
+      <p class="note">Design: <a href="https://altafrehmani.netlify.app/" target="_blank" rel="noopener">Altaf Rehmani</a>. Runs live in your browser with Three.js and WebGL. <a href="explainer/basics.html" target="_blank" rel="noopener">Open it on its own page ↗</a></p>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Use it before the decoder tab: every idea here (weights, dot product, non-linearity, softmax, training) reappears inside the transformer.</li>
+        <li>0–6 s dials · 6–14 s dot product · 14–21 s ReLU · 21–28 s softmax and the wrong first guess · 28–40 s training steps and the falling loss · 40–45 s fixed dials.</li>
+        <li>Training here shows four steps on one example; real training repeats this over millions of examples. Transformers use GELU, a smooth version of ReLU.</li>
+      </ul></details>
+    </section>
+
+    <section id="f1" data-name="How a decoder transformer predicts the next token" data-num="2">
+      <div class="sec-head">
+        <div class="eyebrow">Film 2 · animated recap · 45 seconds</div>
         <h2>How a decoder transformer predicts the next token</h2>
         <p class="tldr"><b>In short</b>One short film of everything in the decoder tab: tokens, attention, MLP, scoring the vocabulary, and the loop that appends one token at a time.</p>
         <p class="lede">The prompt “The cat sat on the” becomes token vectors with position information, passes through a stack of decoder blocks (causal self-attention, then an MLP, in every block), and the <strong>final position’s</strong> hidden state is compared with one learned weight vector per vocabulary token. Softmax turns the scores into probabilities, a decoding rule picks “ mat”, and the new token is appended before the model predicts again, reusing its <strong>KV cache</strong>.</p>
@@ -3532,7 +3549,7 @@ renderOverview();renderTrx();
 
 /* ================= DEMOS TAB ================= */
 const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
-window.addEventListener('message',e=>{if(e.data&&e.data.filmHeight&&e.source===$('#filmFrame').contentWindow)$('#filmFrame').style.height=Math.ceil(e.data.filmHeight)+'px'});
+window.addEventListener('message',e=>{if(!e.data||!e.data.filmHeight)return;const f=$$('#tabFilm iframe').find(x=>x.contentWindow===e.source);if(f)f.style.height=Math.ceil(e.data.filmHeight)+'px'});
 $('#demoLoad').addEventListener('click',()=>{
   if(IN_CLAUDE){$('#demoPh').innerHTML='<p><strong>This viewer does not allow other websites to be embedded.</strong></p><p class="note">Use “Open in a new tab”, or open this page from its standalone copy (a local file, Netlify or GitHub Pages), where the demo loads right here.</p>';return}
   if($('#demoFrame iframe'))return;
@@ -4387,7 +4404,7 @@ buildJump();
 function setTab(t,{scroll=true}={}){
   if(!TABS[t])return;
   TAB=t;Object.entries(TABS).forEach(([k,el])=>el.hidden=k!==t);
-  const ff=$('#filmFrame');if(t==='film'&&!ff.getAttribute('src'))ff.src=ff.dataset.src;else if(t!=='film')ff.contentWindow?.postMessage('film:hide','*');
+  $$('#tabFilm iframe[data-src]').forEach(ff=>{if(t==='film'&&!ff.getAttribute('src'))ff.src=ff.dataset.src;else if(t!=='film')ff.contentWindow?.postMessage('film:hide','*')});
   $$('.tabs .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));
   $('.prompt-wrap').hidden=$('#engineBadge').hidden=t!=='decoder';
   SECS=$$(`#${TABS[t].id} main>section`);buildJump();

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How a Neural Network Learns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  /* Layout: a screening-room frame — the 16:9 film centred, transport + chapter strip beneath it. Single dark look on purpose. */
+  :root {
+    --room: #15151c;
+    --panel: #1e1e29;
+    --line: #2f2f40;
+    --text: #ecebf4;
+    --muted: #9a99b2;
+    --indigo: #6d66ff;
+    --indigo-deep: #4f46e5;
+    --sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  html, body { background: var(--room); color: var(--text); }
+  body { margin: 0; }
+  body {
+    font-family: var(--sans);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 28px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 14px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+  h1 { margin: 0; font-size: clamp(17px, 2.2vw, 22px); font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+  .screen { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #efede9; border-radius: 10px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+  .screen canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .loading[hidden] { display: none; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 13px; color: #4b4f66; background: #efede9; }
+  .transport { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 12px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .play { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--indigo-deep); color: #fff; display: grid; place-items: center; }
+  .play:hover { background: var(--indigo); }
+  .play svg { width: 18px; height: 18px; fill: currentColor; }
+  .step { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; height: 34px; padding: 0 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .step:hover { color: var(--text); }
+  .tc { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .tc b { color: var(--text); font-weight: 600; }
+  .track { position: relative; min-width: 0; }
+  input[type="range"] { width: 100%; accent-color: var(--indigo); margin: 0; height: 28px; }
+  .ticks { position: absolute; left: 0; right: 0; top: -4px; height: 6px; pointer-events: none; }
+  .ticks i { position: absolute; top: 0; width: 2px; height: 6px; background: var(--line); }
+  .chapters { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .ch { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; min-width: 0; }
+  .ch:hover { border-color: var(--indigo); }
+  .ch.on { border-color: var(--indigo); background: #26244a; }
+  .ch span { font-family: var(--mono); font-size: 11px; color: var(--indigo); letter-spacing: 0.04em; }
+  .ch strong { font-size: 12.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+  .note { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 72ch; margin: 2px 0 0; }
+  .embed body, body.embed { padding-block: 0 4px; }
+  body.embed header, body.embed .note { display: none; }
+  .credit { margin: 0; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+  .credit a { color: var(--text); text-decoration-color: var(--indigo); text-underline-offset: 3px; }
+  .credit a:hover { color: var(--indigo); }
+  :focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+  @media (max-width: 760px) {
+    .chapters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .transport { grid-template-columns: auto 1fr; }
+    .step { display: none; }
+    .tc { grid-column: 1 / -1; order: 3; }
+  }
+</style>
+
+</head>
+<body>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+
+<div class="wrap">
+  <header>
+    <h1>How a Neural Network Learns</h1>
+    <div class="meta">PREVIEW · LIVE THREE.JS · 45 s · 1920×1080 SOURCE</div>
+  </header>
+
+  <div class="screen" id="screen">
+    <canvas id="gl" width="1920" height="1080"></canvas>
+    <canvas id="ui" width="1920" height="1080"></canvas>
+    <div class="loading" id="loading">Loading scene…</div>
+  </div>
+
+  <div class="transport">
+    <button class="play" id="play" aria-label="Play">
+      <svg id="icon" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>
+    </button>
+    <button class="step" id="back" aria-label="Back one second">−1s</button>
+    <div class="track">
+      <div class="ticks" id="ticks"></div>
+      <input type="range" id="scrub" min="0" max="45" step="0.0166667" value="0" aria-label="Timeline">
+    </div>
+    <div class="tc"><b id="now">00.00</b> / 45.00 s</div>
+  </div>
+
+  <div class="chapters" id="chapters"></div>
+
+  <p class="credit">Design: <a href="https://altafrehmani.netlify.app/" target="_blank" rel="noopener">Altaf Rehmani</a></p>
+  <p class="note">This plays the same deterministic scene the MP4 is rendered from, so every frame here matches the final video. Drag the timeline or pick a chapter to check a moment. Space plays and pauses; the arrow keys step one frame.</p>
+</div>
+
+<script type="module" src="src/basics.js"></script>
+<script>
+  const CH = [[0, 'A box of dials'], [6, 'Dot product'], [14, 'Non-linearity'], [21, 'Softmax'], [28, 'Training turns the dials'], [40, 'Learned dials']];
+  const D = 45;
+  const scrub = document.getElementById('scrub'), now = document.getElementById('now'), playBtn = document.getElementById('play'), icon = document.getElementById('icon');
+  const chWrap = document.getElementById('chapters'), ticks = document.getElementById('ticks');
+  CH.forEach(([t, name], i) => {
+    const b = document.createElement('button'); b.className = 'ch'; b.type = 'button';
+    b.innerHTML = `<span>0${i + 1} · ${t.toFixed(0).padStart(2, '0')}s</span><strong>${name}</strong>`;
+    b.addEventListener('click', () => { seek(t + 0.01); });
+    chWrap.appendChild(b);
+    if (i) { const k = document.createElement('i'); k.style.left = `${(t / D) * 100}%`; ticks.appendChild(k); }
+  });
+  const chips = [...chWrap.children];
+
+  const embed = new URLSearchParams(location.search).has('embed');
+  if (embed) document.body.classList.add('embed');
+  // The host page posts 'film:hide' when its tab is closed, so the scene stops using the GPU.
+  addEventListener('message', (e) => { if (e.data === 'film:hide') setPlaying(false); });
+  let t = 0, playing = false, last = 0, ready = false;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw() {
+    if (!ready) return;
+    window.renderAt(t);
+    scrub.value = t; now.textContent = t.toFixed(2).padStart(5, '0');
+    const c = CH.findLastIndex(([s]) => t >= s);
+    chips.forEach((el, i) => el.classList.toggle('on', i === c));
+  }
+  function setPlaying(p) {
+    playing = p; last = performance.now();
+    playBtn.setAttribute('aria-label', p ? 'Pause' : 'Play');
+    icon.innerHTML = p ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4l13 8-13 8z"/>';
+  }
+  function seek(v) { t = Math.min(D, Math.max(0, v)); draw(); }
+  function frame(ts) {
+    if (playing) { t += (ts - last) / 1000; if (t >= D) t = 0; last = ts; draw(); }
+    requestAnimationFrame(frame);
+  }
+
+  playBtn.addEventListener('click', () => setPlaying(!playing));
+  document.getElementById('back').addEventListener('click', () => seek(t - 1));
+  scrub.addEventListener('input', () => { seek(parseFloat(scrub.value)); });
+  addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' && e.key !== ' ') return;
+    if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); setPlaying(false); seek(t + 1 / 60); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); setPlaying(false); seek(t - 1 / 60); }
+  });
+
+  function start() {
+    ready = true; document.getElementById('loading').hidden = true;
+    seek(embed || reduce ? 1.2 : 0); setPlaying(!embed && !reduce); requestAnimationFrame(frame);
+  }
+  if (embed && window.parent !== window) {
+    const wrap = document.querySelector('.wrap');
+    new ResizeObserver(() => parent.postMessage({ filmHeight: wrap.getBoundingClientRect().bottom + 6 }, '*')).observe(wrap);
+  }
+  if (window.__ready) start(); else addEventListener('explainer-ready', start, { once: true });
+</script>
+
+</body>
+</html>
