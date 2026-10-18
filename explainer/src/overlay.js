@@ -149,6 +149,15 @@ export class Overlay {
   }
 
   // Thin chapter progress in the bottom-left corner.
+  // Small design credit, bottom-right on every frame.
+  credit(text, a) {
+    if (a <= 0.001) return;
+    const c = this.ctx; c.save(); c.globalAlpha = a * 0.85;
+    c.font = `500 18px ${MONO}`; c.textAlign = 'right'; c.textBaseline = 'middle';
+    c.fillStyle = INK2; c.fillText(text, this.W - 56, this.H - 52);
+    c.restore();
+  }
+
   chapter(n, label, a, progress) {
     if (a <= 0.001) return;
     const c = this.ctx; c.save(); c.globalAlpha = a * 0.9;

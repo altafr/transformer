@@ -721,6 +721,7 @@ function drawOverlay(t) {
   const ch = CHAPTERS.findLastIndex((c) => t >= c[0]);
   const chEnd = ch < 6 ? CHAPTERS[ch + 1][0] : DURATION;
   ui.chapter(ch + 1, CHAPTERS[ch][1], smooth(0.6, 1.2, t), seg(t, CHAPTERS[ch][0], chEnd));
+  ui.credit('Design · Altaf Rehmani', smooth(0.6, 1.2, t));
 
   // Scene 1
   ui.title('How a Decoder Transformer Predicts the Next Token', win(t, 0.15, 2.55, 0.5, 0.35), 'A 45-SECOND EXPLAINER');
