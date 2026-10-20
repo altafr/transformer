@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Decoder Primer</title>
+<meta name="description" content="A 10-minute read before the transformer decoder session: eight plain-language ideas, each with an everyday automation comparison and where it comes up in the session.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a handout, not a course. One column, big type, eight cards that all follow the same three lines (what it is, think of it as, where it comes up). No widgets, no scripts. */
+:root{
+  --bg:#F4F6F5; --surface:#FFFFFF; --surface-2:#E7ECEA; --ink:#15211F; --muted:#51635F; --line:#D5DEDB;
+  --accent:#0B7A75; --accent-weak:#DDF1EE; --on-accent:#FFFFFF; --warm:#B85A0C; --warm-weak:#F8E9DB;
+  --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --surface:#161F1D; --surface-2:#202C29; --ink:#E7EFED; --muted:#9DB1AC; --line:#2B3B37;
+  --accent:#3CC3BA; --accent-weak:#123A37; --on-accent:#0E1513; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --surface:#161F1D; --surface-2:#202C29; --ink:#E7EFED; --muted:#9DB1AC; --line:#2B3B37;
+  --accent:#3CC3BA; --accent-weak:#123A37; --on-accent:#0E1513; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.65 var(--sans);padding-block:0 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+.page{max-width:760px;margin:0 auto}
+header{padding-block:48px 28px;display:grid;gap:16px}
+.kicker{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 clamp(40px,8vw,72px)/1 var(--display);letter-spacing:-.03em;margin:0}
+.dek{font-size:clamp(19px,2.4vw,22px);margin:0;color:var(--muted);max-width:56ch}
+.one{background:var(--accent);color:var(--on-accent);border-radius:16px;padding:20px 22px;display:grid;gap:6px;margin-bottom:40px}
+.one b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.one p{margin:0;font:700 clamp(21px,3vw,27px)/1.3 var(--display)}
+h2{font:800 clamp(26px,4vw,34px)/1.1 var(--display);letter-spacing:-.02em;margin:0 0 6px}
+.map{list-style:none;margin:0 0 48px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.map li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px;display:grid;gap:2px;position:relative}
+.map li b{font:600 11px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.map li small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.map li.loop{grid-column:1/-1;background:var(--accent-weak);border-color:var(--accent);text-align:center}
+.lead{margin:0 0 20px;color:var(--muted);max-width:60ch}
+.cards{display:grid;gap:16px;margin-bottom:48px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:grid;gap:12px}
+.card h3{font:800 24px/1.15 var(--display);margin:0;display:flex;gap:12px;align-items:baseline}
+.card h3 span{font:600 13px var(--mono);color:var(--accent);min-width:20px}
+.card .what{margin:0;font-size:19px}
+.line{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:baseline;font-size:16.5px}
+.line b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.line.think b{color:var(--warm)}.line.think span{background:var(--warm-weak);border-radius:8px;padding:6px 10px;display:block}
+.line.where b{color:var(--accent)}
+.eg{font:500 14.5px/1.6 var(--mono);background:var(--surface-2);border-radius:10px;padding:9px 12px;overflow-x:auto;white-space:nowrap}
+.skip{border:1px dashed var(--line);border-radius:16px;padding:18px 20px;margin-bottom:48px;display:grid;gap:8px}
+.skip b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.skip p{margin:0}
+.q{margin:0 0 48px;padding:0;list-style:none;display:grid;gap:10px;counter-reset:q}
+.q li{counter-increment:q;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.q li::before{content:counter(q);font:700 20px var(--display);color:var(--accent)}
+dl{display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:8px 16px;margin:0 0 40px;font-size:16.5px}
+dt{font-weight:600}dd{margin:0;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14.5px}
+@media (max-width:700px){
+  .map{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .line{grid-template-columns:minmax(0,1fr);gap:3px}
+  dl{grid-template-columns:minmax(0,1fr)}dd{margin-bottom:8px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="kicker">Read before the session · about 10 minutes</div>
+  <h1>Decoder Primer</h1>
+  <p class="dek">Eight ideas in plain words. If these are familiar when we start, we can spend the session on how the decoder works instead of on the vocabulary.</p>
+</header>
+
+<div class="one">
+  <b>The one sentence to remember</b>
+  <p>A decoder-style language model does one thing: it reads the text so far, scores every possible next token, picks one, adds it, and repeats.</p>
+</div>
+
+<h2>The journey in one glance</h2>
+<p class="lead">Everything in the session happens on the way from a prompt to the next token. This is the route, and the eight ideas below are what you need for it.</p>
+<ol class="map">
+  <li><b>1 · Text in</b><small>“Approve the invoice if”</small></li>
+  <li><b>2 · Tokens</b><small>cut into pieces, each given an ID</small></li>
+  <li><b>3 · Vectors</b><small>each token becomes a list of numbers</small></li>
+  <li><b>4 · Mix and think</b><small>words share information, then each word is processed</small></li>
+  <li><b>5 · Scores</b><small>every possible next token gets one</small></li>
+  <li><b>6 · Percentages</b><small>scores become probabilities</small></li>
+  <li><b>7 · Pick one</b><small>for example “the”</small></li>
+  <li><b>8 · Add it</b><small>then go round again</small></li>
+  <li class="loop"><b>The loop repeats until the answer is finished</b></li>
+</ol>
+
+<h2>Eight ideas</h2>
+<p class="lead">Each one has the same three lines: what it is, an everyday automation comparison, and where it will come up.</p>
+
+<div class="cards">
+
+  <article class="card">
+    <h3><span>1</span>Token</h3>
+    <p class="what">Models do not read letters. Text is cut into pieces called <b>tokens</b>, usually a word or part of a word, and each piece is swapped for an ID number.</p>
+    <div class="eg">“Approve the invoice if” → Approve | the | invoice | if</div>
+    <div class="line think"><b>Think of it as</b><span>Splitting a message into fields before a workflow can use it. AI usage limits and pricing are counted in tokens, not words.</span></div>
+    <div class="line where"><b>In the session</b><span>The very first step.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>2</span>Vector</h3>
+    <p class="what">A <b>vector</b> is a list of numbers that describes one thing. The order is fixed: position 1 always means the same thing.</p>
+    <div class="eg">ticket = [urgency 7, order value 3, age 5]</div>
+    <div class="line think"><b>Think of it as</b><span>A spreadsheet row where every column is a number.</span></div>
+    <div class="line where"><b>In the session</b><span>Every token becomes a vector and stays one all the way through.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>3</span>Embedding</h3>
+    <p class="what">An <b>embedding</b> is the starting vector for a token, looked up in a big table. Words used in similar ways get similar vectors, so “invoice” and “receipt” end up close together and “invoice” and “password” do not.</p>
+    <div class="line think"><b>Think of it as</b><span>A lookup table keyed by token ID. The twist: nobody filled it in by hand. Training did.</span></div>
+    <div class="line where"><b>In the session</b><span>Right after tokenisation.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>4</span>Dot product</h3>
+    <p class="what">Multiply two vectors position by position, then add up. You get one number that says <b>how well they match</b>. A big positive number means they point the same way.</p>
+    <div class="eg">[2, 1, 0] · [1, 3, 5] = 2×1 + 1×3 + 0×5 = 5</div>
+    <div class="line think"><b>Think of it as</b><span>A lead score: each fact about a lead is multiplied by how much it matters, then added up.</span></div>
+    <div class="line where"><b>In the session</b><span>How a word decides which other words matter to it. This is the heart of attention.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>5</span>Matrix and weights</h3>
+    <p class="what">A <b>matrix</b> is a table of numbers. Multiplying a vector by it turns that vector into a new one. The numbers inside the model’s matrices are its <b>weights</b>, the settings it learned.</p>
+    <div class="line think"><b>Think of it as</b><span>A set of scoring rules applied to every row at once. The model has many such sets, and the rules were found, not written.</span></div>
+    <div class="line where"><b>In the session</b><span>Whenever you hear “where does this come from?”, the answer is a learned matrix.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>6</span>Softmax</h3>
+    <p class="what"><b>Softmax</b> turns raw scores into percentages that add up to 100%. The highest score gets the biggest share, and nobody gets exactly 0% or 100%.</p>
+    <div class="eg">scores [2, 1, 0] → 67% | 24% | 9%</div>
+    <div class="line think"><b>Think of it as</b><span>Several classifiers each give a confidence. Softmax turns them into one set of shares you can route on.</span></div>
+    <div class="line where"><b>In the session</b><span>Twice: to decide how much to listen to each word, and to turn the final scores into next-token probabilities.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>7</span>Training and using</h3>
+    <p class="what"><b>Training</b> happens once, on a huge amount of text: guess the next token, measure the error, nudge every weight. <b>Using</b> the model, which is called <b>inference</b>, keeps the weights frozen. A chat does not teach the model anything.</p>
+    <div class="line think"><b>Think of it as</b><span>Configuring and testing a rule set once, then simply running it. Anything the model should know has to be in the prompt you send.</span></div>
+    <div class="line where"><b>In the session</b><span>Step 0 covers training. Everything after it is inference.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>8</span>The next-token loop</h3>
+    <p class="what">The model gives every possible next token a probability, one is picked, it is added to the text, and the whole thing runs again. <b>Temperature</b> sets how adventurous the pick is: low is safe and repeatable, high is varied. The <b>context window</b> is how much text the model can read at once.</p>
+    <div class="line think"><b>Think of it as</b><span>A loop whose output becomes its own next input. Longer answers mean more passes, so they take longer.</span></div>
+    <div class="line where"><b>In the session</b><span>The last steps, and the reason the same prompt can give different answers.</span></div>
+  </article>
+
+</div>
+
+<div class="skip">
+  <b>Safe to skip for now</b>
+  <p>You will also hear about <b>non-linearity</b>, <b>residual connections</b>, <b>normalisation</b> and <b>multiple heads</b>. Each gets a short explanation in the session when we reach it, so there is nothing to prepare.</p>
+</div>
+
+<h2>Three questions to bring</h2>
+<p class="lead">No need to answer them. Just have them in mind while you read.</p>
+<ol class="q">
+  <li>If the model only reads the text you send it, what does that mean for what you put in a prompt?</li>
+  <li>Why might the same prompt give two different answers?</li>
+  <li>Where in your own automations does something repeat with its own output as the next input?</li>
+</ol>
+
+<h2>Words you will hear</h2>
+<dl>
+  <dt>Prompt</dt><dd>The text you give the model.</dd>
+  <dt>Parameter</dt><dd>Another word for a weight. “175 billion parameters” means 175 billion learned numbers.</dd>
+  <dt>Layer, block</dt><dd>One stage of computation. The model repeats the same kind of block many times.</dd>
+  <dt>Logit</dt><dd>A raw score before softmax.</dd>
+  <dt>Attention</dt><dd>How each word looks back at earlier words and borrows what is useful.</dd>
+  <dt>Decoder</dt><dd>The part of a transformer that writes text one token at a time.</dd>
+</dl>
+
+<footer>Pre-read for the “Inside the Decoder” session. The example numbers are illustrative.</footer>
+</div>
+</body>
+</html>
