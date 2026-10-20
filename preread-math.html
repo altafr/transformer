@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Math Primer</title>
+<meta name="description" content="A 10-minute read: ten ideas from everyday maths, from vectors and dot products to softmax, rescaling and feedback loops, each with a worked example and an automation comparison.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a handout, not a course. One column, big type, ten cards that all follow the same beats (what it is, a worked example, think of it as). No widgets, no scripts. */
+:root{
+  --bg:#F4F6F5; --surface:#FFFFFF; --surface-2:#E7ECEA; --ink:#15211F; --muted:#51635F; --line:#D5DEDB;
+  --accent:#0B7A75; --accent-weak:#DDF1EE; --on-accent:#FFFFFF; --warm:#B85A0C; --warm-weak:#F8E9DB;
+  --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --surface:#161F1D; --surface-2:#202C29; --ink:#E7EFED; --muted:#9DB1AC; --line:#2B3B37;
+  --accent:#3CC3BA; --accent-weak:#123A37; --on-accent:#0E1513; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --surface:#161F1D; --surface-2:#202C29; --ink:#E7EFED; --muted:#9DB1AC; --line:#2B3B37;
+  --accent:#3CC3BA; --accent-weak:#123A37; --on-accent:#0E1513; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.65 var(--sans);padding-block:0 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent)}
+.page{max-width:760px;margin:0 auto}
+header{padding-block:48px 28px;display:grid;gap:16px}
+.kicker{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 clamp(40px,8vw,72px)/1 var(--display);letter-spacing:-.03em;margin:0}
+.dek{font-size:clamp(19px,2.4vw,22px);margin:0;color:var(--muted);max-width:56ch}
+.one{background:var(--accent);color:var(--on-accent);border-radius:16px;padding:20px 22px;display:grid;gap:6px;margin-bottom:40px}
+.one b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.one p{margin:0;font:700 clamp(21px,3vw,27px)/1.3 var(--display)}
+h2{font:800 clamp(26px,4vw,34px)/1.1 var(--display);letter-spacing:-.02em;margin:0 0 6px}
+.map{list-style:none;margin:0 0 48px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.map li{align-content:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px;display:grid;gap:2px;position:relative}
+.map li b{font:600 11px var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.map li small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.map li.loop{grid-column:1/-1;background:var(--accent-weak);border-color:var(--accent);text-align:center}
+.lead{margin:0 0 20px;color:var(--muted);max-width:60ch}
+.cards{display:grid;gap:16px;margin-bottom:48px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:grid;gap:12px}
+.card h3{font:800 24px/1.15 var(--display);margin:0;display:flex;gap:12px;align-items:baseline}
+.card h3 span{font:600 13px var(--mono);color:var(--accent);min-width:20px}
+.card .what{margin:0;font-size:19px}
+.line{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:baseline;font-size:16.5px}
+.line b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.line.think b{color:var(--warm)}.line.think span{background:var(--warm-weak);border-radius:8px;padding:6px 10px;display:block}
+.eg{font:500 14.5px/1.6 var(--mono);background:var(--surface-2);border-radius:10px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.skip{border:1px dashed var(--line);border-radius:16px;padding:18px 20px;margin-bottom:48px;display:grid;gap:8px}
+.skip b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.skip p{margin:0}
+.q{margin:0 0 48px;padding:0;list-style:none;display:grid;gap:10px;counter-reset:q}
+.q li{counter-increment:q;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.q li::before{content:counter(q);font:700 20px var(--display);color:var(--accent)}
+dl{display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:8px 16px;margin:0 0 40px;font-size:16.5px}
+dt{font-weight:600}dd{margin:0;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14.5px}
+@media (max-width:700px){
+  .map{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .line{grid-template-columns:minmax(0,1fr);gap:3px}
+  dl{grid-template-columns:minmax(0,1fr)}dd{margin-bottom:8px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="kicker">Read beforehand · about 10 minutes</div>
+  <h1>Math Primer</h1>
+  <p class="dek">Ten ideas from everyday maths, in plain words, each with a tiny example you can check by hand. No prior maths needed beyond multiplying and adding.</p>
+</header>
+
+<div class="one">
+  <b>The thread that connects them</b>
+  <p>Numbers describe things, comparisons score them, tables transform them, and small repeated adjustments find the settings that work.</p>
+</div>
+
+<h2>How the ideas fit together</h2>
+<ol class="map">
+  <li><b>Describe</b><small>vectors, and the space they live in</small></li>
+  <li><b>Compare</b><small>distance, angle, dot product</small></li>
+  <li><b>Transform</b><small>matrix multiplication</small></li>
+  <li><b>Turn into shares</b><small>softmax, weighted choice</small></li>
+  <li><b>Shape and steady</b><small>bends, rescaling</small></li>
+  <li><b>Improve</b><small>error and nudging</small></li>
+  <li><b>Repeat</b><small>feedback loops</small></li>
+  <li class="loop"><b>Read top to bottom: each idea uses the ones before it</b></li>
+</ol>
+
+<h2>Ten ideas</h2>
+<p class="lead">Each card has the same beats: what it is, a small worked example, and an everyday automation comparison.</p>
+
+<div class="cards">
+  <article class="card">
+    <h3><span>1</span>Vector</h3>
+    <p class="what">A <b>vector</b> is a list of numbers that describes one thing. The order is fixed: position 1 always means the same thing, so two vectors can be compared position by position.</p>
+    <div class="eg">ticket = [urgency 7, order value 3, age 5]</div>
+    <div class="line think"><b>Think of it as</b><span>A spreadsheet row where every column is a number.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>2</span>Vector space and closeness</h3>
+    <p class="what">A vector with <b>n</b> numbers is a point in <b>n-dimensional space</b>. You can only picture 2 or 3 dimensions, but the maths works the same with 10 or 1,000. Two points can be compared by <b>distance</b> (how far apart) or by <b>angle</b> (do they point the same way).</p>
+    <div class="eg">[1, 2] and [4, 6] are 5 apart (a 3-4-5 triangle)</div><div class="eg">[1, 1] and [2, 2] point the same way; [1, 0] and [0, 1] are at right angles</div>
+    <div class="line think"><b>Think of it as</b><span>Plot every past case as a point. New cases that land near a cluster probably behave like that cluster.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>3</span>Dot product</h3>
+    <p class="what">Multiply two vectors position by position, then add up. You get <b>one number</b> that says how well they match. Big and positive means they point the same way, near zero means unrelated, negative means opposite.</p>
+    <div class="eg">[2, 1, 0] · [1, 3, 5] = 2×1 + 1×3 + 0×5 = 5</div>
+    <div class="line think"><b>Think of it as</b><span>A lead score: each fact about a lead is multiplied by how much it matters, then added up.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>4</span>Matrix multiplication</h3>
+    <p class="what">A <b>matrix</b> is a table of numbers. Multiplying a vector by a matrix takes the dot product with each column and gives a new vector, possibly of a different length. The shapes must line up: (1 × 3) times (3 × 2) gives (1 × 2).</p>
+    <div class="eg">[1, 2, 3] × [[1, 0], [0, 1], [1, 1]] = [1+0+3, 0+2+3] = [4, 5]</div>
+    <div class="line think"><b>Think of it as</b><span>One mapping table applied to a whole row at once. Each output column is a scoring rule, and the matrix holds all the rules together.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>5</span>Softmax</h3>
+    <p class="what"><b>Softmax</b> turns any list of scores into percentages that add up to 100%. The highest score gets the biggest share, and nobody gets exactly 0% or 100%. Dividing the scores by a number above 1 first flattens the shares, and below 1 sharpens them.</p>
+    <div class="eg">scores [2, 1, 0] → 67% | 24% | 9%</div>
+    <div class="line think"><b>Think of it as</b><span>Several classifiers each give a confidence. Softmax turns them into one set of shares you can route on.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>6</span>Probability and weighted choice</h3>
+    <p class="what">If the shares are 50%, 30% and 20%, a <b>weighted choice</b> is a raffle where each option holds that share of the tickets. Any single draw can come out differently, but over many draws the counts settle near the shares. Always taking the largest share instead gives the same answer every time.</p>
+    <div class="eg">50 / 30 / 20 → over 100 draws, expect about 50, 30 and 20 (not exactly)</div>
+    <div class="line think"><b>Think of it as</b><span>A router that either always takes the top route, or sends traffic in proportion to confidence. The first is repeatable, the second adds variety.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>7</span>Straight lines and bends</h3>
+    <p class="what">Multiplying and adding only ever produce straight-line behaviour, and a chain of straight steps is still one straight step. A small <b>bend</b>, such as “output the input, but never below zero” (written max(0, x)), breaks that, so a chain of steps can follow curves.</p>
+    <div class="eg">double, add 3, triple = 3 × (2x + 3) = 6x + 9: still a straight line</div><div class="eg">max(0, −2) = 0 and max(0, 3) = 3: a bend</div>
+    <div class="line think"><b>Think of it as</b><span>An IF rule: do nothing below a threshold, act above it. Without a step like that, ten calculations collapse into one.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>8</span>Rescaling</h3>
+    <p class="what">To keep numbers in a comfortable range, subtract their <b>average</b> and divide by their <b>spread</b> (standard deviation). The result always has average 0 and spread 1, whatever the starting scale.</p>
+    <div class="eg">[3, 9, 6]: average 6, spread 2.45 → [−1.22, 1.22, 0]</div>
+    <div class="line think"><b>Think of it as</b><span>Putting every sensor on the same scale before comparing them.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>9</span>Error and nudging</h3>
+    <p class="what">To find good settings without knowing the answer in advance, <b>guess, measure the error, nudge, repeat</b>. Each nudge moves a setting a little in the direction that shrinks the error. This is the idea behind finding the best settings by trial and refinement.</p>
+    <div class="eg">prediction = w × 2, target 6. w = 2 → 4 (error 2). w = 2.5 → 5 (error 1). w = 3 → 6 (error 0)</div>
+    <div class="line think"><b>Think of it as</b><span>Tuning a rule threshold against past cases: run, check how many it gets wrong, adjust, run again.</span></div>
+  </article>
+  <article class="card">
+    <h3><span>10</span>Feedback loops</h3>
+    <p class="what">Take an output and feed it back in as the next input. Each pass uses everything that came before, so small rules can build long results, and the number of passes decides the length of the result.</p>
+    <div class="eg">start at 1, double and add 1: 1 → 3 → 7 → 15 → 31</div>
+    <div class="line think"><b>Think of it as</b><span>A workflow that calls itself, or interest that earns interest.</span></div>
+  </article>
+
+</div>
+
+<h2>Three questions to bring</h2>
+<p class="lead">No need to answer them. Just have them in mind while you read.</p>
+<ol class="q">
+  <li>What in your own work could be described as a list of numbers?</li>
+  <li>Where do you already compare two things with a score?</li>
+  <li>Where does a process feed its own output back in as the next input?</li>
+</ol>
+
+<h2>Words you will see</h2>
+<dl>
+  <dt>Dimension</dt><dd>How many numbers a vector has.</dd>
+  <dt>Weight</dt><dd>A number that says how much something counts. A table of weights is a matrix.</dd>
+  <dt>Score</dt><dd>One number that rates how good, large or relevant something is.</dd>
+  <dt>Probability</dt><dd>A share between 0% and 100%. All the options together add up to 100%.</dd>
+  <dt>Function</dt><dd>A rule that turns an input number into an output number.</dd>
+  <dt>Iteration</dt><dd>Doing the same step again and again, each time starting from the last result.</dd>
+</dl>
+
+<footer>Every example uses small, made-up numbers so you can check them by hand.</footer>
+</div>
+</body>
+</html>
