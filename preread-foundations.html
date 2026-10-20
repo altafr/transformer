@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Decoder Foundations</title>
+<meta name="description" content="A 30-minute pre-read for the transformer decoder session: 14 short topics from vectors and dot products to softmax, embeddings and sampling, each with an automation analogy and a small hands-on widget.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a topic index up front (what to read, how long, where it shows up), then one short section per topic in dependency order. Each section follows the same four beats: what it is, an automation analogy, where the decoder uses it, and a widget to play with. */
+:root{
+  --bg:#F2F5F6; --surface:#FFFFFF; --surface-2:#E5EBED; --ink:#142022; --muted:#506367; --line:#D3DCDF;
+  --accent:#0B7A75; --accent-weak:#DCF0EE; --on-accent:#FFFFFF; --warm:#C9630F; --warm-weak:#F8E8D9;
+  --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1416; --surface:#151E21; --surface-2:#1F2B2F; --ink:#E6EEEF; --muted:#9AAEB2; --line:#2A3A3F;
+  --accent:#3CC3BA; --accent-weak:#12383A; --on-accent:#0D1416; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1416; --surface:#151E21; --surface-2:#1F2B2F; --ink:#E6EEEF; --muted:#9AAEB2; --line:#2A3A3F;
+  --accent:#3CC3BA; --accent-weak:#12383A; --on-accent:#0D1416; --warm:#F29A4A; --warm-weak:#3A2A18; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--sans);padding-block:0 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.page{max-width:900px;margin:0 auto}
+header.top{padding-block:44px 24px;display:grid;gap:14px}
+.kicker{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 clamp(38px,7vw,68px)/1 var(--display);letter-spacing:-.03em;margin:0;text-wrap:balance}
+.dek{font-size:clamp(18px,2.2vw,21px);max-width:62ch;margin:0;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 13px var(--mono);color:var(--muted)}
+.progress{display:flex;align-items:center;gap:12px;font:500 13px var(--mono);color:var(--muted)}
+.progress .tr{flex:1;max-width:260px;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.progress .tr i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;margin-bottom:28px}
+.how b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.index{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;margin-bottom:56px}
+.index h2{font:700 13px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.ix{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 12px;padding:10px 16px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);align-items:baseline}
+.ix:last-child{border-bottom:0}
+.ix:hover{background:var(--accent-weak)}
+.ix .n{font:600 13px var(--mono);color:var(--accent)}
+.ix .t{font-weight:600}.ix .t small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.ix .tag{font:600 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.ix .tag.core{border-color:var(--accent);color:var(--accent)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.ix .tag.src{border-style:dashed}.ix .tag.src.mine{border-style:solid;color:var(--ink)}
+.ix.done .n::after{content:" ✓"}.ix.done .t{color:var(--muted)}
+.grp{padding:8px 16px;background:var(--surface-2);font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+main{display:grid;gap:68px}
+section{display:grid;gap:14px;min-width:0}
+section>*{max-width:68ch}
+section>.tool,section>.tw{max-width:none}
+.eyebrow{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.eyebrow .tag{font-size:10.5px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.eyebrow .tag.core{border-color:var(--accent);color:var(--accent)}
+.eyebrow a{margin-left:auto;color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none;font-size:12px}
+h2.t{font:800 clamp(28px,4vw,40px)/1.08 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+p{margin:0}
+.say{font-size:19px}
+.beats{display:grid;gap:10px}
+.beat{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:baseline;font-size:16px}
+.beat b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.beat.auto b{color:var(--warm)}.beat.dec b{color:var(--accent)}
+.beat.auto span{background:var(--warm-weak);border-radius:8px;padding:6px 10px;display:block}
+.eq{font:500 14px/1.7 var(--mono);background:var(--surface-2);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.tool>.tl{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.row{display:grid;grid-template-columns:140px minmax(0,1fr) 56px;gap:10px;align-items:center;font-size:15px}
+.row input[type=range]{width:100%;accent-color:var(--accent)}
+.row output{font:500 13px var(--mono);text-align:right;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.btn{font:500 14px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}.btn[aria-pressed=true]{background:var(--accent-weak);border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.big{font:800 clamp(24px,3.6vw,34px) var(--display);letter-spacing:-.02em}
+.mono{font-family:var(--mono)}
+.small{font-size:14px;color:var(--muted)}
+.cells{display:inline-flex;gap:3px;vertical-align:middle}
+.cells i{width:26px;height:26px;border-radius:5px;display:grid;place-items:center;font:500 11px var(--mono);font-style:normal;color:var(--ink)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:74px minmax(0,1fr) 56px;gap:10px;align-items:center;font:500 13px var(--mono)}
+.bar .tr{height:16px;border-radius:4px;background:var(--surface-2);overflow:hidden}.bar .tr i{display:block;height:100%;background:var(--accent);transition:width .15s}
+.bar span:last-child{text-align:right;color:var(--muted)}
+.bar.top .tr i{background:var(--warm)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 14px var(--mono);padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);display:inline-flex;gap:6px;align-items:baseline}
+.chip small{font-size:11px;color:var(--muted)}
+.mat{border-collapse:collapse;font:500 14px var(--mono)}
+.mat td,.mat th{padding:6px 10px;text-align:center;border:1px solid var(--line)}
+.mat th{font-weight:600;color:var(--muted);font-size:11px}
+.mat td.hl{background:var(--accent-weak)}.mat td.yc{cursor:pointer}.mat td.yc:hover{background:var(--warm-weak)}.mat td.sel{background:var(--warm-weak);outline:2px solid var(--warm)}
+.mm{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.tw{overflow-x:auto}
+table.p{border-collapse:collapse;width:100%;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table.p th,table.p td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.p tr:last-child td{border-bottom:0}
+table.p th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+svg.plot{width:100%;max-width:460px;height:auto;display:block}
+svg.plot text{font:500 11px var(--mono);fill:var(--muted)}
+svg.plot .w{cursor:pointer}svg.plot .w circle{fill:var(--surface-2);stroke:var(--muted);stroke-width:1.5;transition:fill .15s}
+svg.plot .w.sel circle{fill:var(--warm);stroke:var(--warm)}svg.plot .w.nb circle{fill:var(--accent);stroke:var(--accent)}
+svg.plot .w text{fill:var(--ink);font-size:11px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:4px;align-content:start;background:var(--surface)}
+.card b{font:700 16px var(--display)}.card p{font-size:14.5px;color:var(--muted)}
+.read{justify-self:start;margin-top:4px}
+dl.gl{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr);gap:8px 16px;margin:0;font-size:15.5px}
+dl.gl dt{font-weight:600}dl.gl dd{margin:0;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 14px}
+details.qa+details.qa{margin-top:-4px}
+details.qa summary{cursor:pointer;font-weight:600}
+details.qa p{margin-top:8px;color:var(--muted);font-size:16px}
+h3.sub{font:700 22px/1.2 var(--display);margin:0}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+@media (max-width:700px){
+  .beat{grid-template-columns:minmax(0,1fr);gap:2px}
+  .two{grid-template-columns:minmax(0,1fr)}
+  dl.gl{grid-template-columns:minmax(0,1fr)}dl.gl dd{margin-bottom:6px}
+  .row{grid-template-columns:100px minmax(0,1fr) 48px}
+  .ix{grid-template-columns:28px minmax(0,1fr)}.tags{grid-column:2;justify-content:flex-start}
+}
+@media (max-width:420px){.bar{grid-template-columns:60px minmax(0,1fr) 48px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+  <div class="kicker">Pre-read · about 30 minutes</div>
+  <h1>Decoder Foundations</h1>
+  <p class="dek">The building blocks the transformer decoder session assumes you know. Fourteen short topics, each with an automation analogy, a note on where the decoder uses it, and a small widget to try.</p>
+  <div class="meta"><span>14 topics</span><span>13 widgets</span><span>No maths beyond multiplying and adding</span></div>
+  <div class="progress" aria-live="polite"><span id="pgText">0 of 14 read</span><span class="tr"><i id="pgBar"></i></span></div>
+</header>
+
+<div class="how">
+  <b>How to use this</b>
+  <p>Read in order: each topic uses the ones before it. Topics tagged <b style="font:600 12px var(--mono);color:var(--accent)">CORE</b> are what the session leans on most. “Your list” marks the topics you asked for; “added” marks the ones I added because the decoder needs them too. Tick “Mark as read” as you go (your ticks stay in this browser). If you are short on time, read the core topics and skim the rest.</p>
+</div>
+
+<nav class="index" aria-label="Topic list">
+  <h2><span>Topics</span><span>click to jump</span></h2>
+  <a class="ix" href="#t1" data-i="1"><span class="n">1</span><span class="t">Vector<small>An ordered list of numbers that describes one thing</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t2" data-i="2"><span class="n">2</span><span class="t">N-dimensional vector space<small>Why “near” can mean “similar”, even with hundreds of numbers</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t3" data-i="3"><span class="n">3</span><span class="t">Dot product<small>One number that says how well two vectors match</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t4" data-i="4"><span class="n">4</span><span class="t">Matrix multiplication<small>Applying the same set of rules to many vectors at once</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t5" data-i="5"><span class="n">5</span><span class="t">Softmax<small>Turning raw scores into shares that add up to 100%</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t6" data-i="6"><span class="n">6</span><span class="t">Tokens and tokenisation<small>How text becomes numbers in the first place</small></span><span class="tags"><span class="tag core">core</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t7" data-i="7"><span class="n">7</span><span class="t">Embeddings<small>The vector each token starts as</small></span><span class="tags"><span class="tag core">core</span><span class="tag src mine">your list</span></span></a>
+  <a class="ix" href="#t8" data-i="8"><span class="n">8</span><span class="t">Reading shapes (T × C)<small>The notation the session uses on every slide</small></span><span class="tags"><span class="tag">helpful</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t9" data-i="9"><span class="n">9</span><span class="t">Weights, training and inference<small>Where the numbers come from, and when they change</small></span><span class="tags"><span class="tag core">core</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t10" data-i="10"><span class="n">10</span><span class="t">Non-linearity<small>The bend between layers</small></span><span class="tags"><span class="tag">helpful</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t11" data-i="11"><span class="n">11</span><span class="t">Residual connections and normalisation<small>Keep the original, keep the numbers tidy</small></span><span class="tags"><span class="tag">helpful</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t12" data-i="12"><span class="n">12</span><span class="t">Probabilities, logits and sampling<small>How one next token gets chosen</small></span><span class="tags"><span class="tag core">core</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t13" data-i="13"><span class="n">13</span><span class="t">Attention, in one paragraph<small>Query, key, value: a preview that ties topics 3 and 5 together</small></span><span class="tags"><span class="tag core">core</span><span class="tag src">added</span></span></a>
+  <a class="ix" href="#t14" data-i="14"><span class="n">14</span><span class="t">Autoregression and the context window<small>Writing one token at a time, reading a limited amount</small></span><span class="tags"><span class="tag core">core</span><span class="tag src">added</span></span></a>
+</nav>
+
+<main>
+
+<section id="t1" data-i="1">
+  <div class="eyebrow"><span>Topic 1</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Vector</h2>
+  <p class="say">A vector is an ordered list of numbers. Each position means one thing about the item.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A row in a spreadsheet where every column is a number. A support ticket might be [urgency 7, order value 3, age in days 5].</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Every token is turned into a vector (768 numbers in GPT-2 small) and stays a vector all the way through the model.</span></div>
+  </div>
+  <div class="tool" id="w1">
+    <div class="tl">Try it · a ticket as a vector</div>
+    <div class="row"><label for="v0">Urgency</label><input id="v0" type="range" min="0" max="10" step="1" value="7"><output id="v0o"></output></div>
+    <div class="row"><label for="v1">Order value</label><input id="v1" type="range" min="0" max="10" step="1" value="3"><output id="v1o"></output></div>
+    <div class="row"><label for="v2">Age (days)</label><input id="v2" type="range" min="0" max="10" step="1" value="5"><output id="v2o"></output></div>
+    <div class="bars" id="v1bars"></div>
+    <div class="mono" id="v1txt" aria-live="polite"></div>
+  </div>
+  <p>The order matters: position 1 always means urgency. Two vectors can only be compared if they use the same positions for the same things. The count of numbers is the vector’s <b>dimension</b>; this one is 3-dimensional.</p>
+  <button class="btn read" type="button" data-read="1">Mark as read</button>
+</section>
+
+<section id="t2" data-i="2">
+  <div class="eyebrow"><span>Topic 2</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">N-dimensional vector space</h2>
+  <p class="say">A vector with n numbers is a point in n-dimensional space. Things that are similar end up near each other.</p>
+  <p>With 2 numbers you can plot a point on a sheet of paper. With 3, in a room. A vector with 768 numbers is a point in a 768-dimensional space. We cannot picture that, but the maths (distances, angles, comparisons) works exactly the same way as on the paper.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Plot every past ticket as a point. Refund requests clump together, password problems clump together. A new ticket can be routed by finding which clump it lands in.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Meaning is stored as position in this space. Words used in similar ways sit close together, so the model can treat them alike.</span></div>
+  </div>
+  <div class="tool" id="w2">
+    <div class="tl">Try it · a 2-D map of words (click a word)</div>
+    <svg class="plot" id="map" viewBox="0 0 360 300" role="group" aria-label="Map of words in 2 dimensions"></svg>
+    <div class="seg" id="mapSel" role="group" aria-label="Pick a word"></div>
+    <div class="chips" id="mapNb" aria-live="polite"></div>
+  </div>
+  <p class="small">Real embeddings are not drawn by hand. They are learned, and they have hundreds or thousands of dimensions, so a map like this is a squashed picture. “Close” is measured with distance or, more often, with the angle between two vectors (next topic).</p>
+  <button class="btn read" type="button" data-read="2">Mark as read</button>
+</section>
+
+<section id="t3" data-i="3">
+  <div class="eyebrow"><span>Topic 3</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Dot product</h2>
+  <p class="say">Multiply two vectors position by position, then add up. The result is one number: a match score.</p>
+  <div class="eq">a · b = a₁×b₁ + a₂×b₂ + a₃×b₃</div>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A lead-scoring rule. Weights [2, 1, 0] mean “visits count double, demo requests count once, company size does not count”. The dot product with a lead’s numbers is its score.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Attention scores how well one token matches another with a dot product. Almost every number in the model is the result of one.</span></div>
+  </div>
+  <div class="tool" id="w3">
+    <div class="tl">Try it · dot product, with A fixed at [2, 1, 0]</div>
+    <div class="row"><label for="d0">B first</label><input id="d0" type="range" min="-3" max="3" step="1" value="2"><output id="d0o"></output></div>
+    <div class="row"><label for="d1">B second</label><input id="d1" type="range" min="-3" max="3" step="1" value="1"><output id="d1o"></output></div>
+    <div class="row"><label for="d2">B third</label><input id="d2" type="range" min="-3" max="3" step="1" value="0"><output id="d2o"></output></div>
+    <div class="chips" id="dprods" aria-live="polite"></div>
+    <div class="big" id="dres"></div>
+    <div class="small" id="dcos"></div>
+  </div>
+  <p>A large positive result means the two vectors point the same way. Near zero means unrelated. Negative means opposite. The score also grows when the vectors are longer, which is why attention divides it by the square root of the dimension, and why people also use <b>cosine similarity</b>, the dot product with the lengths divided out.</p>
+  <button class="btn read" type="button" data-read="3">Mark as read</button>
+</section>
+
+<section id="t4" data-i="4">
+  <div class="eyebrow"><span>Topic 4</span><span class="tag core">core</span><span>4 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Matrix multiplication</h2>
+  <p class="say">A matrix is a table of numbers. Multiplying by it computes a dot product for every column, so one vector becomes a new vector.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>One mapping table applied to every row of a batch. Each output column is a scoring rule, and the matrix holds all the rules at once.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Q, K and V are made with matrix multiplications. So are the MLP, the output of attention, and the final score for every word. These matrices are the model’s learned weights.</span></div>
+  </div>
+  <div class="tool" id="w4">
+    <div class="tl">Try it · 3 tokens × a 3-to-2 matrix (click a result cell)</div>
+    <div class="mm"><div id="mmX"></div><span class="mono">×</span><div id="mmW"></div><span class="mono">=</span><div id="mmY"></div></div>
+    <div class="mono" id="mmTxt" aria-live="polite">Click a cell of the result to see how it was made.</div>
+    <div class="seg"><button class="btn" type="button" id="mmNew">New random matrix</button></div>
+  </div>
+  <div class="eq">(m × n) · (n × p) = (m × p)</div>
+  <p>The shape rule: the inner sizes must match (here 3 and 3), and the result takes the outer sizes (3 rows, 2 columns). A matrix with different column count changes the length of every vector. The decoder mostly uses square-ish matrices so vectors keep their size, and one large one at the end to score the whole vocabulary.</p>
+  <button class="btn read" type="button" data-read="4">Mark as read</button>
+</section>
+
+<section id="t5" data-i="5">
+  <div class="eyebrow"><span>Topic 5</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Softmax</h2>
+  <p class="say">Softmax turns a list of raw scores into percentages that add up to 100%, keeping the order: the biggest score gets the biggest share.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Several classifiers each return a confidence score. Softmax turns them into one set of shares you can route on: 70% “billing”, 20% “technical”, 10% “other”.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>It turns attention scores into “how much to listen to each earlier word”, and it turns the final scores into probabilities for every possible next token.</span></div>
+  </div>
+  <div class="tool" id="w5">
+    <div class="tl">Try it · softmax with temperature</div>
+    <div class="row"><label for="s0">Score: billing</label><input id="s0" type="range" min="-3" max="4" step="0.1" value="2"><output id="s0o"></output></div>
+    <div class="row"><label for="s1">Score: technical</label><input id="s1" type="range" min="-3" max="4" step="0.1" value="1"><output id="s1o"></output></div>
+    <div class="row"><label for="s2">Score: other</label><input id="s2" type="range" min="-3" max="4" step="0.1" value="0.1"><output id="s2o"></output></div>
+    <div class="row"><label for="st">Temperature</label><input id="st" type="range" min="0.2" max="3" step="0.1" value="1"><output id="sto"></output></div>
+    <div class="bars" id="sbars" aria-live="polite"></div>
+  </div>
+  <p>Raising a score by 1 multiplies that item’s weight by about 2.7 (that is the number e), so softmax is generous to the leader but never gives anyone exactly 0% or 100%. <b>Temperature</b> divides the scores first: low temperature makes the leader dominate, high temperature spreads the shares out.</p>
+  <button class="btn read" type="button" data-read="5">Mark as read</button>
+</section>
+
+<section id="t6" data-i="6">
+  <div class="eyebrow"><span>Topic 6</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Tokens and tokenisation</h2>
+  <p class="say">A model cannot read letters. Text is cut into pieces called tokens, and each token is replaced by a whole-number ID.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Parsing an incoming message into fields before a workflow can use it. Limits and pricing for AI models are counted in tokens, not words, so this is the unit you will plan around.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Step 1. The prompt becomes a list of IDs, and the model’s whole job is to predict the next ID.</span></div>
+  </div>
+  <div class="tool" id="w6">
+    <div class="tl">Try it · a toy tokeniser</div>
+    <label for="tkIn" class="small">Type some text</label>
+    <input id="tkIn" type="text" value="Automate the invoice approval workflow" maxlength="120" autocomplete="off" spellcheck="false" style="font:500 15px var(--mono);padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%">
+    <div class="chips" id="tkOut" aria-live="polite"></div>
+    <div class="small" id="tkCount"></div>
+  </div>
+  <p>Common words are usually one token. Rare or long words are split into pieces. The pieces are not chosen by hand: a method such as byte-pair encoding finds the most useful ones from a large body of text. GPT-2’s vocabulary has 50,257 tokens. As a rough rule for English, one token is about four characters, or three quarters of a word. <span class="small">(This toy only imitates that: a short list of common words stays whole and everything else is cut into 4-letter chunks. The IDs are made up.)</span></p>
+  <button class="btn read" type="button" data-read="6">Mark as read</button>
+</section>
+
+<section id="t7" data-i="7">
+  <div class="eyebrow"><span>Topic 7</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Embeddings</h2>
+  <p class="say">An embedding is the vector for a token. It comes from a big table with one row per token ID, so the lookup is just “fetch row number 25637”.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A lookup table keyed by ID that returns a fixed record. The twist: nobody writes the records. Training adjusts them until tokens used in similar ways have similar rows.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Step 1b. The embedding is the first vector a token gets, before any other word has been taken into account. GPT-2 small uses 768 numbers per token.</span></div>
+  </div>
+  <div class="tool" id="w7">
+    <div class="tl">Try it · look up a row, then find its nearest neighbours</div>
+    <div class="seg" id="emSel" role="group" aria-label="Pick a token"></div>
+    <div id="emRow" aria-live="polite"></div>
+    <div class="chips" id="emNb"></div>
+  </div>
+  <p class="small">The six columns here were invented so you can read them (money, paper, login, delivery, action, formality). In a real model the columns have no names. Meaning is spread across all of them, and you only learn what they encode by comparing rows.</p>
+  <p>Two details to remember. First, the same token always gets the same row, wherever it appears; the decoder’s later steps are what make the vector depend on context. Second, the position of a token is added to its vector separately, because a lookup table alone says nothing about word order.</p>
+  <button class="btn read" type="button" data-read="7">Mark as read</button>
+</section>
+
+<section id="t8" data-i="8">
+  <div class="eyebrow"><span>Topic 8</span><span class="tag">helpful</span><span>2 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Reading shapes (T × C)</h2>
+  <p class="say">The session writes sizes as rows × columns. T is the number of tokens, C is the number of numbers per token.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Rows in a batch and columns in each row. If the columns do not line up, the step fails, and the same is true here.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Almost every step turns one T × C table into another T × C table. Knowing that makes the diagrams easy to follow.</span></div>
+  </div>
+  <div class="tool" id="w8">
+    <div class="tl">Try it · follow the shapes through attention</div>
+    <div class="row"><label for="shT">Tokens (T)</label><input id="shT" type="range" min="1" max="12" step="1" value="5"><output id="shTo"></output></div>
+    <div class="row"><label for="shC">Vector size (C)</label><select id="shC" style="font:500 14px var(--mono);padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)"><option>16</option><option>64</option><option selected>768</option><option>12288</option></select><span></span></div>
+    <div class="tw"><table class="p" id="shTbl"></table></div>
+  </div>
+  <p>The one shape to notice is the attention score table: <b>T × T</b>, one score for every pair of tokens. It grows with the square of the text length, which is one reason very long inputs cost more.</p>
+  <button class="btn read" type="button" data-read="8">Mark as read</button>
+</section>
+
+<section id="t9" data-i="9">
+  <div class="eyebrow"><span>Topic 9</span><span class="tag core">core</span><span>4 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Weights, training and inference</h2>
+  <p class="say">The weights are the learned numbers: every embedding table and every matrix. Training sets them. Inference only reads them.</p>
+  <div class="two">
+    <div class="card"><b>Training</b><p>Done once, by the model’s maker, on a huge amount of text. At every position the model guesses the next token, a score measures how wrong it was, and every weight is nudged a little to be less wrong. Repeat billions of times.</p></div>
+    <div class="card"><b>Inference</b><p>What happens every time you use the model. The weights are frozen. Text goes in, one pass runs through the same fixed matrices, and probabilities for the next token come out.</p></div>
+  </div>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Training is configuring and testing a rule set until it works. Inference is running the finished rules. The difference: the settings here number in the billions, and a search procedure sets them, not a person.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>The question “where do the Q, K and V matrices come from?” always has the same answer: training. At use time, only the input changes.</span></div>
+  </div>
+  <div class="tw"><table class="p">
+    <tr><th>Model</th><th>Weights (parameters)</th></tr>
+    <tr><td>The fruit network in the basics tab</td><td>13</td></tr>
+    <tr><td>GPT-2 small (2019)</td><td>about 124 million</td></tr>
+    <tr><td>GPT-3 (2020)</td><td>about 175 billion</td></tr>
+  </table></div>
+  <p>A consequence for builders: a chat with a model does not teach it anything. It sees only the text you send, so anything it needs to know has to be in the prompt. “Memory” features work by saving text and putting it back into later prompts.</p>
+  <button class="btn read" type="button" data-read="9">Mark as read</button>
+</section>
+
+<section id="t10" data-i="10">
+  <div class="eyebrow"><span>Topic 10</span><span class="tag">helpful</span><span>2 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Non-linearity</h2>
+  <p class="say">Multiplying and adding only gives straight-line behaviour. A small bend between layers lets the model follow curves and “it depends” patterns.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>An IF rule: “do nothing below a threshold, act above it”. Without a step like that, a chain of calculations collapses into one calculation.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Inside the MLP, between its two matrices. GPT-2 uses GELU, a smooth version of ReLU.</span></div>
+  </div>
+  <div class="tool" id="w10">
+    <div class="tl">Try it · a straight line versus a bend</div>
+    <div class="row"><label for="rx">Input x</label><input id="rx" type="range" min="-3" max="3" step="0.1" value="-1.5"><output id="rxo"></output></div>
+    <svg class="plot" viewBox="0 0 420 220" role="img" aria-label="Plot of a straight line, ReLU and GELU">
+      <line x1="35" y1="110" x2="395" y2="110" stroke="var(--line)"/><line x1="215" y1="15" x2="215" y2="205" stroke="var(--line)"/>
+      <polyline fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4" points="35,200 395,20"/>
+      <polyline id="reluLine" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <polyline id="geluLine" fill="none" stroke="var(--warm)" stroke-width="2.5"/>
+      <circle id="rdot" r="6" fill="var(--accent)" cx="215" cy="110"/>
+      <text x="40" y="36">dashed: straight line (output = x)</text><text x="40" y="52" style="fill:var(--accent)">teal: ReLU</text><text x="40" y="68" style="fill:var(--warm)">orange: GELU</text>
+    </svg>
+    <div class="mono" id="rres" aria-live="polite"></div>
+  </div>
+  <p>Stack ten straight-line steps and you get one straight-line step. Put a bend between them and the stack can learn much more. This is what makes depth worth having.</p>
+  <button class="btn read" type="button" data-read="10">Mark as read</button>
+</section>
+
+<section id="t11" data-i="11">
+  <div class="eyebrow"><span>Topic 11</span><span class="tag">helpful</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Residual connections and normalisation</h2>
+  <p class="say">Two housekeeping habits keep a deep stack stable: add each step’s output back onto its input, and rescale the numbers to a standard range.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>Track changes. The original document stays, and each step only proposes edits on top of it. Normalising is like keeping every volume level in the same range.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>The “Add &amp; Norm” step, twice in every block. It is why 12 or 96 blocks can be stacked without the numbers blowing up or the original information being lost.</span></div>
+  </div>
+  <div class="tool" id="w11">
+    <div class="tl">Try it · residual add, then normalise</div>
+    <div class="mono small">Input x = [3, 9, 6]. A step proposes the change [1, −2, 0.5] × the size below.</div>
+    <div class="row"><label for="rk">Size of change</label><input id="rk" type="range" min="0" max="4" step="0.1" value="1"><output id="rko"></output></div>
+    <div class="mono" id="rres2" style="white-space:pre-wrap;line-height:1.8" aria-live="polite"></div>
+  </div>
+  <p><b>Residual</b> means: output = input + change, so the model only has to learn what to change. <b>Layer normalisation</b> subtracts the average of a token’s numbers and divides by their spread, so every vector has average 0 and spread 1 before the next step. You do not need to remember the formula, only that numbers are kept in a sensible range.</p>
+  <button class="btn read" type="button" data-read="11">Mark as read</button>
+</section>
+
+<section id="t12" data-i="12">
+  <div class="eyebrow"><span>Topic 12</span><span class="tag core">core</span><span>4 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Probabilities, logits and sampling</h2>
+  <p class="say">The model does not output a word. It outputs a score (a <b>logit</b>) for every token in its vocabulary. Softmax turns those into probabilities, and a decoding rule picks one.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A router with confidence scores. You can always take the top route, or pick at random in proportion to the confidence. The first is repeatable, the second adds variety.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Steps 7 and 8. This is also why the same prompt can give different answers, and what the “temperature” setting in an AI product controls.</span></div>
+  </div>
+  <div class="tool" id="w12">
+    <div class="tl">Try it · choose the next token after “Approve the invoice if”</div>
+    <div class="row"><label for="spT">Temperature</label><input id="spT" type="range" min="0.2" max="2" step="0.1" value="1"><output id="spTo"></output></div>
+    <div class="row"><label for="spK">Top-k (keep the best k)</label><input id="spK" type="range" min="1" max="5" step="1" value="5"><output id="spKo"></output></div>
+    <div class="bars" id="spBars" aria-live="polite"></div>
+    <div class="seg"><button class="btn primary" id="spGreedy" type="button">Greedy: take the top token</button><button class="btn" id="spDraw" type="button">Sample 30 times</button></div>
+    <div class="mono small" id="spOut" aria-live="polite">Press a button.</div>
+  </div>
+  <p><b>Greedy</b> always picks the top token. <b>Sampling</b> picks at random in proportion to the probabilities. <b>Top-k</b> throws away everything outside the best k before sampling. Low temperature behaves almost like greedy; high temperature gives more unusual choices. For repeatable automation, set temperature low; for brainstorming, raise it.</p>
+  <button class="btn read" type="button" data-read="12">Mark as read</button>
+</section>
+
+<section id="t13" data-i="13">
+  <div class="eyebrow"><span>Topic 13</span><span class="tag core">core</span><span>4 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Attention, in one paragraph</h2>
+  <p class="say">Each token asks a question (its <b>query</b>), every earlier token advertises what it holds (its <b>key</b>) and carries some content (its <b>value</b>). Match query to keys with dot products, turn the scores into shares with softmax, and take that share of each value.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A lookup with fuzzy matching: instead of fetching one exact record, you fetch a blend of all the records, weighted by how well each matches the request.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Step 3. The session spends its longest stretch here. Everything in topics 1 to 5 shows up in these few lines.</span></div>
+  </div>
+  <div class="tool" id="w13">
+    <div class="tl">Try it · a query looks at three earlier tokens</div>
+    <div class="row"><label for="q0">Query, first number</label><input id="q0" type="range" min="-2" max="2" step="0.1" value="1.2"><output id="q0o"></output></div>
+    <div class="row"><label for="q1">Query, second number</label><input id="q1" type="range" min="-2" max="2" step="0.1" value="0.2"><output id="q1o"></output></div>
+    <div class="tw"><table class="p" id="atTbl"></table></div>
+    <div class="mono" id="atOut" aria-live="polite"></div>
+  </div>
+  <p>Read the table left to right: <b>score</b> is the dot product of the query with that token’s key (topic 3), <b>share</b> is softmax over the scores (topic 5), and the result is the sum of each value times its share. A causal <b>mask</b> hides later tokens, because a decoder writes left to right and the future does not exist yet. Real models do this with many queries at once (matrix multiplication, topic 4) and in several “heads” in parallel.</p>
+  <button class="btn read" type="button" data-read="13">Mark as read</button>
+</section>
+
+<section id="t14" data-i="14">
+  <div class="eyebrow"><span>Topic 14</span><span class="tag core">core</span><span>3 min</span><a href="#top">↑ list</a></div>
+  <h2 class="t">Autoregression and the context window</h2>
+  <p class="say">A decoder writes one token at a time. The token it picks is added to the text, and the whole text is fed back in to pick the next one.</p>
+  <div class="beats">
+    <div class="beat auto"><b>Automation</b><span>A loop whose output becomes its next input. Each pass is a full run of the model, so long answers take many passes.</span></div>
+    <div class="beat dec"><b>In the decoder</b><span>Step 9. The <b>context window</b> is the most tokens the model can read at once. GPT-2 has 1,024; recent models have far more, but the limit still applies to your prompt plus the reply.</span></div>
+  </div>
+  <div class="tool" id="w14">
+    <div class="tl">Try it · the loop, one pass at a time (illustrative output)</div>
+    <div class="big" id="arText" style="font-size:clamp(20px,3vw,28px);line-height:1.4" aria-live="polite"></div>
+    <div class="small" id="arInfo"></div>
+    <div class="seg"><button class="btn primary" id="arNext" type="button">Run one pass</button><button class="btn" id="arReset" type="button">Reset</button></div>
+  </div>
+  <p>Practical consequences for building automations: output length costs time, the prompt and the reply share one token budget, and anything the model should use must be inside the window.</p>
+  <button class="btn read" type="button" data-read="14">Mark as read</button>
+</section>
+
+<section id="end">
+  <div class="eyebrow"><span>Wrap-up</span></div>
+  <h2 class="t">Where each topic shows up in the session</h2>
+  <div class="tw"><table class="p">
+    <tr><th>Topic</th><th>You will meet it in</th></tr>
+    <tr><td>Vector, vector space</td><td>Every step: each token is one vector</td></tr>
+    <tr><td>Tokens</td><td>Step 1, tokenisation</td></tr>
+    <tr><td>Embeddings</td><td>Step 1b, and again at the end as the output table</td></tr>
+    <tr><td>Dot product</td><td>Step 3, attention scores</td></tr>
+    <tr><td>Matrix multiplication, shapes</td><td>Q, K, V, attention output, MLP, final scores</td></tr>
+    <tr><td>Softmax</td><td>Attention weights (step 3) and next-token probabilities (step 7)</td></tr>
+    <tr><td>Residual and normalisation</td><td>Step 4, Add &amp; Norm</td></tr>
+    <tr><td>Non-linearity</td><td>Step 5, the MLP</td></tr>
+    <tr><td>Weights, training, inference</td><td>Step 0, and every “where does this matrix come from?”</td></tr>
+    <tr><td>Sampling</td><td>Step 8, next word</td></tr>
+    <tr><td>Autoregression, context window</td><td>Step 9, the generation loop</td></tr>
+  </table></div>
+
+  <h3 class="sub">Check yourself</h3>
+  <details class="qa"><summary>What is the dot product of [2, 1, 0] and [1, 3, 5]?</summary><p>2×1 + 1×3 + 0×5 = 5.</p></details>
+  <details class="qa"><summary>A (3 × 4) matrix times a (4 × 2) matrix gives what shape?</summary><p>3 × 2. The inner 4s must match and disappear.</p></details>
+  <details class="qa"><summary>Softmax turns the scores [2, 1, 0] into which kind of numbers?</summary><p>Shares between 0 and 1 that add up to 1 (about 67%, 24% and 9%), with the biggest score getting the biggest share.</p></details>
+  <details class="qa"><summary>Where does an embedding come from?</summary><p>A learned table with one row per token ID. Training adjusted the rows. At use time the model just looks up a row.</p></details>
+  <details class="qa"><summary>Does a model learn from your chat?</summary><p>No. The weights are frozen at inference. It only reads the text you send in the current prompt.</p></details>
+  <details class="qa"><summary>What does lowering the temperature do?</summary><p>It makes the top token dominate, so output is more repeatable and less varied.</p></details>
+  <details class="qa"><summary>Why does a decoder generate one token at a time?</summary><p>Each token depends on all the ones before it, so it can only be picked once the previous ones exist. The chosen token is appended and the model runs again.</p></details>
+
+  <h3 class="sub">Glossary</h3>
+  <dl class="gl">
+    <dt>Dimension</dt><dd>How many numbers a vector has.</dd>
+    <dt>Parameter, weight</dt><dd>One of the learned numbers. All of them together are the model.</dd>
+    <dt>Logit</dt><dd>A raw score before softmax.</dd>
+    <dt>Layer</dt><dd>One stage of computation. Deep means many layers.</dd>
+    <dt>Block</dt><dd>One decoder layer: attention plus MLP, each wrapped in Add &amp; Norm.</dd>
+    <dt>Head</dt><dd>One of several attention patterns run side by side.</dd>
+    <dt>Context window</dt><dd>The most tokens the model can read at once.</dd>
+    <dt>Prompt</dt><dd>The text you give the model. It is the context for the first prediction.</dd>
+  </dl>
+</section>
+
+</main>
+
+<footer>Pre-read for the “Inside the Decoder” session. Every number in the widgets is illustrative. Design: Altaf Rehmani.</footer>
+</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const f1=v=>(+v).toFixed(1),sgn=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(2);
+const sm=(a,T=1)=>{const m=Math.max(...a),e=a.map(v=>v===-Infinity?0:Math.exp((v-m)/T)),s=e.reduce((x,y)=>x+y,0);return e.map(v=>v/s)};
+const dotp=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),norm=a=>Math.sqrt(dotp(a,a)),cos=(a,b)=>dotp(a,b)/((norm(a)*norm(b))||1);
+const bars=(el,labels,p,hi)=>{el.innerHTML=labels.map((l,i)=>`<div class="bar${i===hi?' top':''}"><span>${l}</span><span class="tr"><i style="width:${p[i]*100}%"></i></span><span>${Math.round(p[i]*100)}%</span></div>`).join('')};
+const cellColor=(v,mx)=>{const t=Math.min(1,Math.abs(v)/mx);return `color-mix(in srgb, var(${v>=0?'--accent':'--warm'}) ${Math.round(t*45)}%, var(--surface))`};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+
+/* 1 vector */
+function w1(){
+  const v=[0,1,2].map(i=>+$('#v'+i).value),n=['urgency','value','age'];
+  v.forEach((x,i)=>$('#v'+i+'o').textContent=x);
+  bars($('#v1bars'),n,v.map(x=>x/10));
+  $('#v1bars').querySelectorAll('.tr+span').forEach((s,i)=>s.textContent=v[i]);
+  $('#v1txt').textContent=`ticket = [${v.join(', ')}]   (a ${v.length}-dimensional vector)`;
+}
+$$('#w1 input').forEach(i=>i.addEventListener('input',w1));
+/* 2 map */
+const MAP={invoice:[.55,.80],receipt:[.72,.64],bill:[.40,.90],payment:[.72,.45],login:[-.82,.50],password:[-.58,.82],username:[-.90,.25],refund:[.62,-.70],return:[.38,-.86],delivery:[-.40,-.80],parcel:[-.62,-.62]};
+let mapSel='invoice';
+function mapDraw(){
+  const names=Object.keys(MAP),near=names.filter(n=>n!==mapSel).map(n=>[n,cos(MAP[mapSel],MAP[n])]).sort((a,b)=>b[1]-a[1]),top=near.slice(0,3).map(x=>x[0]);
+  const X=x=>180+x*150,Y=y=>150-y*120;
+  $('#map').innerHTML=`<line x1="20" y1="150" x2="340" y2="150" stroke="var(--line)"/><line x1="180" y1="15" x2="180" y2="285" stroke="var(--line)"/>`+
+   names.map(n=>`<g class="w ${n===mapSel?'sel':top.includes(n)?'nb':''}" data-n="${n}"><circle cx="${X(MAP[n][0])}" cy="${Y(MAP[n][1])}" r="7"/><text x="${X(MAP[n][0])+10}" y="${Y(MAP[n][1])+4}">${n}</text></g>`).join('');
+  $('#mapSel').innerHTML=names.map(n=>`<button type="button" class="btn" data-n="${n}" aria-pressed="${n===mapSel}">${n}</button>`).join('');
+  $('#mapNb').innerHTML=`<span class="small" style="align-self:center">Closest to “${mapSel}” (by angle):</span>`+near.slice(0,3).map(([n,c])=>`<span class="chip">${n}<small>${c.toFixed(2)}</small></span>`).join('');
+}
+$('#w2').addEventListener('click',e=>{const g=e.target.closest('[data-n]');if(g){mapSel=g.dataset.n;mapDraw()}});
+/* 3 dot */
+function w3(){
+  const A=[2,1,0],B=[0,1,2].map(i=>+$('#d'+i).value);B.forEach((v,i)=>$('#d'+i+'o').textContent=v);
+  const P=A.map((a,i)=>a*B[i]),S=P.reduce((x,y)=>x+y,0);
+  $('#dprods').innerHTML=A.map((a,i)=>`<span class="chip">${a} × ${B[i]} = ${P[i]}</span>`).join('');
+  $('#dres').textContent=`Dot product = ${S}  ${S>2?'· strong match':S<0?'· opposite':'· weak match'}`;
+  $('#dcos').textContent=norm(B)?`Cosine similarity (lengths divided out) = ${cos(A,B).toFixed(2)}`:'B is all zeros, so there is no direction to compare.';
+}
+$$('#w3 input').forEach(i=>i.addEventListener('input',w3));
+/* 4 matmul */
+let MX=[[1,0,2],[0,1,1],[2,1,0]],MW=[[1,0],[0,1],[1,1]],mmSeed=1,mmSel=null;
+const tbl=(M,cls,hl)=>`<table class="mat">${M.map((r,i)=>`<tr>${r.map((v,j)=>`<td class="${cls}${hl&&hl(i,j)?' hl':''}" ${cls==='yc'?`data-i="${i}" data-j="${j}"`:''}>${v}</td>`).join('')}</tr>`).join('')}</table>`;
+function w4(){
+  const Y=MX.map(r=>MW[0].map((_,j)=>r.reduce((s,v,k)=>s+v*MW[k][j],0)));
+  $('#mmX').innerHTML=`<div class="small">X (3×3)</div>`+tbl(MX,'',(i)=>mmSel&&i===mmSel[0]);
+  $('#mmW').innerHTML=`<div class="small">W (3×2)</div>`+tbl(MW,'',(i,j)=>mmSel&&j===mmSel[1]);
+  $('#mmY').innerHTML=`<div class="small">Y = X·W (3×2)</div>`+`<table class="mat">${Y.map((r,i)=>`<tr>${r.map((v,j)=>`<td class="yc${mmSel&&mmSel[0]===i&&mmSel[1]===j?' sel':''}" data-i="${i}" data-j="${j}">${v}</td>`).join('')}</tr>`).join('')}</table>`;
+  if(mmSel){const [i,j]=mmSel;$('#mmTxt').textContent=`Y[${i+1}][${j+1}] = row ${i+1} of X · column ${j+1} of W = ${MX[i].map((v,k)=>`${v}×${MW[k][j]}`).join(' + ')} = ${Y[i][j]}`}
+}
+$('#w4').addEventListener('click',e=>{const c=e.target.closest('td.yc');if(c){mmSel=[+c.dataset.i,+c.dataset.j];w4()}});
+$('#mmNew').addEventListener('click',()=>{mmSeed++;let s=mmSeed*7919;const r=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};MW=MW.map(row=>row.map(()=>Math.round(r()*4-2)));mmSel=null;$('#mmTxt').textContent='Click a cell of the result to see how it was made.';w4()});
+/* 5 softmax */
+function w5(){
+  const s=[0,1,2].map(i=>+$('#s'+i).value),T=+$('#st').value;s.forEach((v,i)=>$('#s'+i+'o').textContent=f1(v));$('#sto').textContent=f1(T);
+  const p=sm(s,T);bars($('#sbars'),['billing','technical','other'],p,p.indexOf(Math.max(...p)));
+}
+$$('#w5 input').forEach(i=>i.addEventListener('input',w5));
+/* 6 tokens */
+const COMMON=new Set('the a an and or if of to in on for with is it this that by as at be from invoice approve approval workflow send email order purchase customer ticket report data amount match matches request new update user file text'.split(' '));
+function w6(){
+  const words=$('#tkIn').value.match(/[A-Za-z0-9]+|[^\sA-Za-z0-9]/g)||[],out=[];
+  words.forEach((w,wi)=>{
+    const lead=(wi>0&&/[A-Za-z0-9]/.test(w))?'·':'';
+    const pieces=COMMON.has(w.toLowerCase())||w.length<=4?[w]:w.match(/.{1,4}/g);
+    pieces.forEach((p,k)=>out.push((k===0?lead:'')+p));
+  });
+  $('#tkOut').innerHTML=out.map(t=>`<span class="chip">${esc(t)}<small>#${hash(t)%50257}</small></span>`).join('');
+  $('#tkCount').textContent=`${words.filter(w=>/[A-Za-z0-9]/.test(w)).length} words → ${out.length} tokens (a · marks a space before the piece)`;
+}
+$('#tkIn').addEventListener('input',w6);
+/* 7 embeddings */
+const EMB={invoice:[.9,.8,0,0,.1,.7],receipt:[.8,.9,0,0,0,.4],refund:[.9,.3,0,.2,.8,.3],login:[0,0,.9,0,.3,.1],password:[0,.1,.9,0,.2,.3],delivery:[.1,.2,0,.9,.3,.1],parcel:[0,.2,0,.9,0,.1],approve:[.2,.3,.1,0,.9,.8]};
+let emSel='invoice';
+function w7(){
+  const names=Object.keys(EMB);
+  $('#emSel').innerHTML=names.map(n=>`<button class="btn" type="button" data-n="${n}" aria-pressed="${n===emSel}">${n}</button>`).join('');
+  $('#emRow').innerHTML=`<div class="mono small">embedding table[“${emSel}”] =</div><span class="cells">${EMB[emSel].map(v=>`<i style="background:${cellColor(v,1)}">${v}</i>`).join('')}</span>`;
+  const near=names.filter(n=>n!==emSel).map(n=>[n,cos(EMB[emSel],EMB[n])]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  $('#emNb').innerHTML=`<span class="small" style="align-self:center">Most similar rows:</span>`+near.map(([n,c])=>`<span class="chip">${n}<small>${c.toFixed(2)}</small></span>`).join('');
+}
+$('#emSel').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(b){emSel=b.dataset.n;w7()}});
+/* 8 shapes */
+function w8(){
+  const T=+$('#shT').value,C=+$('#shC').value;$('#shTo').textContent=T;
+  const rows=[['Tokens after embedding + position','X',`${T} × ${C}`,'the table everything starts from'],['Query matrix (learned)','W_Q',`${C} × ${C}`,`${(C*C).toLocaleString()} weights`],['Queries','Q = X·W_Q',`${T} × ${C}`,'same shape as X'],['Attention scores','Q·Kᵀ',`${T} × ${T}`,'one score per pair of tokens'],['Attention output','scores · V',`${T} × ${C}`,'back to the shape of X']];
+  $('#shTbl').innerHTML=`<tr><th>What</th><th>Name</th><th>Shape</th><th>Note</th></tr>`+rows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono"><b>${r[2]}</b></td><td>${r[3]}</td></tr>`).join('');
+}
+$('#shT').addEventListener('input',w8);$('#shC').addEventListener('change',w8);
+/* 10 non-linearity */
+const gelu=x=>.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+.044715*x**3)));
+function w10(){
+  const x=+$('#rx').value;$('#rxo').textContent=f1(x);
+  const px=v=>215+v*60,py=v=>110-v*30,xs=Array.from({length:61},(_,i)=>-3+i*.1);
+  $('#reluLine').setAttribute('points',xs.map(v=>`${px(v)},${py(Math.max(0,v))}`).join(' '));
+  $('#geluLine').setAttribute('points',xs.map(v=>`${px(v)},${py(gelu(v))}`).join(' '));
+  $('#rdot').setAttribute('cx',px(x));$('#rdot').setAttribute('cy',py(Math.max(0,x)));
+  $('#rres').textContent=`x = ${f1(x)}  ·  straight line: ${f1(x)}  ·  ReLU: ${f1(Math.max(0,x))}  ·  GELU: ${gelu(x).toFixed(2)}`;
+}
+$('#rx').addEventListener('input',w10);
+/* 11 residual + norm */
+function w11(){
+  const k=+$('#rk').value;$('#rko').textContent=f1(k);
+  const x=[3,9,6],d=[1,-2,.5],r=x.map((v,i)=>v+k*d[i]),m=r.reduce((a,b)=>a+b,0)/3,sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/3+1e-5),n=r.map(v=>(v-m)/sd);
+  const fm=a=>'['+a.map(v=>v.toFixed(2)).join(', ')+']';
+  $('#rres2').textContent=`residual:  x + change = ${fm(x)} + ${fm(d.map(v=>v*k))}\n           = ${fm(r)}\nnormalised (average 0, spread 1) = ${fm(n)}`;
+}
+$('#rk').addEventListener('input',w11);
+/* 12 sampling */
+const SW=['the','it','all','payment','a'],SL=[3.0,2.4,1.5,0.9,-0.2];
+function spProbs(){const T=+$('#spT').value,k=+$('#spK').value,order=SL.map((v,i)=>i).sort((a,b)=>SL[b]-SL[a]),keep=new Set(order.slice(0,k));
+  return sm(SL.map((v,i)=>keep.has(i)?v:-Infinity),T)}
+function w12(){const p=spProbs();$('#spTo').textContent=f1($('#spT').value);$('#spKo').textContent=$('#spK').value;bars($('#spBars'),SW,p,p.indexOf(Math.max(...p)))}
+$$('#w12 input').forEach(i=>i.addEventListener('input',w12));
+$('#spGreedy').addEventListener('click',()=>{$('#spOut').textContent=`Greedy always picks “${SW[SL.indexOf(Math.max(...SL))]}”, every time, whatever the temperature.`});
+$('#spDraw').addEventListener('click',()=>{const p=spProbs(),c=SW.map(()=>0);for(let n=0;n<30;n++){let r=Math.random(),i=0;for(;i<p.length-1;i++){r-=p[i];if(r<=0)break}c[i]++}
+  $('#spOut').textContent='30 draws: '+SW.map((w,i)=>c[i]?`${w} ×${c[i]}`:'').filter(Boolean).join(', ')});
+/* 13 attention */
+const AT=[{w:'invoice',k:[1,0],v:[2,0]},{w:'amount',k:[0,1],v:[0,3]},{w:'the',k:[-1,.2],v:[-1,1]}];
+function w13(){
+  const q=[+$('#q0').value,+$('#q1').value];$('#q0o').textContent=f1(q[0]);$('#q1o').textContent=f1(q[1]);
+  const sc=AT.map(t=>dotp(q,t.k)/Math.sqrt(2)),p=sm(sc),out=[0,1].map(j=>AT.reduce((s,t,i)=>s+p[i]*t.v[j],0));
+  $('#atTbl').innerHTML=`<tr><th>Earlier token</th><th>Key</th><th>Score (q·k÷√2)</th><th>Share</th><th>Value</th></tr>`+AT.map((t,i)=>`<tr><td>${t.w}</td><td class="mono">[${t.k.join(', ')}]</td><td class="mono">${sc[i].toFixed(2)}</td><td class="mono"><b>${Math.round(p[i]*100)}%</b></td><td class="mono">[${t.v.join(', ')}]</td></tr>`).join('');
+  $('#atOut').textContent=`Output = ${p.map((x,i)=>`${Math.round(x*100)}% × [${AT[i].v}]`).join(' + ')} = [${out.map(v=>v.toFixed(2)).join(', ')}]`;
+}
+$$('#w13 input').forEach(i=>i.addEventListener('input',w13));
+/* 14 autoregression */
+const AR=['Approve','the','invoice','if','the','amount','matches','the','purchase','order','.'],P0=4;let arN=P0;
+function w14(){
+  const t=AR.slice(0,arN);
+  $('#arText').innerHTML=t.map((w,i)=>`<span style="color:var(${i<P0?'--muted':'--accent'})">${(i>0&&!/^[.,]$/.test(w)?' ':'')+w}</span>`).join('');
+  const pass=arN-P0;
+  $('#arInfo').textContent=pass?`Pass ${pass}: the model read ${arN-1} tokens, picked “${AR[arN-1]}”, appended it. Tokens in context: ${arN} of 1,024 (GPT-2’s window).`:`Prompt: ${P0} tokens (grey). Each pass reads everything so far and adds one token (teal).`;
+  $('#arNext').disabled=arN>=AR.length;
+}
+$('#arNext').addEventListener('click',()=>{if(arN<AR.length){arN++;w14()}});$('#arReset').addEventListener('click',()=>{arN=P0;w14()});
+/* read progress */
+let READ=new Set();
+try{READ=new Set(JSON.parse(localStorage.getItem('df-read')||'[]'))}catch(e){}
+function readUi(){
+  $$('[data-read]').forEach(b=>{const on=READ.has(b.dataset.read);b.textContent=on?'Read ✓ (undo)':'Mark as read';b.setAttribute('aria-pressed',on)});
+  $$('.ix').forEach(a=>a.classList.toggle('done',READ.has(a.dataset.i)));
+  $('#pgText').textContent=`${READ.size} of 14 read`;$('#pgBar').style.width=(READ.size/14*100)+'%';
+}
+$$('[data-read]').forEach(b=>b.addEventListener('click',()=>{const i=b.dataset.read;READ.has(i)?READ.delete(i):READ.add(i);try{localStorage.setItem('df-read',JSON.stringify([...READ]))}catch(e){}readUi()}));
+document.body.id='top';
+w1();mapDraw();w3();w4();w5();w6();w7();w8();w10();w11();w12();w13();w14();readUi();
+})();
+</script>
+</body>
+</html>
