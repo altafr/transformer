@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Math Primer</title>
-<meta name="description" content="A 10-minute read: ten ideas from everyday maths, from vectors and dot products to softmax, rescaling and feedback loops, each with a worked example and an automation comparison.">
+<meta name="description" content="A 10-minute read: eleven ideas from everyday maths, from vectors and dot products to softmax, rescaling and feedback loops, each with a worked example and an automation comparison.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: a handout, not a course. One column, big type, ten cards that all follow the same beats (what it is, a worked example, think of it as). No widgets, no scripts. */
+/* Layout: a handout, not a course. One column, big type, eleven cards that all follow the same beats (what it is, a worked example, think of it as). No widgets, no scripts. */
 :root{
   --bg:#F4F6F5; --surface:#FFFFFF; --surface-2:#E7ECEA; --ink:#15211F; --muted:#51635F; --line:#D5DEDB;
   --accent:#0B7A75; --accent-weak:#DDF1EE; --on-accent:#FFFFFF; --warm:#B85A0C; --warm-weak:#F8E9DB;
@@ -50,6 +50,7 @@ h2{font:800 clamp(26px,4vw,34px)/1.1 var(--display);letter-spacing:-.02em;margin
 .line{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:baseline;font-size:16.5px}
 .line b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .line.think b{color:var(--warm)}.line.think span{background:var(--warm-weak);border-radius:8px;padding:6px 10px;display:block}
+.fig{width:100%;max-width:640px;height:auto;display:block}
 .eg{font:500 14.5px/1.6 var(--mono);background:var(--surface-2);border-radius:10px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .skip{border:1px dashed var(--line);border-radius:16px;padding:18px 20px;margin-bottom:48px;display:grid;gap:8px}
 .skip b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -73,7 +74,7 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
 <header>
   <div class="kicker">Read beforehand · about 10 minutes</div>
   <h1>Math Primer</h1>
-  <p class="dek">Ten ideas from everyday maths, in plain words, each with a tiny example you can check by hand. No prior maths needed beyond multiplying and adding.</p>
+  <p class="dek">Eleven ideas from everyday maths, in plain words, each with a tiny example you can check by hand. No prior maths needed beyond multiplying and adding.</p>
 </header>
 
 <div class="one">
@@ -83,7 +84,7 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
 
 <h2>How the ideas fit together</h2>
 <ol class="map">
-  <li><b>Describe</b><small>vectors, and the space they live in</small></li>
+  <li><b>Describe</b><small>vectors, and the multidimensional space they live in</small></li>
   <li><b>Compare</b><small>distance, angle, dot product</small></li>
   <li><b>Transform</b><small>matrix multiplication</small></li>
   <li><b>Turn into shares</b><small>softmax, weighted choice</small></li>
@@ -93,7 +94,7 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
   <li class="loop"><b>Read top to bottom: each idea uses the ones before it</b></li>
 </ol>
 
-<h2>Ten ideas</h2>
+<h2>Eleven ideas</h2>
 <p class="lead">Each card has the same beats: what it is, a small worked example, and an everyday automation comparison.</p>
 
 <div class="cards">
@@ -104,55 +105,83 @@ footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font
     <div class="line think"><b>Think of it as</b><span>A spreadsheet row where every column is a number.</span></div>
   </article>
   <article class="card">
-    <h3><span>2</span>Vector space and closeness</h3>
-    <p class="what">A vector with <b>n</b> numbers is a point in <b>n-dimensional space</b>. You can only picture 2 or 3 dimensions, but the maths works the same with 10 or 1,000. Two points can be compared by <b>distance</b> (how far apart) or by <b>angle</b> (do they point the same way).</p>
-    <div class="eg">[1, 2] and [4, 6] are 5 apart (a 3-4-5 triangle)</div><div class="eg">[1, 1] and [2, 2] point the same way; [1, 0] and [0, 1] are at right angles</div>
-    <div class="line think"><b>Think of it as</b><span>Plot every past case as a point. New cases that land near a cluster probably behave like that cluster.</span></div>
+    <h3><span>2</span>Multidimensional space</h3>
+    <p class="what">Every number in a vector is a coordinate along its own <b>axis</b>. One number places a point on a line, two on a flat plane, three in a room. A vector with <b>n</b> numbers places a point in <b>n-dimensional space</b>. You can only draw two or three axes, but positions, distances and angles follow the same rules with 10 axes or 1,000.</p>
+    <svg class="fig" viewBox="0 0 640 160" role="img" aria-label="A point described by 1, 2, 3 and n numbers">
+      <g stroke="var(--muted)" fill="none" stroke-width="1.5">
+        <line x1="20" y1="75" x2="140" y2="75"/><line x1="40" y1="70" x2="40" y2="80"/><line x1="70" y1="70" x2="70" y2="80"/><line x1="100" y1="70" x2="100" y2="80"/><line x1="130" y1="70" x2="130" y2="80"/>
+        <line x1="185" y1="120" x2="300" y2="120"/><line x1="185" y1="120" x2="185" y2="20"/>
+        <line x1="360" y1="115" x2="445" y2="115"/><line x1="360" y1="115" x2="360" y2="22"/><line x1="360" y1="115" x2="318" y2="145"/>
+      </g>
+      <g stroke="var(--line)" stroke-dasharray="4 4" fill="none" stroke-width="1.5">
+        <line x1="255" y1="60" x2="255" y2="120"/><line x1="255" y1="60" x2="185" y2="60"/>
+        <line x1="400" y1="70" x2="400" y2="135"/><line x1="400" y1="135" x2="360" y2="115"/>
+      </g>
+      <g fill="var(--accent)"><circle cx="100" cy="75" r="6"/><circle cx="255" cy="60" r="6"/><circle cx="400" cy="70" r="6"/></g>
+      <g stroke="var(--muted)" fill="none" stroke-width="1.2" opacity=".6"><line x1="560" y1="70" x2="560.0" y2="15.0"/><line x1="560" y1="70" x2="607.6" y2="42.5"/><line x1="560" y1="70" x2="607.6" y2="97.5"/><line x1="560" y1="70" x2="560.0" y2="125.0"/><line x1="560" y1="70" x2="512.4" y2="97.5"/><line x1="560" y1="70" x2="512.4" y2="42.5"/></g>
+      <polygon points="560.0,20.5 588.6,53.5 598.1,92.0 560.0,97.5 514.8,96.1 526.7,50.8" fill="var(--accent-weak)" stroke="var(--accent)" stroke-width="2"/>
+      <g fill="var(--muted)" font-family="var(--mono)" font-size="12" text-anchor="middle">
+        <text x="80" y="150">1 number</text><text x="245" y="150">2 numbers</text><text x="385" y="156">3 numbers</text><text x="560" y="154">n numbers</text>
+      </g>
+    </svg>
+    <p class="what">Why use so many axes? Each extra axis is one more way for two things to differ. Two cases can look identical on two measures and still be far apart on a third, so more axes allow finer distinctions.</p>
+    <div class="eg">[3, 4] and [3, 4] are the same point</div>
+    <div class="eg">[3, 4, 0] and [3, 4, 9] are 9 apart once a third axis is added</div>
+    <div class="line think"><b>Think of it as</b><span>A spreadsheet with n numeric columns: every row is a point, and every column is an axis.</span></div>
+  </article>
+
+  <article class="card">
+    <h3><span>3</span>Closeness: distance and angle</h3>
+    <p class="what">To compare two points, measure the <b>distance</b> between them: in any number of dimensions, subtract position by position, square each difference, add them up and take the square root. Or compare the <b>angle</b> between the arrows from the origin: do they point the same way?</p>
+    <div class="eg">[2, 5, 1] to [2, 6, 3]: differences [0, 1, 2] → √(0 + 1 + 4) ≈ 2.2</div>
+    <div class="eg">[2, 5, 1] to [9, 1, 8]: differences [7, −4, 7] → √114 ≈ 10.7</div>
+    <div class="eg">[1, 1] and [2, 2] point the same way; [1, 0] and [0, 1] are at right angles</div>
+    <div class="line think"><b>Think of it as</b><span>Plot every past case as a point. A new case that lands near a cluster probably behaves like that cluster.</span></div>
   </article>
   <article class="card">
-    <h3><span>3</span>Dot product</h3>
+    <h3><span>4</span>Dot product</h3>
     <p class="what">Multiply two vectors position by position, then add up. You get <b>one number</b> that says how well they match. Big and positive means they point the same way, near zero means unrelated, negative means opposite.</p>
     <div class="eg">[2, 1, 0] · [1, 3, 5] = 2×1 + 1×3 + 0×5 = 5</div>
     <div class="line think"><b>Think of it as</b><span>A lead score: each fact about a lead is multiplied by how much it matters, then added up.</span></div>
   </article>
   <article class="card">
-    <h3><span>4</span>Matrix multiplication</h3>
+    <h3><span>5</span>Matrix multiplication</h3>
     <p class="what">A <b>matrix</b> is a table of numbers. Multiplying a vector by a matrix takes the dot product with each column and gives a new vector, possibly of a different length. The shapes must line up: (1 × 3) times (3 × 2) gives (1 × 2).</p>
     <div class="eg">[1, 2, 3] × [[1, 0], [0, 1], [1, 1]] = [1+0+3, 0+2+3] = [4, 5]</div>
     <div class="line think"><b>Think of it as</b><span>One mapping table applied to a whole row at once. Each output column is a scoring rule, and the matrix holds all the rules together.</span></div>
   </article>
   <article class="card">
-    <h3><span>5</span>Softmax</h3>
+    <h3><span>6</span>Softmax</h3>
     <p class="what"><b>Softmax</b> turns any list of scores into percentages that add up to 100%. The highest score gets the biggest share, and nobody gets exactly 0% or 100%. Dividing the scores by a number above 1 first flattens the shares, and below 1 sharpens them.</p>
     <div class="eg">scores [2, 1, 0] → 67% | 24% | 9%</div>
     <div class="line think"><b>Think of it as</b><span>Several classifiers each give a confidence. Softmax turns them into one set of shares you can route on.</span></div>
   </article>
   <article class="card">
-    <h3><span>6</span>Probability and weighted choice</h3>
+    <h3><span>7</span>Probability and weighted choice</h3>
     <p class="what">If the shares are 50%, 30% and 20%, a <b>weighted choice</b> is a raffle where each option holds that share of the tickets. Any single draw can come out differently, but over many draws the counts settle near the shares. Always taking the largest share instead gives the same answer every time.</p>
     <div class="eg">50 / 30 / 20 → over 100 draws, expect about 50, 30 and 20 (not exactly)</div>
     <div class="line think"><b>Think of it as</b><span>A router that either always takes the top route, or sends traffic in proportion to confidence. The first is repeatable, the second adds variety.</span></div>
   </article>
   <article class="card">
-    <h3><span>7</span>Straight lines and bends</h3>
+    <h3><span>8</span>Straight lines and bends</h3>
     <p class="what">Multiplying and adding only ever produce straight-line behaviour, and a chain of straight steps is still one straight step. A small <b>bend</b>, such as “output the input, but never below zero” (written max(0, x)), breaks that, so a chain of steps can follow curves.</p>
     <div class="eg">double, add 3, triple = 3 × (2x + 3) = 6x + 9: still a straight line</div><div class="eg">max(0, −2) = 0 and max(0, 3) = 3: a bend</div>
     <div class="line think"><b>Think of it as</b><span>An IF rule: do nothing below a threshold, act above it. Without a step like that, ten calculations collapse into one.</span></div>
   </article>
   <article class="card">
-    <h3><span>8</span>Rescaling</h3>
+    <h3><span>9</span>Rescaling</h3>
     <p class="what">To keep numbers in a comfortable range, subtract their <b>average</b> and divide by their <b>spread</b> (standard deviation). The result always has average 0 and spread 1, whatever the starting scale.</p>
     <div class="eg">[3, 9, 6]: average 6, spread 2.45 → [−1.22, 1.22, 0]</div>
     <div class="line think"><b>Think of it as</b><span>Putting every sensor on the same scale before comparing them.</span></div>
   </article>
   <article class="card">
-    <h3><span>9</span>Error and nudging</h3>
+    <h3><span>10</span>Error and nudging</h3>
     <p class="what">To find good settings without knowing the answer in advance, <b>guess, measure the error, nudge, repeat</b>. Each nudge moves a setting a little in the direction that shrinks the error. This is the idea behind finding the best settings by trial and refinement.</p>
     <div class="eg">prediction = w × 2, target 6. w = 2 → 4 (error 2). w = 2.5 → 5 (error 1). w = 3 → 6 (error 0)</div>
     <div class="line think"><b>Think of it as</b><span>Tuning a rule threshold against past cases: run, check how many it gets wrong, adjust, run again.</span></div>
   </article>
   <article class="card">
-    <h3><span>10</span>Feedback loops</h3>
+    <h3><span>11</span>Feedback loops</h3>
     <p class="what">Take an output and feed it back in as the next input. Each pass uses everything that came before, so small rules can build long results, and the number of passes decides the length of the result.</p>
     <div class="eg">start at 1, double and add 1: 1 → 3 → 7 → 15 → 31</div>
     <div class="line think"><b>Think of it as</b><span>A workflow that calls itself, or interest that earns interest.</span></div>
