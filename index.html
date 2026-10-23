@@ -807,7 +807,7 @@ body.present footer{display:none}
 
 <header class="topbar">
   <div class="brand">Inside the <span>Decoder</span></div>
-  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="birdseye" aria-pressed="false">Bird’s-eye view</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="film" aria-pressed="false">Animated explainers</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
+  <div class="seg tabs" role="tablist" aria-label="Page"><button class="btn" type="button" role="tab" data-tab="basics" aria-pressed="false">Deep learning basics</button><button class="btn" type="button" role="tab" data-tab="concepts" aria-pressed="false">Key concepts</button><button class="btn" type="button" role="tab" data-tab="overview" aria-pressed="false">Transformer overview</button><button class="btn" type="button" role="tab" data-tab="birdseye" aria-pressed="false">Bird’s-eye view</button><button class="btn" type="button" role="tab" data-tab="decoder" aria-pressed="true">Transformer decoder</button><button class="btn" type="button" role="tab" data-tab="film" aria-pressed="false">Animated explainers</button><button class="btn" type="button" role="tab" data-tab="nextword" aria-pressed="false">Next-word film</button><button class="btn" type="button" role="tab" data-tab="demos" aria-pressed="false">Demos</button></div>
   <div class="prompt-wrap">
     <label for="prompt">Input text</label>
     <input id="prompt" type="text" value="The cat sat on the" maxlength="240" autocomplete="off" spellcheck="false">
@@ -2271,6 +2271,30 @@ body.present footer{display:none}
   </main>
 </div>
 
+<div class="shell" id="tabNext" hidden>
+  <nav class="rail" aria-label="Next-word film">
+    <div class="cap">One film, with sound</div>
+  </nav>
+  <main>
+    <section id="nw" data-name="How AI picks the next word" data-num="1">
+      <div class="sec-head">
+        <div class="eyebrow">Manim-style film · 86 seconds · with sound</div>
+        <h2>How AI picks the next word</h2>
+        <p class="tldr"><b>In short</b>Text becomes tokens, tokens become numbers, a stack of decoder blocks mixes in context, and softmax turns the last word’s scores into probabilities. Pick one, add it, and go again.</p>
+        <p class="lede">A beginner’s walk through a decoder in the black-background look of a maths explainer video. “The cat sat on the” is split into <strong>tokens</strong> with their GPT-2 IDs, each ID looks up <strong>768 numbers</strong>, a <strong>position</strong> pattern is added, and inside a <strong>decoder block</strong> “the” <strong>attends</strong> back to the earlier words (mostly “cat”) without peeking ahead, before a <strong>feed-forward</strong> step refines every word. Twelve blocks later, the last vector scores all <strong>50,257</strong> tokens, <strong>softmax</strong> gives “mat” 52%, and the loop appends one token at a time: “. It slept.”</p>
+        <div class="key"><b>How to use it</b>Press play to start the film and its sound. Drag the timeline to jump; Space plays and pauses. The sizes are GPT-2 small’s; the embedding values, attention weights and probabilities are illustrative.</div>
+      </div>
+      <iframe class="film-frame" id="filmFrameNext" data-src="explainer/next-word.html?embed" title="Animated explainer: how AI picks the next word" loading="lazy" allow="fullscreen" style="height:auto;aspect-ratio:1280/775"></iframe>
+      <p class="note">Design: <a href="https://altafrehmani.netlify.app/" target="_blank" rel="noopener">Altaf Rehmani</a>. Drawn on a canvas in your browser, with synthesized sound. <a href="explainer/next-word.html" target="_blank" rel="noopener">Open it on its own page ↗</a></p>
+      <details class="notes"><summary>Presenter notes</summary><ul>
+        <li>Made for a beginner audience: play it straight through as an opener, then scrub back to the step you want to discuss in the decoder tab.</li>
+        <li>0–4 s the question · 4–13 s tokens · 13–22 s embeddings · 22–30 s positions · 30–38.5 s attention · 38.5–43 s feed-forward · 43–51 s 12 blocks · 51–60 s logits · 60–69 s softmax · 69–80 s the loop · 80–86 s takeaway.</li>
+        <li>Simplified on purpose: one attention head, no layer norm or residuals, positions drawn as sine waves (GPT-2 learns its own), and the most likely word is always picked (chatbots usually sample).</li>
+      </ul></details>
+    </section>
+  </main>
+</div>
+
 <div id="deck" role="navigation" aria-label="Presentation controls">
   <button class="btn" id="deckPrev" type="button">← Prev</button>
   <span class="pos" id="deckPos"></span>
@@ -3705,7 +3729,7 @@ renderOverview();renderTrx();
 
 /* ================= DEMOS TAB ================= */
 const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
-window.addEventListener('message',e=>{if(!e.data||!e.data.filmHeight)return;const f=$$('#tabFilm iframe').find(x=>x.contentWindow===e.source);if(f)f.style.height=Math.ceil(e.data.filmHeight)+'px'});
+window.addEventListener('message',e=>{if(!e.data||!e.data.filmHeight)return;const f=$$('.shell iframe').find(x=>x.contentWindow===e.source);if(f)f.style.height=Math.ceil(e.data.filmHeight)+'px'});
 $('#demoLoad').addEventListener('click',()=>{
   if(IN_CLAUDE){$('#demoPh').innerHTML='<p><strong>This viewer does not allow other websites to be embedded.</strong></p><p class="note">Use “Open in a new tab”, or open this page from its standalone copy (a local file, Netlify or GitHub Pages), where the demo loads right here.</p>';return}
   if($('#demoFrame iframe'))return;
@@ -4556,7 +4580,7 @@ initCode();
 
 /* ================= navigation: rail, jump, diagram ================= */
 let TAB='decoder';
-const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),birdseye:$('#tabBird'),decoder:$('#tabDecoder'),film:$('#tabFilm'),demos:$('#tabDemos')};
+const TABS={basics:$('#tabBasics'),concepts:$('#tabConcepts'),overview:$('#tabOverview'),birdseye:$('#tabBird'),decoder:$('#tabDecoder'),film:$('#tabFilm'),nextword:$('#tabNext'),demos:$('#tabDemos')};
 const ALLSECS=$$('main>section');
 let SECS=$$('#tabDecoder main>section');
 const jump=$('#jump');
@@ -4569,7 +4593,7 @@ buildJump();
 function setTab(t,{scroll=true}={}){
   if(!TABS[t])return;
   TAB=t;Object.entries(TABS).forEach(([k,el])=>el.hidden=k!==t);
-  $$('#tabFilm iframe[data-src]').forEach(ff=>{if(t==='film'&&!ff.getAttribute('src'))ff.src=ff.dataset.src;else if(t!=='film')ff.contentWindow?.postMessage('film:hide','*')});
+  $$('.shell iframe[data-src]').forEach(ff=>{const own=ff.closest('.shell')===TABS[t];if(own&&!ff.getAttribute('src'))ff.src=ff.dataset.src;else if(!own)ff.contentWindow?.postMessage('film:hide','*')});
   $$('.tabs .btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));
   $('.prompt-wrap').hidden=$('#engineBadge').hidden=t!=='decoder';
   SECS=$$(`#${TABS[t].id} main>section`);buildJump();
@@ -4663,7 +4687,7 @@ async function initEngine(){
 renderAll();
 markActive('intro');
 initBasics();
-if(['#basics','#concepts','#overview','#birdseye','#film','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
+if(['#basics','#concepts','#overview','#birdseye','#film','#nextword','#demos'].includes(location.hash))setTab(location.hash.slice(1),{scroll:false});
 initEngine().then(()=>{predCache.clear();renderAll(0)});
 })();
 </script>
