@@ -33,8 +33,8 @@
 <div id="stage"><canvas id="c" width="1280" height="720" aria-label="Animated explainer: how a transformer decoder picks the next word"></canvas></div>
 <div class="bar">
   <button id="play" type="button" aria-label="Play"><svg viewBox="0 0 14 14"><path d="M2 1l11 6-11 6z"/></svg></button>
-  <input id="scrub" type="range" min="0" max="86" step="0.01" value="0" aria-label="Seek">
-  <span id="time">0:00.0 / 1:26</span>
+  <input id="scrub" type="range" min="0" max="196" step="0.01" value="0" aria-label="Seek">
+  <span id="time">0:00.0</span>
   <button id="snd" type="button" aria-pressed="true" title="Sound">♪<span class="lbl"> Sound</span></button>
   <button id="loop" type="button" aria-pressed="true" title="Loop">↻<span class="lbl"> Loop</span></button>
 </div>
@@ -648,7 +648,7 @@
   }
 
   // ------------------------------------------------------------------ content
-  const D = 86;
+  const D0 = 86;   // the main timeline; deeper scenes are inserted into it below
   const WORDS = ['The', 'cat', 'sat', 'on', 'the'];
   const IDS = ['464', '3797', '3332', '319', '262'];            // GPT-2 token IDs
   const TX = [190, 370, 550, 730, 910], TY = 228, SLOT = 1090;   // token row
@@ -696,16 +696,6 @@
     else morphTex(ctx, big, layout(ctx, HD, 44, 40, 66), hq);
   }
   const stepL = (ctx, s) => layout(ctx, [T(s[1], { c: C.yellow, k: 'n' + s[1] }), T('', { gap: 0.5 }), T(s[2], { k: s[2] })], 40, 1240, 66, 'right');
-  function drawStep(ctx, t) {
-    if (t < STEPS[0][0]) return;
-    const alpha = 1 - sm(79.4, 80.0, t);
-    if (alpha <= 0.003) return;
-    let i = 0; while (i + 1 < STEPS.length && t >= STEPS[i + 1][0]) i++;
-    const cur = stepL(ctx, STEPS[i]);
-    if (i === 0) { drawTex(ctx, cur, { p: seg(STEPS[0][0], STEPS[0][0] + 0.8, t), alpha }); return; }
-    const q = sm(STEPS[i][0], STEPS[i][0] + 0.6, t);
-    if (q >= 1) drawTex(ctx, cur, { alpha }); else morphTex(ctx, stepL(ctx, STEPS[i - 1]), cur, q, { alpha });
-  }
   function drawCaps(ctx, t) {
     for (const [a, b, s] of CAPS) {
       if (t < a || t > b) continue;
@@ -883,7 +873,7 @@
     // the last word's final vector: appears at the top of the stack, then slides left to feed the scores
     const mv = sm(50.8, 51.8, t);
     const cx = lerp(1120, 150, mv), cy = lerp(230, 355, mv) + dyO * mv;
-    cellCol(ctx, cx, cy, COLF[4].map((v, k) => cl(v * 1.1 + 0.2 * Math.sin(k), -1, 1)), lerp(34, 46, mv), lerp(20, 30, mv), sm(49.0, 49.7, t), out, C.yellow);
+    cellCol(ctx, cx, cy, HFIN, lerp(34, 46, mv), lerp(20, 30, mv), sm(49.0, 49.7, t), out, C.yellow);
     const la = sm(49.3, 49.9, t) * (1 - mv);
     drawTex(ctx, txt(ctx, '“the”, now full', 28, 1120, 342, 'center'), { alpha: la, col: C.yellow });
     drawTex(ctx, txt(ctx, 'of context', 28, 1120, 374, 'center'), { alpha: la, col: C.yellow });
@@ -1028,11 +1018,404 @@
     drawTex(ctx, txt(ctx, 'what a decoder works out, one token at a time', 30, 640, 598, 'center'), { p: seg(83.0, 83.9, t), col: C.greyL });
   }
 
+  // ===================================================================== deeper scenes
+  // Each one is inserted at a freeze point of the main timeline: the main frame fades out (Manim FadeOut), the scene
+  // plays, and the frame fades back in where it stopped. Times inside a scene are local (u = seconds since it began).
+  const capsAt = (ctx, caps, u, A) => { for (const [a, b, s] of caps) { if (u < a || u > b) continue; drawTex(ctx, txt(ctx, s, 30, 640, 684, 'center'), { p: seg(a, a + 0.9, u), alpha: A * (1 - sm(b - 0.35, b, u)), col: C.greyL }); } };
+  // a text label on a black BackgroundRectangle, so it reads over edges
+  function bgLabel(ctx, s, size, x, y, col, p, alpha) {
+    const L = txt(ctx, s, size, x, y);
+    if (alpha * SM(p * 3) > 0.003) { ctx.save(); ctx.globalAlpha = alpha * 0.85 * SM(p * 3); ctx.fillStyle = C.bg; ctx.fillRect(L.x0 - 6, y - size * 0.8, L.w + 12, size * 1.1); ctx.restore(); }
+    drawTex(ctx, L, { p, alpha, col });
+  }
+  const rowCells = (ctx, x0, cy, vals, cw, ch, p, alpha, outline) => vals.forEach((v, k) => {
+    const a = SM(p * 1.6 - k / vals.length * 0.6); if (a <= 0 || alpha <= 0.003) return;
+    ctx.save(); ctx.globalAlpha = alpha * a * (0.12 + 0.75 * Math.min(1, Math.abs(v))); ctx.fillStyle = v >= 0 ? C.blue : C.red;
+    ctx.fillRect(x0 + k * cw + 2.5, cy - ch / 2 + 2.5, cw - 5, ch - 5);
+    ctx.globalAlpha = alpha * a; ctx.strokeStyle = outline || C.white; ctx.lineWidth = 1.6; ctx.strokeRect(x0 + k * cw, cy - ch / 2, cw, ch); ctx.restore();
+  });
+
+  // ---------------------------------------------------------------- A: the meaning map
+  const MM = { ox: 640, oy: 380, u: 58 };
+  const mmp = (x, y) => [MM.ox + x * MM.u, MM.oy - y * MM.u];
+  const MW = [['cat', -3.2, 1.6, 0], ['kitten', -4.4, 2.3, 0], ['dog', -2.2, 2.6, 0], ['puppy', -3.5, 3.4, 0],
+    ['mat', 2.4, -1.5, 1], ['rug', 3.6, -1.0, 1], ['sofa', 1.9, -2.6, 1], ['floor', 3.5, -2.4, 1],
+    ['car', 2.3, 2.1, 2], ['bus', 4.2, 2.4, 2], ['train', 2.9, 3.4, 2]];
+  const MG = [['animals', C.gold, -1], ['things to sit on', C.teal, 1], ['vehicles', C.blue, 1]];
+  function insMeaning(ctx, u, A) {
+    const gp = sm(0.4, 1.6, u);
+    if (gp > 0) {
+      for (let i = -7; i <= 7; i++) if (i) { const [x] = mmp(i, 0); strokePts(ctx, [[x, MM.oy + 4 * MM.u], [x, MM.oy - 4 * MM.u]], C.blueE, 1.2, 0, gp, A * 0.8); }
+      for (let j = -4; j <= 4; j++) if (j) { const [, y] = mmp(0, j); strokePts(ctx, [[MM.ox - 7 * MM.u, y], [MM.ox + 7 * MM.u, y]], C.blueE, 1.2, 0, gp, A * 0.8); }
+      arrow(ctx, MM.ox - 7 * MM.u, MM.oy, MM.ox + 7.3 * MM.u, MM.oy, C.white, 2, gp, 12, A * 0.9);
+      arrow(ctx, MM.ox, MM.oy + 4 * MM.u, MM.ox, MM.oy - 4.3 * MM.u, C.white, 2, gp, 12, A * 0.9);
+    }
+    const L = MW.map(([w, x, y, g], i) => { const [px, py] = mmp(x, y); return { w, px, py, g, i, lab: txt(ctx, w, 30, px + 13, py + 10) }; });
+    MG.forEach(([name, col, side], g) => {
+      const ms = L.filter((m) => m.g === g);
+      const x0 = Math.min(...ms.map((m) => m.px)) - 14, x1 = Math.max(...ms.map((m) => m.lab.x1)) + 6;
+      const y0 = Math.min(...ms.map((m) => m.py)) - 22, y1 = Math.max(...ms.map((m) => m.py)) + 18;
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = (x1 - x0) / 2 + 22, ry = (y1 - y0) / 2 + 22;
+      const p = sm(4.0 + g * 0.25, 4.7 + g * 0.25, u);
+      if (p > 0) { const pts = []; for (let k = 0; k <= 64; k++) { const a = -k / 64 * TAU; pts.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } ctx.save(); ctx.setLineDash([10, 8]); strokePts(ctx, pts, col, 2.5, 0, p, A); ctx.restore(); }
+      drawTex(ctx, txt(ctx, name, 30, side < 0 ? cx - rx - 14 : cx + rx + 14, cy + 10, side < 0 ? 'right' : null), { p: seg(4.3 + g * 0.25, 5.0 + g * 0.25, u), alpha: A, col });
+    });
+    const catHi = sm(5.6, 6.0, u);
+    L.forEach((m) => {
+      const p = sm(1.6 + m.i * 0.16, 2.0 + m.i * 0.16, u);
+      dot(ctx, m.px, m.py, 7 * SM(p * 1.3), [C.gold, C.teal, C.blue][m.g], A);
+      drawTex(ctx, m.lab, { p: seg(1.7 + m.i * 0.16, 2.3 + m.i * 0.16, u), alpha: A, col: m.w === 'cat' ? mixc(C.white, C.yellow, catHi) : C.white });
+    });
+    const [cat, kit, mat] = [L[0], L[1], L[4]];
+    circle(ctx, cat.px, cat.py, 15, sm(5.6, 6.1, u), C.yellow, 3, C.yellow, 0, A);
+    strokePts(ctx, [[cat.px - 10, cat.py - 6], [kit.px + 8, kit.py + 5]], C.green, 3.5, 0, sm(6.0, 6.5, u), A);
+    drawTex(ctx, txt(ctx, 'close', 28, 398, 330, 'right'), { p: seg(6.3, 6.9, u), alpha: A, col: C.green });
+    ctx.save(); ctx.setLineDash([9, 8]); strokePts(ctx, [[cat.px + 12, cat.py + 7], [mat.px - 12, mat.py - 7]], C.red, 3, 0, sm(6.6, 7.4, u), A); ctx.restore();
+    drawTex(ctx, txt(ctx, 'far', 30, 592, 334, 'right'), { p: seg(7.1, 7.6, u), alpha: A, col: C.red });
+  }
+
+  // ---------------------------------------------------------------- B: how attention works, the mask, many heads
+  const WX = [330, 480, 630, 780, 930], QX = 1110;
+  const SC = [1.20, 2.63, 2.23, 0.97, 1.38];   // q·k scores; softmax gives exactly ATT
+  const RK = H.rng(71);
+  const KEYS = WX.map(() => Array.from({ length: 5 }, () => RK.range(-1, 1)));
+  const VALS = WX.map(() => Array.from({ length: 5 }, () => RK.range(-1, 1)));
+  const QV = Array.from({ length: 5 }, () => RK.range(-1, 1));
+  const SUMV = [0, 1, 2, 3, 4].map((k) => cl(VALS.reduce((s, v, j) => s + ATT[j] * v[k], 0) * 1.8, -1, 1));
+  const MROWS = [[1], [0.55, 0.45], [0.20, 0.50, 0.30], [0.15, 0.30, 0.35, 0.20], ATT];
+  function insAttention(ctx, u, A) {
+    // --- 1. query, key, score, softmax, value
+    const a1 = A * (1 - sm(15.8, 16.4, u));
+    if (a1 > 0.003) {
+      WORDS.forEach((w, j) => drawTex(ctx, txt(ctx, w, 36, WX[j], 180, 'center'), { p: seg(0.4 + j * 0.1, 1.0 + j * 0.1, u), alpha: a1, col: j === 4 ? C.yellow : C.white }));
+      [['keys', 264, 1.2], ['scores', 384, 4.8], ['softmax', 454, 9.0], ['values', 564, 12.3]].forEach(([s, y, t0]) => drawTex(ctx, txt(ctx, s, 30, 255, y, 'right'), { p: seg(t0, t0 + 0.6, u), alpha: a1, col: C.greyL }));
+      WX.forEach((x, j) => cellCol(ctx, x, 255, KEYS[j], 26, 16, sm(1.3 + j * 0.1, 2.0 + j * 0.1, u), a1, C.blue));
+      cellCol(ctx, QX, 255, QV, 26, 16, sm(2.4, 3.0, u), a1, C.yellow);
+      drawTex(ctx, txt(ctx, 'query', 30, QX, 160, 'center'), { p: seg(2.6, 3.2, u), alpha: a1, col: C.yellow });
+      drawTex(ctx, txt(ctx, 'from “the”', 28, QX, 194, 'center'), { p: seg(2.8, 3.4, u), alpha: a1, col: C.yellow });
+      WX.forEach((x, j) => {
+        const st = 5.0 + j * 0.6, Lq = QX - 16 - x;
+        curvedArrow(ctx, arcPts(QX - 6, 300, x + 4, 324, -60 / Lq, 30), C.yellow, 1.6, sm(st, st + 0.45, u), 10, a1 * 0.55);
+        drawTex(ctx, txt(ctx, SC[j].toFixed(2), 34, x, 384, 'center'), { p: seg(st + 0.35, st + 0.85, u), alpha: a1 });
+        arrow(ctx, x, 398, x, 422, C.greyL, 2, sm(9.0 + j * 0.08, 9.4 + j * 0.08, u), 10, a1);
+        const ind = j === 1 ? tab(11.0, 11.7, u) : 0;
+        drawTex(ctx, txt(ctx, Math.round(ATT[j] * 100) + '%', 34, x, 454, 'center'), { p: seg(9.4 + j * 0.12, 10.0 + j * 0.12, u), alpha: a1, col: mixc(C.gold, C.yellow, ind), scale: 1 + 0.25 * ind, oy: 442 });
+        cellCol(ctx, x, 555, VALS[j], 26, 16, sm(12.4 + j * 0.1, 13.0 + j * 0.1, u), a1, C.teal);
+        const f = sm(13.8 + j * 0.12, 14.9 + j * 0.12, u);
+        if (f > 0 && f < 1) { ctx.save(); const s = lerp(1, 0.4 + ATT[j], f), cx = lerp(x, QX, f); ctx.translate(cx, 555); ctx.scale(s, s); ctx.translate(-cx, -555); cellCol(ctx, cx, 555, VALS[j], 26, 16, 1, a1 * (0.35 + 1.5 * ATT[j]), C.teal); ctx.restore(); }
+      });
+      drawTex(ctx, txt(ctx, 'Σ weight × value', 28, QX, 498, 'center'), { p: seg(13.6, 14.3, u), alpha: a1, col: C.greyL });
+      cellCol(ctx, QX, 555, SUMV, 26, 16, sm(14.9, 15.4, u), a1, C.yellow);
+      drawTex(ctx, txt(ctx, 'new “the”', 30, QX, 636, 'center'), { p: seg(15.1, 15.6, u), alpha: a1, col: C.yellow });
+    }
+    // --- 2. masked attention: the whole grid at once
+    const a2 = A * sm(16.2, 16.8, u) * (1 - sm(26.8, 27.4, u));
+    if (a2 > 0.003) {
+      const gx = 440, gy = 200, cs = 66, gp = sm(16.6, 17.6, u);
+      for (let k = 0; k <= 5; k++) {
+        strokePts(ctx, [[gx, gy + k * cs], [gx + 5 * cs, gy + k * cs]], C.greyL, 1.5, 0, gp, a2);
+        strokePts(ctx, [[gx + k * cs, gy], [gx + k * cs, gy + 5 * cs]], C.greyL, 1.5, 0, gp, a2);
+      }
+      drawTex(ctx, txt(ctx, 'can look at →', 28, gx, 150), { p: seg(16.8, 17.5, u), alpha: a2, col: C.greyL });
+      drawTex(ctx, txt(ctx, 'word ↓', 28, gx - 14, 150, 'right'), { p: seg(16.8, 17.5, u), alpha: a2, col: C.greyL });
+      WORDS.forEach((w, i) => {
+        drawTex(ctx, txt(ctx, w, 30, gx + i * cs + cs / 2, gy - 12, 'center'), { p: seg(16.9 + i * 0.08, 17.5 + i * 0.08, u), alpha: a2 });
+        drawTex(ctx, txt(ctx, w, 30, gx - 14, gy + i * cs + cs / 2 + 10, 'right'), { p: seg(16.9 + i * 0.08, 17.5 + i * 0.08, u), alpha: a2, col: i === 4 ? C.yellow : C.white });
+      });
+      const s = sm(21.4, 22.4, u);
+      for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) {
+        const x = gx + j * cs, y = gy + i * cs, cx = x + cs / 2, by = y + cs / 2 + 10;
+        if (j <= i) {
+          const pr = MROWS[i][j], wp = seg(18.8 + i * 0.15, 19.6 + i * 0.15, u);
+          if (s > 0) { ctx.save(); ctx.globalAlpha = a2 * s * (0.15 + 0.7 * pr); ctx.fillStyle = C.yellow; ctx.fillRect(x + 2, y + 2, cs - 4, cs - 4); ctx.restore(); }
+          if (s < 1) drawTex(ctx, txt(ctx, (Math.log(pr) + 2.5).toFixed(1), 28, cx, by, 'center'), { p: wp, alpha: a2 * (1 - s) });
+          if (s > 0) drawTex(ctx, txt(ctx, Math.round(pr * 100) + '%', 28, cx, by, 'center'), { alpha: a2 * s, col: pr > 0.4 ? C.bg : C.white });
+        } else {
+          const m = sm(19.8 + i * 0.1, 20.4 + i * 0.1, u);
+          if (m > 0) { ctx.save(); ctx.globalAlpha = a2 * m * 0.28 * (1 - s * 0.6); ctx.fillStyle = C.red; ctx.fillRect(x + 2, y + 2, cs - 4, cs - 4); ctx.restore(); }
+          drawTex(ctx, txt(ctx, '−∞', 28, cx, by, 'center'), { alpha: a2 * m * (1 - s), col: C.red });
+          drawTex(ctx, txt(ctx, '0', 28, cx, by, 'center'), { alpha: a2 * s, col: C.grey });
+        }
+      }
+      const rx = gx + 5 * cs + 30;
+      drawTex(ctx, txt(ctx, 'future words: blocked', 30, rx, gy + 48), { p: seg(20.0, 20.8, u), alpha: a2, col: C.red });
+      drawTex(ctx, txt(ctx, 'each row adds up to 100%', 28, rx, gy + 3 * cs - 10), { p: seg(22.4, 23.2, u), alpha: a2, col: C.greyL });
+      strokePts(ctx, rectPts(gx - 100, gy + 4 * cs - 3, gx + 5 * cs + 4, gy + 5 * cs + 3), C.yellow, 3.5, 0, sm(24.2, 24.8, u), a2);
+      drawTex(ctx, txt(ctx, 'the row for “the”', 28, rx, gy + 4 * cs + 42), { p: seg(24.4, 25.0, u), alpha: a2, col: C.yellow });
+    }
+    // --- 3. many heads
+    const a3 = A * sm(27.2, 27.8, u);
+    if (a3 > 0.003) {
+      const HC = [260, 640, 1020], HWT = [[0.05, 0.80, 0.05, 0.04, 0.06], [0.06, 0.14, 0.62, 0.12, 0.06], [0.04, 0.04, 0.08, 0.78, 0.06]];
+      const HDS = ['who is it about?', 'what happened?', 'the word just before'], HCOL = [C.blue, C.teal, C.gold];
+      const RJ = H.rng(33);
+      HC.forEach((cx, h) => {
+        const t0 = 27.6 + h * 0.3, xs = WORDS.map((_, j) => cx + (j - 2) * 64);
+        drawTex(ctx, txt(ctx, 'head ' + (h + 1), 32, cx, 250, 'center'), { p: seg(t0, t0 + 0.6, u), alpha: a3 });
+        drawTex(ctx, txt(ctx, HDS[h], 28, cx, 288, 'center'), { p: seg(t0 + 0.2, t0 + 0.9, u), alpha: a3, col: C.gold });
+        WORDS.forEach((w, j) => drawTex(ctx, txt(ctx, w, 28, xs[j], 480, 'center'), { p: seg(t0 + 0.2, t0 + 0.8, u), alpha: a3, col: j === 4 ? C.yellow : C.white }));
+        for (let j = 0; j < 4; j++) {
+          const Lh = xs[4] - xs[j], w = HWT[h][j], st = 28.6 + h * 0.4 + (3 - j) * 0.12;
+          curvedArrow(ctx, arcPts(xs[4] - 3, 448, xs[j] + 3, 450, 2 * (18 + 0.3 * Lh) / Lh, 30), C.yellow, 1 + 8 * w, sm(st, st + 0.6, u), 9 + 8 * w, a3 * (0.35 + 0.65 * w / 0.8));
+        }
+        const jx = 508 + h * 88;
+        arrow(ctx, cx, 500, jx + 44, 584, C.greyL, 2, sm(31.4 + h * 0.15, 31.9 + h * 0.15, u), 11, a3);
+        rowCells(ctx, jx, 600, [0, 1, 2, 3].map(() => RJ.range(-1, 1)), 22, 22, sm(31.9 + h * 0.15, 32.5 + h * 0.15, u), a3, HCOL[h]);
+      });
+      drawTex(ctx, txt(ctx, 'joined into one vector', 28, 790, 609), { p: seg(32.4, 33.1, u), alpha: a3, col: C.greyL });
+    }
+  }
+  const CAPS_B = [[0.5, 4.6, 'Each word makes a query (what it looks for) and a key (what it offers).'],
+    [4.8, 8.8, 'The query is compared with every key using a dot product: a match score.'],
+    [9.0, 12.2, 'Softmax turns the match scores into weights that add up to 100%.'],
+    [12.4, 15.7, 'Each word also has a value. “the” takes a weighted mix of all the values.'],
+    [16.4, 20.8, 'Every word does this at once. Each row is a word, each column a word it may look at.'],
+    [21.0, 24.0, 'Masked: future words get −∞, so no word can peek at what comes next.'],
+    [24.2, 26.8, 'Softmax row by row. The last row is the attention we saw from “the”.'],
+    [27.4, 31.4, 'A block runs several attention heads at once, each looking for something different.'],
+    [31.6, 36.5, 'GPT-2 small has 12 heads per block. Their results are joined into one vector.']];
+
+  // ---------------------------------------------------------------- C: the MLP up close, then add & norm
+  const RM = H.rng(61), NN = 22;
+  const MIN = Array.from({ length: 7 }, () => RM.range(-1, 1));
+  const PRE = Array.from({ length: NN }, (_, i) => (i === 5 ? 2.6 : i === 11 ? 2.3 : i === 17 ? 2.0 : RM.range(-1.5, 1.1)));
+  const W1 = Array.from({ length: 7 * NN }, () => RM.range(-1, 1)), W2 = Array.from({ length: NN * 7 }, () => RM.range(-1, 1));
+  const MOUT = Array.from({ length: 7 }, () => RM.range(-0.6, 0.6));
+  const gelu = (x) => 0.5 * x * (1 + Math.tanh(0.7978845608 * (x + 0.044715 * x * x * x)));
+  const DET = [[5, 'a surface comes next: “on the …”'], [11, 'things you can sit on'], [17, 'an animal is the subject']];
+  const RD = H.rng(91);
+  const XV = Array.from({ length: 7 }, () => RD.range(-0.9, 0.9)), DV = XV.map(() => RD.range(-0.35, 0.35));
+  const NV = XV.map((v, k) => cl(v + DV[k], -1, 1));
+  const NRM = (() => { const m = NV.reduce((a, b) => a + b, 0) / 7, sd = Math.sqrt(NV.reduce((a, b) => a + (b - m) * (b - m), 0) / 7) || 1; return NV.map((v) => cl((v - m) / sd * 0.55, -1, 1)); })();
+  function insMLP(ctx, u, A) {
+    const a1 = A * (1 - sm(15.7, 16.3, u));
+    if (a1 > 0.003) {
+      const ix = 170, icy = 415, ny = (i) => 205 + i * 20, nx = 520, ox = 1050, ocy = 420;
+      const iy = (k) => icy - 3.5 * 22 + k * 22 + 11, oy = (k) => ocy - 3.5 * 22 + k * 22 + 11;
+      const det = sm(7.2, 7.8, u), eP = sm(1.4, 2.8, u), eA = 1 - 0.65 * det;
+      // edges in → neurons → out, coloured by the sign of the weight
+      for (let k = 0; k < 7; k++) for (let i = 0; i < NN; i++) {
+        const w = W1[k * NN + i], e = [[ix + 17, iy(k)], [nx - 9, ny(i)]];
+        strokePts(ctx, e, w >= 0 ? C.blue : C.red, 0.4 + 0.9 * Math.abs(w), 0, eP, a1 * 0.45 * eA);
+        const fu = seg(3.4 + k * 0.03, 4.3 + k * 0.03, u); if (fu > 0 && fu < 1) flash(ctx, e, SM(fu), C.yellow, 1.4, 0.4, a1 * 0.7);
+      }
+      for (let i = 0; i < NN; i++) for (let k = 0; k < 7; k++) {
+        const w = W2[i * 7 + k], e = [[nx + 9, ny(i)], [ox - 17, oy(k)]];
+        strokePts(ctx, e, w >= 0 ? C.blue : C.red, 0.4 + 0.9 * Math.abs(w), 0, sm(2.0, 3.2, u), a1 * 0.45 * eA);
+        const fu = seg(12.2 + i * 0.02, 13.1 + i * 0.02, u), on = gelu(PRE[i]) / 2.6; if (fu > 0 && fu < 1 && on > 0.2) flash(ctx, e, SM(fu), C.yellow, 1.4, 0.4, a1 * on);
+      }
+      cellCol(ctx, ix, icy, MIN, 34, 22, sm(0.4, 1.0, u), a1, C.yellow);
+      drawTex(ctx, txt(ctx, '“the”', 30, ix, 528, 'center'), { p: seg(0.6, 1.2, u), alpha: a1, col: C.yellow });
+      drawTex(ctx, txt(ctx, '768', 28, ix, 562, 'center'), { p: seg(0.7, 1.3, u), alpha: a1, col: C.greyL });
+      // neurons: pre-activation, then the bend
+      const pre = sm(4.2, 4.9, u), bend = sm(5.4, 6.3, u);
+      for (let i = 0; i < NN; i++) {
+        const v = lerp(PRE[i], gelu(PRE[i]), bend), isDet = DET.some(([d]) => d === i), hi = isDet ? det : 0;
+        const f = pre * Math.min(1, Math.abs(v) / 2.2);
+        circle(ctx, nx, ny(i), 8 * (1 + 0.35 * hi), sm(0.9 + i * 0.03, 1.4 + i * 0.03, u), mixc(C.white, C.yellow, hi), 1.6 + hi, v >= 0 ? mixc(C.blue, C.yellow, hi) : C.red, f, a1);
+      }
+      ctx.save(); ctx.globalAlpha = a1 * sm(1.0, 1.6, u); ctx.font = fnt(64, false, 600); ctx.fillStyle = C.yellow; ctx.textAlign = 'center'; ctx.fillText('3,072', nx, 168); ctx.restore();
+      drawTex(ctx, txt(ctx, 'neurons', 30, nx + 98, 166), { p: seg(1.2, 1.8, u), alpha: a1, col: C.greyL });
+      // GELU inset
+      const gx0 = 1135, gy0 = 205, gs = 30, gA = a1 * sm(4.6, 5.2, u);
+      if (gA > 0.003) {
+        arrow(ctx, gx0 - 3 * gs, gy0, gx0 + 3.2 * gs, gy0, C.white, 2, 1, 10, gA);
+        arrow(ctx, gx0, gy0 + 1.2 * gs, gx0, gy0 - 3.2 * gs, C.white, 2, 1, 10, gA);
+        const gp = []; for (let k = 0; k <= 60; k++) { const x = -3 + k / 10; gp.push([gx0 + x * gs, gy0 - gelu(x) * gs]); }
+        strokePts(ctx, gp, C.green, 3.5, 0, sm(4.8, 5.6, u), gA);
+        drawTex(ctx, txt(ctx, 'bend (GELU)', 28, gx0, gy0 + 72, 'center'), { p: seg(5.0, 5.6, u), alpha: gA, col: C.green });
+      }
+      // detector labels on background rectangles
+      DET.forEach(([i, s], k) => {
+        const p = seg(7.4 + k * 0.5, 8.2 + k * 0.5, u);
+        arrow(ctx, nx + 14, ny(i), nx + 40, ny(i), C.yellow, 2.5, sm(7.3 + k * 0.5, 7.7 + k * 0.5, u), 9, a1);
+        bgLabel(ctx, s, 28, nx + 48, ny(i) + 9, C.yellow, p, a1);
+      });
+      cellCol(ctx, ox, ocy, MOUT, 34, 22, sm(13.0, 13.6, u), a1, C.gold);
+      drawTex(ctx, txt(ctx, 'update', 30, ox, 532, 'center'), { p: seg(13.3, 13.9, u), alpha: a1, col: C.gold });
+      drawTex(ctx, txt(ctx, '768', 28, ox, 566, 'center'), { p: seg(13.4, 14.0, u), alpha: a1, col: C.greyL });
+    }
+    // --- add & norm
+    const a2 = A * sm(16.1, 16.7, u), v = u - 16;
+    if (a2 > 0.003) {
+      const e1 = layout(ctx, [T('x', { it: true }), T(' ← '), T('x', { it: true }), T(' + '), T('Attention', { c: C.blue }), T('('), T('x', { it: true }), T(')')], 42, 640, 180, 'center');
+      const e2 = layout(ctx, [T('x', { it: true }), T(' ← '), T('x', { it: true }), T(' + '), T('MLP', { c: C.gold }), T('('), T('x', { it: true }), T(')')], 42, 640, 240, 'center');
+      drawTex(ctx, e1, { p: seg(0.4, 1.6, v), alpha: a2 }); drawTex(ctx, e2, { p: seg(1.2, 2.4, v), alpha: a2 });
+      cellCol(ctx, 330, 440, XV, 44, 26, sm(2.4, 3.0, v), a2, C.white);
+      drawTex(ctx, txt(ctx, 'x', 34, 330, 592, 'center', { it: true }), { p: seg(2.5, 3.0, v), alpha: a2 });
+      drawTex(ctx, txt(ctx, '+', 44, 430, 455, 'center'), { p: seg(2.8, 3.2, v), alpha: a2 });
+      cellCol(ctx, 530, 440, DV, 44, 26, sm(3.0, 3.6, v), a2, C.gold);
+      drawTex(ctx, txt(ctx, 'update', 30, 530, 592, 'center'), { p: seg(3.1, 3.6, v), alpha: a2, col: C.gold });
+      drawTex(ctx, txt(ctx, '=', 44, 630, 455, 'center'), { p: seg(3.5, 3.9, v), alpha: a2 });
+      cellCol(ctx, 730, 440, NV, 44, 26, sm(3.8, 4.5, v), a2, C.white);
+      drawTex(ctx, txt(ctx, 'new x', 30, 730, 592, 'center', { it: false }), { p: seg(4.0, 4.6, v), alpha: a2 });
+      arrow(ctx, 790, 440, 912, 440, C.white, 2.5, sm(5.0, 5.5, v), 13, a2);
+      drawTex(ctx, txt(ctx, 'layer norm', 28, 851, 420, 'center'), { p: seg(5.1, 5.7, v), alpha: a2, col: C.greyL });
+      cellCol(ctx, 990, 440, NRM, 44, 26, sm(5.4, 6.1, v), a2, C.teal);
+      drawTex(ctx, txt(ctx, 'rescaled', 30, 990, 592, 'center'), { p: seg(5.6, 6.2, v), alpha: a2, col: C.teal });
+    }
+  }
+  const CAPS_C = [[0.5, 3.4, 'The MLP widens each word’s 768 numbers into 3,072 neurons.'],
+    [3.6, 6.9, 'Each neuron weighs the inputs, then a bend (GELU) mutes the weak ones.'],
+    [7.1, 11.9, 'Some neurons act as detectors for patterns learned in training (labels illustrative).'],
+    [12.1, 15.6, 'It shrinks back to 768 numbers: an update. MLPs hold two-thirds of a block’s weights.'],
+    [16.5, 20.8, 'Each step adds its update on top of what was there, instead of replacing it.'],
+    [21.0, 24.6, 'Layer norm then rescales the numbers to a steady range, which keeps the stack stable.']];
+
+  // ---------------------------------------------------------------- D: where the scores come from
+  const HFIN = COLF[4].map((v, k) => cl(v * 1.1 + 0.2 * Math.sin(k), -1, 1));
+  const RV = H.rng(57), VROW = ROWS.map(() => Array.from({ length: 7 }, () => RV.range(-1, 1)));
+  function insScores(ctx, u, A, fa) {
+    const keep = 1 - fa;   // the "the" column and the word labels stay where the chart had them
+    cellCol(ctx, 150, 355, HFIN, 46, 30, 1, keep, C.yellow);
+    drawTex(ctx, txt(ctx, 'the', 36, 150, 505, 'center'), { alpha: keep, col: C.yellow });
+    drawTex(ctx, txt(ctx, 'one learned vector per token', 30, 585, 222, 'center'), { p: seg(0.5, 1.3, u), alpha: A, col: C.greyL });
+    ROWS.forEach((r, i) => {
+      const y = RY[i], st = 3.4 + i * 0.4;
+      drawTex(ctx, txt(ctx, r.w, 40, 450, y + 13, 'right'), { alpha: keep, col: i === 0 ? C.yellow : C.white });
+      rowCells(ctx, 480, y, VROW[i], 30, 28, sm(0.8 + i * 0.25, 1.6 + i * 0.25, u), A, C.white);
+      drawTex(ctx, layout(ctx, [T('· '), T('h', { it: true, c: C.yellow }), T(' =')], 34, 702, y + 12), { p: seg(2.6 + i * 0.1, 3.2 + i * 0.1, u), alpha: A });
+      const fu = seg(st, st + 0.5, u); if (fu > 0 && fu < 1) flash(ctx, [[176, 355], [476, y]], SM(fu), C.yellow, 3, 0.4, A);
+      drawTex(ctx, txt(ctx, r.z.toFixed(1), 36, 800, y + 12), { p: seg(st + 0.4, st + 0.9, u), alpha: A });
+    });
+    for (let k = 0; k < 3; k++) { dot(ctx, 420, 518 + k * 13, 3.2, C.white, keep); dot(ctx, 585, 518 + k * 13, 3.2, C.white, A * sm(1.6, 2.0, u)); }
+    vbrace(ctx, 905, 245, 605, sm(6.2, 6.8, u), C.white, A, 1);
+    const na = A * sm(6.4, 7.0, u);
+    if (na > 0.003) { ctx.save(); ctx.globalAlpha = na; ctx.font = fnt(64, false, 600); ctx.fillStyle = C.yellow; ctx.textAlign = 'center'; ctx.fillText('50,257', 1075, 440); ctx.restore(); }
+    drawTex(ctx, txt(ctx, 'vectors, one per token', 28, 1075, 480, 'center'), { p: seg(6.6, 7.3, u), alpha: A, col: C.greyL });
+  }
+  const CAPS_D = [[0.5, 4.6, 'Every token in the vocabulary has its own learned vector.'],
+    [4.8, 9.6, 'A token’s score is a dot product with the last word’s vector: how well they match.']];
+
+  // ---------------------------------------------------------------- E: picking a word: sampling and temperature
+  const RIB = [['mat', 52, C.teal], ['floor', 16, C.blue], ['sofa', 11, '#3B8FA8'], ['bed', 8, C.blueE], ['other', 13, C.greyD]];
+  const ROLLS = [[2.4, 0.31], [3.5, 0.61], [4.6, 0.18]];
+  const pickAt = (r) => { let c = 0; for (const [w, p] of RIB) { c += p / 100; if (r < c) return w; } return 'other'; };
+  // illustrative model of the rest of the vocabulary: 100 tokens at score 0.25, plus "pizza" at 0.9
+  const tempP = (Tm) => { const e = [6.2, 5.0, 4.6, 4.3].map((z) => Math.exp(z / Tm)), o = Math.exp(0.9 / Tm) + 100 * Math.exp(0.25 / Tm), s = e.reduce((a, b) => a + b, 0) + o; return [...e, o].map((v) => v / s); };
+  function insSample(ctx, u, A) {
+    const a1 = A * (1 - sm(5.9, 6.4, u));
+    if (a1 > 0.003) {
+      drawTex(ctx, txt(ctx, 'a weighted dice roll', 34, 640, 236, 'center'), { p: seg(0.4, 1.2, u), alpha: a1 });
+      let x = 190;
+      RIB.forEach(([w, p, col], i) => {
+        const g = sm(0.8 + i * 0.15, 1.3 + i * 0.15, u), wpx = p * 9;
+        if (g > 0) { ctx.save(); ctx.globalAlpha = a1 * 0.75; ctx.fillStyle = col; ctx.fillRect(x, 310, wpx * g, 56); ctx.globalAlpha = a1; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.strokeRect(x, 310, wpx * g, 56); ctx.restore(); }
+        drawTex(ctx, txt(ctx, w, 28, x + wpx / 2, 348, 'center'), { p: seg(1.1 + i * 0.15, 1.6 + i * 0.15, u), alpha: a1 });
+        drawTex(ctx, txt(ctx, p + '%', 28, x + wpx / 2, 402, 'center'), { p: seg(1.2 + i * 0.15, 1.7 + i * 0.15, u), alpha: a1, col: C.greyL });
+        x += wpx;
+      });
+      ROLLS.forEach(([t0, r], k) => {
+        const d = sm(t0, t0 + 0.35, u); if (d <= 0) return;
+        const later = k < 2 ? sm(ROLLS[k + 1][0], ROLLS[k + 1][0] + 0.3, u) : 0;
+        tip(ctx, 190 + 900 * r, lerp(250, 306, d), Math.PI / 2, 18, mixc(C.yellow, C.gold, later), a1 * (1 - 0.6 * later));
+        drawTex(ctx, layout(ctx, [T('roll ' + (k + 1) + ':  '), T(pickAt(r), { c: C.yellow })], 32, [380, 640, 900][k], 492, 'center'), { p: seg(t0 + 0.3, t0 + 0.8, u), alpha: a1 });
+      });
+    }
+    const a2 = A * sm(6.2, 6.8, u);
+    if (a2 > 0.003) {
+      const words = ['mat', 'floor', 'sofa', 'bed', 'other'], subs = ['focused', 'as before', 'more varied'];
+      [0.5, 1, 1.5].forEach((Tm, h) => {
+        const cx = [260, 640, 1020][h], ps = tempP(Tm), t0 = 6.6 + h * 0.4, hiT = h === 1;
+        drawTex(ctx, layout(ctx, [T('T', { it: true }), T(' = ' + Tm)], 34, cx, 262, 'center'), { p: seg(t0, t0 + 0.6, u), alpha: a2, col: hiT ? C.yellow : C.white });
+        drawTex(ctx, txt(ctx, subs[h], 28, cx, 296, 'center'), { p: seg(t0 + 0.2, t0 + 0.8, u), alpha: a2, col: C.gold });
+        strokePts(ctx, [[cx - 160, 600], [cx + 160, 600]], C.white, 2, 0, sm(t0, t0 + 0.5, u), a2);
+        ps.forEach((p, k) => {
+          const bx = cx + (k - 2) * 64, g = sm(t0 + 0.3 + k * 0.08, t0 + 0.9 + k * 0.08, u), hgt = p * 300 * g;
+          if (g > 0) { const col = k === 0 ? C.teal : k === 4 ? C.greyD : C.blue; ctx.save(); ctx.globalAlpha = a2 * 0.6; ctx.fillStyle = col; ctx.fillRect(bx - 23, 600 - hgt, 46, hgt); ctx.globalAlpha = a2; ctx.strokeStyle = k === 4 ? C.grey : col; ctx.lineWidth = 2; ctx.strokeRect(bx - 23, 600 - hgt, 46, hgt); ctx.restore(); }
+          const lab = Tm === 1 ? RIB[k][1] + '%' : p < 0.005 ? '<1%' : Math.round(p * 100) + '%';   // T = 1 shows the same rounded values as before
+          drawTex(ctx, txt(ctx, lab, 28, bx, 600 - p * 300 - 10, 'center'), { alpha: a2 * sm(t0 + 0.8 + k * 0.08, t0 + 1.1 + k * 0.08, u) });
+          drawTex(ctx, txt(ctx, words[k], 28, bx, 630, 'center'), { p: seg(t0 + 0.2, t0 + 0.8, u), alpha: a2, col: C.greyL });
+        });
+      });
+    }
+  }
+  const CAPS_E = [[0.5, 5.8, 'Greedy picks the top word every time. Sampling rolls a weighted dice instead.'],
+    [6.6, 12.6, 'Temperature reshapes the odds: low is focused, high gives more varied text.']];
+
+  // ---------------------------------------------------------------- F: training, where the weights come from
+  const RT = H.rng(13), TW0 = Array.from({ length: 7 }, () => RT.range(-1, 1)), TW1 = TW0.map((v) => cl(v + RT.range(-0.6, 0.6), -1, 1));
+  const lossF = (x) => 0.35 + 3.2 * Math.exp(-1.1 * x) + 0.08 * Math.sin(7 * x) * Math.exp(-0.4 * x);
+  function insTrain(ctx, u, A) {
+    const a1 = A * (1 - sm(5.9, 6.4, u));
+    if (a1 > 0.003) {
+      const b0 = layout(ctx, [T('the cat sat on the')], 44, 0, 0), m0 = layout(ctx, [T(' mat')], 44, 0, 0), x0 = 640 - (b0.w + m0.w) / 2;
+      const L1 = layout(ctx, [T('the cat sat on the')], 44, x0, 195), L2 = layout(ctx, [T(' mat', { c: C.green })], 44, x0 + b0.w, 195);
+      drawTex(ctx, L1, { p: seg(0.4, 1.6, u), alpha: a1 }); drawTex(ctx, L2, { p: seg(1.8, 2.3, u), alpha: a1 });
+      drawTex(ctx, txt(ctx, 'the real next word', 28, L2.cx + 8, 236, 'center'), { p: seg(2.0, 2.6, u), alpha: a1, col: C.green });
+      drawTex(ctx, txt(ctx, 'untrained guess', 30, 230, 312), { p: seg(2.3, 2.9, u), alpha: a1, col: C.greyL });
+      [['pizza', 4], ['sky', 3], ['mat', 3]].forEach(([w, p], i) => {
+        const y = 362 + i * 50, g = sm(2.5 + i * 0.15, 3.1 + i * 0.15, u);
+        drawTex(ctx, txt(ctx, w, 32, 360, y + 11, 'right'), { p: seg(2.5 + i * 0.15, 3.0 + i * 0.15, u), alpha: a1, col: w === 'mat' ? C.green : C.white });
+        if (g > 0) { ctx.save(); ctx.globalAlpha = a1 * 0.55; ctx.fillStyle = C.blue; ctx.fillRect(375, y - 13, p * 40 * g, 26); ctx.restore(); }
+        drawTex(ctx, txt(ctx, p + '%', 28, 375 + p * 40 + 12, y + 10), { alpha: a1 * g });
+      });
+      strokePts(ctx, rectPts(220, 330, 590, 393), C.red, 3, 0, sm(3.8, 4.3, u), a1);
+      drawTex(ctx, txt(ctx, 'wrong: “mat” got only 3%', 28, 230, 520), { p: seg(4.0, 4.6, u), alpha: a1, col: C.red });
+      curvedArrow(ctx, arcPts(610, 380, 975, 380, -0.25, 30), C.white, 2.5, sm(4.4, 5.0, u), 13, a1);
+      drawTex(ctx, txt(ctx, 'nudge every weight a little', 28, 792, 318, 'center'), { p: seg(4.6, 5.2, u), alpha: a1 });
+      const rw = sm(5.0, 5.8, u);
+      cellCol(ctx, 1010, 420, TW0.map((v, k) => lerp(v, TW1[k], rw)), 40, 24, sm(4.2, 4.8, u), a1, mixc(C.white, C.yellow, tab(5.0, 5.9, u)));
+      drawTex(ctx, txt(ctx, 'weights', 30, 1010, 540, 'center'), { p: seg(4.4, 5.0, u), alpha: a1, col: C.greyL });
+    }
+    const a2 = A * sm(6.3, 6.9, u);
+    if (a2 > 0.003) {
+      const ax = sm(6.5, 7.3, u);
+      arrow(ctx, 200, 600, 1000, 600, C.white, 2.5, ax, 14, a2);
+      arrow(ctx, 200, 600, 200, 180, C.white, 2.5, ax, 14, a2);
+      ctx.save(); ctx.strokeStyle = C.white; ctx.lineWidth = 2; ctx.globalAlpha = a2 * ax;
+      for (let i = 1; i <= 5; i++) { ctx.beginPath(); ctx.moveTo(200 + i * 150, 593); ctx.lineTo(200 + i * 150, 607); ctx.stroke(); }
+      for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(193, 600 - i * 100); ctx.lineTo(207, 600 - i * 100); ctx.stroke(); }
+      ctx.restore();
+      drawTex(ctx, txt(ctx, 'training steps', 30, 1000, 645, 'right'), { p: seg(7.0, 7.6, u), alpha: a2, col: C.greyL });
+      drawTex(ctx, txt(ctx, 'error', 30, 222, 200), { p: seg(7.0, 7.6, u), alpha: a2, col: C.greyL });
+      const pts = []; for (let k = 0; k <= 160; k++) { const x = k / 160 * 5; pts.push([200 + x * 150, 600 - lossF(x) * 100]); }
+      const cp = sm(7.2, 10.6, u), cum = cumLen(pts);
+      strokePts(ctx, pts, C.blue, 4, 0, cp, a2, cum);
+      if (cp > 0) { const x = cp * 5; dot(ctx, 200 + x * 150, 600 - lossF(x) * 100, 9, C.yellow, a2); }
+      const ga = a2 * sm(10.2, 10.8, u);
+      if (ga > 0.003) { ctx.save(); ctx.globalAlpha = ga; ctx.font = fnt(64, false, 600); ctx.fillStyle = C.yellow; ctx.textAlign = 'center'; ctx.fillText('40 GB', 1120, 320); ctx.restore(); }
+      drawTex(ctx, txt(ctx, 'of web text', 28, 1120, 360, 'center'), { p: seg(10.4, 11.0, u), alpha: a2, col: C.greyL });
+      drawTex(ctx, txt(ctx, 'for GPT-2', 28, 1120, 392, 'center'), { p: seg(10.5, 11.1, u), alpha: a2, col: C.greyL });
+    }
+  }
+  const CAPS_F = [[0.5, 5.9, 'Training: guess the next word of real text, then nudge the weights toward it.'],
+    [6.6, 13.4, 'Repeat over billions of words and the error falls. Then the weights are frozen for use.']];
+
+  // ---------------------------------------------------------------- the inserted scenes and the time map
+  const INS = [
+    { at: 21.0, dur: 11, draw: insMeaning, caps: [[0.5, 5.4, 'Words with similar meanings get similar numbers, so they land close together.'], [5.6, 10.5, 'Here the numbers are squashed into 2 directions. The real map has 768.']], steps: [[0, '2', 'Meaning map']] },
+    { at: 37.9, dur: 37, draw: insAttention, caps: CAPS_B, steps: [[0, '4', 'How attention works'], [16, '4', 'Masked attention'], [27, '4', 'Many heads']] },
+    { at: 42.5, dur: 25, draw: insMLP, caps: CAPS_C, steps: [[0, '4', 'MLP up close'], [16, '4', 'Add & norm']] },
+    { at: 55.5, dur: 10, draw: insScores, caps: CAPS_D, steps: [[0, '5', 'Where scores come from']] },
+    { at: 67.5, dur: 13, draw: insSample, caps: CAPS_E, steps: [[0, '6', 'Picking a word'], [6, '6', 'Temperature']] },
+    { at: 80.3, dur: 14, draw: insTrain, caps: CAPS_F, steps: [[0, '8', 'Training']], noReturn: true },
+  ];
+  let OFF = 0; INS.forEach((I) => { I.start = I.at + OFF; I.end = I.start + I.dur; OFF += I.dur; });
+  const D = D0 + OFF;
+  const R = (t) => { let o = 0; for (const I of INS) if (t >= I.at) o += I.dur; return t + o; };   // main-timeline time → film time
+  function locate(Tm) {
+    let off = 0;
+    for (const I of INS) { if (Tm < I.at + off) return { t: Tm - off }; if (Tm < I.end) return { I, u: Tm - I.start }; off += I.dur; }
+    return { t: Tm - off };
+  }
+  // step-label events on the film clock: [time, label or null]
+  const origLabelAt = (t) => { if (t < STEPS[0][0] || t >= 79.4) return null; let i = 0; while (i + 1 < STEPS.length && t >= STEPS[i + 1][0]) i++; return STEPS[i]; };
+  const EV = [[0, null]];
+  STEPS.forEach((s) => EV.push([R(s[0]), s])); EV.push([R(79.4), null]);
+  INS.forEach((I) => { I.steps.forEach(([dt, n, nm]) => EV.push([I.start + 0.25 + dt, [0, n, nm]])); EV.push([I.noReturn ? I.end - 0.6 : I.end - 0.45, I.noReturn ? null : origLabelAt(I.at)]); });
+  EV.sort((a, b) => a[0] - b[0]);
+  function drawStep(ctx, Tm) {
+    let i = 0; while (i + 1 < EV.length && Tm >= EV[i + 1][0]) i++;
+    const [t0, cur] = EV[i], prev = i > 0 ? EV[i - 1][1] : null, q = sm(t0, t0 + 0.6, Tm);
+    if (cur && prev && q < 1) morphTex(ctx, stepL(ctx, prev), stepL(ctx, cur), q);
+    else if (cur && !prev) drawTex(ctx, stepL(ctx, cur), { p: seg(t0, t0 + 0.8, Tm) });
+    else if (cur) drawTex(ctx, stepL(ctx, cur));
+    else if (prev && q < 1) drawTex(ctx, stepL(ctx, prev), { alpha: 1 - q });
+  }
+
   // ------------------------------------------------------------------ the explainer
-  function explainer(ctx, W, Hh, t) {
-    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, Hh);
-    drawHeader(ctx, t);
-    drawStep(ctx, t);
+  function body(ctx, t) {
     if (t < 51.6) drawTokens(ctx, t);
     if (t > 29.9 && t < 51.6) drawBlock(ctx, t);
     if (t > 43.9 && t < 51.6) drawStack(ctx, t);
@@ -1041,15 +1424,39 @@
     if (t > 80.3) drawTake(ctx, t);
     drawCaps(ctx, t);
   }
+  let layerC = null;
+  function explainer(ctx, W, Hh, Tm) {
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, Hh);
+    drawHeader(ctx, Tm);
+    const loc = locate(Tm);
+    if (!loc.I) body(ctx, loc.t);
+    else {
+      const { I, u } = loc;
+      const fa = Math.max(1 - sm(0, 0.6, u), sm(I.dur - 0.6, I.dur, u));
+      if (fa > 0.003) {
+        // the frozen main frame, drawn into a layer and faded as a whole (FadeOut / FadeIn)
+        const cv = ctx.canvas;
+        if (!layerC || layerC.width !== cv.width || layerC.height !== cv.height) { layerC = document.createElement('canvas'); layerC.width = cv.width; layerC.height = cv.height; }
+        const lc = layerC.getContext('2d');
+        lc.setTransform(1, 0, 0, 1, 0, 0); lc.clearRect(0, 0, layerC.width, layerC.height); lc.setTransform(ctx.getTransform());
+        body(lc, I.at);
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = fa; ctx.drawImage(layerC, 0, 0); ctx.restore();
+      }
+      const A = 1 - sm(I.dur - 0.7, I.dur - 0.1, u);
+      I.draw(ctx, u, A, fa);
+      capsAt(ctx, I.caps, u, A);
+    }
+    drawStep(ctx, Tm);
+  }
 
-  window.TF = { explainer, D, C, CYC, STAGES, ROWS, ATT, sm, seg, tab, SM };
+  window.TF = { explainer, D, D0, R, INS, C, CYC, STAGES, ROWS, ATT, sm, seg, tab, SM };
 })();
 </script>
 <script>// Sound design: gentle, warm and sparse, like the soft score under a math explainer. Times match the picture in core.js.
 (function () {
   const { sm, seg, CYC } = TF;
-  function scoreSound(k) {
-    const D = TF.D;
+  // helpers bound to a kit
+  function kitHelpers(k) {
     const pluck = (t, f, g = 1, o = {}) => {
       k.tone(t, { f, type: 'triangle', dur: 0.55, gain: 0.1 * g, a: 0.004, filter: 'lowpass', f2: 1300, verb: 0.3, pan: o.pan || 0, minor: o.minor });
       k.tone(t, { f: k.hz(f) * 2, dur: 0.22, gain: 0.025 * g, a: 0.003, verb: 0.25, pan: o.pan || 0, minor: o.minor });
@@ -1062,6 +1469,14 @@
     // counter ticks: at most one per `gap` seconds, only when the shown value changes
     const counter = (val, a, b, gap, g, f) => { let last = -1, prev = val(a); for (let t = a; t <= b; t += 0.002) { const v = val(t); if (v !== prev && t - last >= gap) { tick(t, g, f, -0.2); last = t; } prev = v; } };
     const chord = (t, notes, g = 1, dur = 1.8) => notes.forEach((n, i) => k.tone(t + 0.02 + i * 0.05, { f: n, type: 'triangle', dur, gain: 0.07 * g, a: 0.02, filter: 'lowpass', f2: 1500, verb: 0.45, pan: (i - (notes.length - 1) / 2) * 0.3 }));
+    return { pluck, tick, write, swish, counter, chord };
+  }
+  function scoreSound(k0) {
+    // the main score is written on the main timeline; shift it past the inserted scenes
+    const R = TF.R;
+    const k = Object.assign({}, k0, { tone: (t, p) => k0.tone(R(t), p), noise: (t, p) => k0.noise(R(t), p), play: (n, t, o) => k0.play(n, R(t), o), music: (n, a, b, p) => k0.music(n, R(a), R(b), p) });
+    const { pluck, tick, write, swish, counter, chord } = kitHelpers(k);
+    const D = TF.D0;
 
     // ---- warm pad underneath, resolving to D under the takeaway
     k.music('pad', 0, 80.4, { bpm: 60, gain: 0.45, chords: [['D3', 'A3', 'C#4', 'F#4'], ['B2', 'F#3', 'A3', 'D4'], ['G2', 'D3', 'F#3', 'B3'], ['A2', 'E3', 'G3', 'C#4']] });
@@ -1152,6 +1567,88 @@
     write(82.2, 83.2, 5, 0.6);
     k.noise(83.4, { dur: 0.6, filter: 'bandpass', f: [[0, 600], [0.5, 1100]], q: 1.2, gain: 0.04, a: 0.15, minor: true });
     pluck(83.75, 'F#5', 0.5); pluck(83.85, 'A5', 0.45);
+
+    insertSounds(k0);
+  }
+
+  // ---- the deeper scenes, on the film clock (s = scene start)
+  function insertSounds(k) {
+    const { pluck, tick, write, swish, chord } = kitHelpers(k);
+    const [A, B, Cm, Dsc, E, F] = TF.INS.map((I) => I.start);
+    const out = (I) => swish(I.end - 0.7, 0.7, 0.7);
+    const fall = (t) => { k.tone(t, { f: 'F3', type: 'triangle', dur: 0.5, gain: 0.14, a: 0.01, filter: 'lowpass', f2: 900, verb: 0.3, pan: 0.4 }); k.tone(t + 0.16, { f: 'C#3', type: 'triangle', dur: 0.8, gain: 0.14, a: 0.01, filter: 'lowpass', f2: 800, verb: 0.35, pan: 0.4 }); };
+    const PENT = ['D4', 'E4', 'F#4', 'A4', 'B4', 'D5', 'E5', 'F#5', 'A5', 'B5', 'D6'];
+
+    // meaning map
+    swish(A, 0.7, 0.9);
+    k.noise(A + 0.4, { dur: 1.2, color: 'pink', filter: 'bandpass', f: [[0, 400], [1.1, 900]], q: 0.8, gain: 0.05, a: 0.5, minor: true });
+    PENT.forEach((n, i) => pluck(A + 1.65 + i * 0.16, n, 0.35, { pan: -0.6 + i * 0.12, minor: true }));
+    [0, 1, 2].forEach((g) => swish(A + 4.0 + g * 0.25, 0.6, 0.35, -0.4 + g * 0.4, true));
+    pluck(A + 5.65, 'A4', 0.7); pluck(A + 6.3, 'D5', 0.6); pluck(A + 6.42, 'F#5', 0.5);
+    k.tone(A + 6.9, { f: 'A2', type: 'triangle', dur: 0.8, gain: 0.12, a: 0.02, filter: 'lowpass', f2: 700, verb: 0.3 });
+    out(TF.INS[0]);
+
+    // how attention works
+    swish(B, 0.7, 0.9);
+    write(B + 0.4, B + 1.5, 5, 0.8);
+    [0, 1, 2, 3, 4].forEach((j) => pluck(B + 1.5 + j * 0.1, PENT[j], 0.35, { pan: -0.6 + j * 0.25, minor: true }));
+    pluck(B + 2.6, 'A5', 0.7, { pan: 0.6 });
+    [0, 1, 2, 3, 4].forEach((j) => { tick(B + 5.0 + j * 0.6 + 0.2, 0.6, 1400, 0.5 - j * 0.25); pluck(B + 5.4 + j * 0.6, ['D4', 'E4', 'F#4', 'A4', 'B4'][j], 0.5, { pan: -0.6 + j * 0.3 }); });
+    swish(B + 9.0, 0.8, 0.7); write(B + 9.4, B + 10.6, 5, 0.7);
+    pluck(B + 11.0, 'A4', 0.8); pluck(B + 11.12, 'D5', 0.7);
+    [0, 1, 2, 3, 4].forEach((j) => pluck(B + 12.6 + j * 0.1, PENT[j + 2], 0.3, { minor: true }));
+    swish(B + 13.8, 1.2, 0.8, 0.4); chord(B + 15.0, ['D4', 'F#4', 'A4'], 0.8, 1.2);
+    // masked attention
+    swish(B + 16.0, 0.7, 0.7); write(B + 16.9, B + 17.6, 4, 0.6);
+    write(B + 18.8, B + 20.2, 10, 0.6);
+    fall(B + 20.0);
+    swish(B + 21.4, 1.0, 0.8); pluck(B + 22.4, 'D5', 0.6);
+    pluck(B + 24.25, 'A4', 0.8); pluck(B + 24.37, 'D5', 0.7);
+    // many heads
+    swish(B + 27.0, 0.7, 0.7);
+    [0, 1, 2].forEach((h) => { write(B + 27.6 + h * 0.3, B + 28.4 + h * 0.3, 3, 0.6); pluck(B + 28.8 + h * 0.4, ['D4', 'F#4', 'A4'][h], 0.6, { pan: -0.6 + h * 0.6 }); });
+    swish(B + 31.4, 0.9, 0.6); pluck(B + 32.4, 'D5', 0.7);
+    out(TF.INS[1]);
+
+    // MLP up close, then add & norm
+    swish(Cm, 0.7, 0.9);
+    pluck(Cm + 0.5, 'D4', 0.6); k.noise(Cm + 1.4, { dur: 1.6, color: 'pink', filter: 'bandpass', f: [[0, 400], [1.5, 1200]], q: 0.8, gain: 0.06, a: 0.6, minor: true });
+    pluck(Cm + 1.1, 'A4', 0.8); k.tone(Cm + 1.1, { f: 'D2', dur: 0.8, gain: 0.1, a: 0.01 });
+    k.noise(Cm + 3.4, { dur: 1.0, color: 'pink', filter: 'bandpass', f: [[0, 600], [0.9, 2000]], q: 1, gain: 0.07, a: 0.5 });
+    k.tone(Cm + 5.4, { f: [[0, 300], [0.9, 160]], type: 'triangle', dur: 1.0, gain: 0.07, a: 0.1, filter: 'lowpass', f2: 900, verb: 0.3 });
+    ['A4', 'D5', 'F#5'].forEach((n, i) => { k.play('blip', Cm + 7.3 + i * 0.5, { f: n, type: 'triangle', dur: 0.12, gain: 1.0, pan: 0.3 }); write(Cm + 7.4 + i * 0.5, Cm + 8.2 + i * 0.5, 3, 0.5, 0.3); });
+    k.noise(Cm + 12.2, { dur: 1.0, color: 'pink', filter: 'bandpass', f: [[0, 1600], [0.9, 500]], q: 1, gain: 0.07, a: 0.4 });
+    pluck(Cm + 13.1, 'D4', 0.7, { pan: 0.5 });
+    swish(Cm + 16.0, 0.7, 0.7); write(Cm + 16.4, Cm + 18.4, 7, 0.7);
+    pluck(Cm + 18.7, 'D4', 0.6); pluck(Cm + 19.3, 'F#4', 0.6); pluck(Cm + 20.1, 'A4', 0.7);
+    swish(Cm + 21.0, 0.7, 0.6); pluck(Cm + 21.9, 'D5', 0.7);
+    out(TF.INS[2]);
+
+    // where the scores come from
+    swish(Dsc, 0.7, 0.9); write(Dsc + 0.5, Dsc + 1.3, 3, 0.6);
+    [0, 1, 2, 3, 4].forEach((i) => { tick(Dsc + 1.0 + i * 0.25, 0.5, 1100 + i * 80); pluck(Dsc + 3.75 + i * 0.4, ['A4', 'F#4', 'E4', 'D4', 'A3'][i], 0.55, { minor: true }); });
+    swish(Dsc + 6.2, 0.5, 0.4); pluck(Dsc + 6.5, 'D4', 0.9); k.tone(Dsc + 6.5, { f: 'D2', dur: 0.9, gain: 0.12, a: 0.01 });
+    out(TF.INS[3]);
+
+    // picking a word
+    swish(E, 0.7, 0.9); write(E + 0.4, E + 1.2, 4, 0.6);
+    k.noise(E + 0.8, { dur: 0.9, color: 'pink', filter: 'bandpass', f: [[0, 500], [0.8, 1000]], q: 0.9, gain: 0.05, a: 0.3, minor: true });
+    [[2.4, 'D5'], [3.5, 'A4'], [4.6, 'D5']].forEach(([t0, n]) => { for (let m = 0; m < 6; m++) tick(E + t0 - 0.25 + m * 0.05, 0.45, 1800 + m * 150); k.play('pop', E + t0 + 0.35, { f: 640, gain: 0.5 }); pluck(E + t0 + 0.4, n, 0.55); });
+    swish(E + 6.0, 0.7, 0.7);
+    [0, 1, 2].forEach((h) => { write(E + 6.6 + h * 0.4, E + 7.2 + h * 0.4, 2, 0.5); pluck(E + 7.2 + h * 0.4, ['A3', 'D4', 'F#4'][h], 0.6, { pan: -0.6 + h * 0.6 }); });
+    out(TF.INS[4]);
+
+    // training
+    swish(F, 0.7, 0.9); write(F + 0.4, F + 1.6, 6, 0.7);
+    pluck(F + 1.9, 'A4', 0.8, { pan: 0.4 });
+    [0, 1, 2].forEach((i) => tick(F + 2.6 + i * 0.15, 0.5, 1200));
+    fall(F + 3.85);
+    k.tone(F + 4.4, { f: [[0, 600], [0.8, 260]], type: 'sine', dur: 0.9, gain: 0.06, a: 0.25, filter: 'lowpass', f2: 900, verb: 0.3, pan: 0.4 });
+    k.noise(F + 5.0, { dur: 0.9, color: 'pink', filter: 'bandpass', f: [[0, 400], [0.8, 760]], q: 1, gain: 0.05, a: 0.4, minor: true });
+    swish(F + 6.0, 0.7, 0.7); write(F + 7.0, F + 7.6, 3, 0.6);
+    k.tone(F + 7.2, { f: [[0, 880], [3.4, 330]], type: 'sine', dur: 3.5, gain: 0.045, a: 0.4, hold: 2.6, filter: 'lowpass', f2: 1600, verb: 0.3 });
+    pluck(F + 10.3, 'D4', 0.9); k.tone(F + 10.3, { f: 'D2', dur: 1.0, gain: 0.12, a: 0.01 });
+    out(TF.INS[5]);
   }
   window.scoreSound = scoreSound;
 })();
@@ -1160,6 +1657,7 @@
 (function () {
   const DURATION = TF.D;
   window.DURATION = DURATION;
+  document.getElementById('scrub').max = DURATION;
   const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
   const stage = document.getElementById('stage'), scrub = document.getElementById('scrub'), timeEl = document.getElementById('time');
   const playBtn = document.getElementById('play'), sndBtn = document.getElementById('snd'), loopBtn = document.getElementById('loop');
