@@ -1,4 +1,4 @@
-// Builds one self-contained HTML file: the site plus the three Three.js films bundled inline.
+// Builds one self-contained HTML file: the site plus the three Three.js films and the next-word film bundled inline.
 // Usage (from a folder where `npm i three@0.169.0 esbuild` has been run):
 //   node /path/to/repo/tools/build-single.mjs /path/to/repo out.html
 import { createRequire } from 'node:module';
@@ -27,6 +27,9 @@ for (const [key, page, entry] of films) {
        .replace('</body>', () => `<script>${js}</script>\n</body>`);
   FILM_SRC[key] = h;
 }
+// the Manim-style next-word film is already one self-contained page (canvas + Web Audio, no Three.js)
+FILM_SRC['explainer/next-word.html?embed'] = fs.readFileSync(path.join(repo, 'explainer/next-word.html'), 'utf8')
+  .replace("new URLSearchParams(location.search).has('embed')", 'true');
 let site = fs.readFileSync(path.join(repo, 'index.html'), 'utf8');
 const hook = "ff.src=ff.dataset.src";
 if (!site.includes(hook)) throw new Error('film loader hook not found');
