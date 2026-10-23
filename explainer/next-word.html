@@ -1382,8 +1382,18 @@
   const CAPS_F = [[0.5, 5.9, 'Training: guess the next word of real text, then nudge the weights toward it.'],
     [6.6, 13.4, 'Repeat over billions of words and the error falls. Then the weights are frozen for use.']];
 
+  // ---------------------------------------------------------------- opening title card
+  function insTitle(ctx, u, A) {
+    const L = layout(ctx, [T('Decoder', { c: C.blue }), T(' Explainer')], 76, 640, 340, 'center');
+    drawTex(ctx, L, { p: seg(0.2, 1.4, u), alpha: A });
+    const w = sm(1.1, 1.8, u) * (L.w / 2 + 40);
+    if (w > 0) strokePts(ctx, [[640 - w, 374], [640 + w, 374]], C.white, 2, 0, 1, A);
+    drawTex(ctx, layout(ctx, [T('by ', { c: C.greyL }), T('Altaf Rehmani', { c: C.yellow })], 40, 640, 436, 'center'), { p: seg(1.5, 2.4, u), alpha: A });
+  }
+
   // ---------------------------------------------------------------- the inserted scenes and the time map
   const INS = [
+    { at: 0, dur: 3.6, draw: insTitle, caps: [], steps: [] },
     { at: 21.0, dur: 11, draw: insMeaning, caps: [[0.5, 5.4, 'Words with similar meanings get similar numbers, so they land close together.'], [5.6, 10.5, 'Here the numbers are squashed into 2 directions. The real map has 768.']], steps: [[0, '2', 'Meaning map']] },
     { at: 37.9, dur: 37, draw: insAttention, caps: CAPS_B, steps: [[0, '4', 'How attention works'], [16, '4', 'Masked attention'], [27, '4', 'Many heads']] },
     { at: 42.5, dur: 25, draw: insMLP, caps: CAPS_C, steps: [[0, '4', 'MLP up close'], [16, '4', 'Add & norm']] },
@@ -1427,8 +1437,8 @@
   let layerC = null;
   function explainer(ctx, W, Hh, Tm) {
     ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, Hh);
-    drawHeader(ctx, Tm);
     const loc = locate(Tm);
+    drawHeader(ctx, loc.I ? loc.I.at : loc.t);
     if (!loc.I) body(ctx, loc.t);
     else {
       const { I, u } = loc;
@@ -1574,7 +1584,18 @@
   // ---- the deeper scenes, on the film clock (s = scene start)
   function insertSounds(k) {
     const { pluck, tick, write, swish, chord } = kitHelpers(k);
-    const [A, B, Cm, Dsc, E, F] = TF.INS.map((I) => I.start);
+    const INS = TF.INS.filter((I) => I.at > 0), T0 = TF.INS[0];
+    const [A, B, Cm, Dsc, E, F] = INS.map((I) => I.start);
+
+    // opening title card: a soft chord as the title writes on, the pad under it
+    k.music('pad', 0, T0.end, { bpm: 60, gain: 0.45, chords: [['D3', 'A3', 'D4', 'F#4']] });
+    chord(0.25, ['D3', 'A3', 'D4', 'F#4'], 0.8, 2.6);
+    write(0.2, 1.4, 6, 0.8);
+    swish(1.1, 0.7, 0.5, 0, true);
+    write(1.5, 2.4, 4, 0.7);
+    pluck(1.6, 'A4', 0.7);
+    swish(T0.end - 0.7, 0.7, 0.7);
+
     const out = (I) => swish(I.end - 0.7, 0.7, 0.7);
     const fall = (t) => { k.tone(t, { f: 'F3', type: 'triangle', dur: 0.5, gain: 0.14, a: 0.01, filter: 'lowpass', f2: 900, verb: 0.3, pan: 0.4 }); k.tone(t + 0.16, { f: 'C#3', type: 'triangle', dur: 0.8, gain: 0.14, a: 0.01, filter: 'lowpass', f2: 800, verb: 0.35, pan: 0.4 }); };
     const PENT = ['D4', 'E4', 'F#4', 'A4', 'B4', 'D5', 'E5', 'F#5', 'A5', 'B5', 'D6'];
@@ -1586,7 +1607,7 @@
     [0, 1, 2].forEach((g) => swish(A + 4.0 + g * 0.25, 0.6, 0.35, -0.4 + g * 0.4, true));
     pluck(A + 5.65, 'A4', 0.7); pluck(A + 6.3, 'D5', 0.6); pluck(A + 6.42, 'F#5', 0.5);
     k.tone(A + 6.9, { f: 'A2', type: 'triangle', dur: 0.8, gain: 0.12, a: 0.02, filter: 'lowpass', f2: 700, verb: 0.3 });
-    out(TF.INS[0]);
+    out(INS[0]);
 
     // how attention works
     swish(B, 0.7, 0.9);
@@ -1608,7 +1629,7 @@
     swish(B + 27.0, 0.7, 0.7);
     [0, 1, 2].forEach((h) => { write(B + 27.6 + h * 0.3, B + 28.4 + h * 0.3, 3, 0.6); pluck(B + 28.8 + h * 0.4, ['D4', 'F#4', 'A4'][h], 0.6, { pan: -0.6 + h * 0.6 }); });
     swish(B + 31.4, 0.9, 0.6); pluck(B + 32.4, 'D5', 0.7);
-    out(TF.INS[1]);
+    out(INS[1]);
 
     // MLP up close, then add & norm
     swish(Cm, 0.7, 0.9);
@@ -1622,13 +1643,13 @@
     swish(Cm + 16.0, 0.7, 0.7); write(Cm + 16.4, Cm + 18.4, 7, 0.7);
     pluck(Cm + 18.7, 'D4', 0.6); pluck(Cm + 19.3, 'F#4', 0.6); pluck(Cm + 20.1, 'A4', 0.7);
     swish(Cm + 21.0, 0.7, 0.6); pluck(Cm + 21.9, 'D5', 0.7);
-    out(TF.INS[2]);
+    out(INS[2]);
 
     // where the scores come from
     swish(Dsc, 0.7, 0.9); write(Dsc + 0.5, Dsc + 1.3, 3, 0.6);
     [0, 1, 2, 3, 4].forEach((i) => { tick(Dsc + 1.0 + i * 0.25, 0.5, 1100 + i * 80); pluck(Dsc + 3.75 + i * 0.4, ['A4', 'F#4', 'E4', 'D4', 'A3'][i], 0.55, { minor: true }); });
     swish(Dsc + 6.2, 0.5, 0.4); pluck(Dsc + 6.5, 'D4', 0.9); k.tone(Dsc + 6.5, { f: 'D2', dur: 0.9, gain: 0.12, a: 0.01 });
-    out(TF.INS[3]);
+    out(INS[3]);
 
     // picking a word
     swish(E, 0.7, 0.9); write(E + 0.4, E + 1.2, 4, 0.6);
@@ -1636,7 +1657,7 @@
     [[2.4, 'D5'], [3.5, 'A4'], [4.6, 'D5']].forEach(([t0, n]) => { for (let m = 0; m < 6; m++) tick(E + t0 - 0.25 + m * 0.05, 0.45, 1800 + m * 150); k.play('pop', E + t0 + 0.35, { f: 640, gain: 0.5 }); pluck(E + t0 + 0.4, n, 0.55); });
     swish(E + 6.0, 0.7, 0.7);
     [0, 1, 2].forEach((h) => { write(E + 6.6 + h * 0.4, E + 7.2 + h * 0.4, 2, 0.5); pluck(E + 7.2 + h * 0.4, ['A3', 'D4', 'F#4'][h], 0.6, { pan: -0.6 + h * 0.6 }); });
-    out(TF.INS[4]);
+    out(INS[4]);
 
     // training
     swish(F, 0.7, 0.9); write(F + 0.4, F + 1.6, 6, 0.7);
@@ -1648,7 +1669,7 @@
     swish(F + 6.0, 0.7, 0.7); write(F + 7.0, F + 7.6, 3, 0.6);
     k.tone(F + 7.2, { f: [[0, 880], [3.4, 330]], type: 'sine', dur: 3.5, gain: 0.045, a: 0.4, hold: 2.6, filter: 'lowpass', f2: 1600, verb: 0.3 });
     pluck(F + 10.3, 'D4', 0.9); k.tone(F + 10.3, { f: 'D2', dur: 1.0, gain: 0.12, a: 0.01 });
-    out(TF.INS[5]);
+    out(INS[5]);
   }
   window.scoreSound = scoreSound;
 })();

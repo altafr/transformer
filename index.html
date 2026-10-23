@@ -2278,7 +2278,7 @@ body.present footer{display:none}
   <main>
     <section id="nw" data-name="How AI picks the next word" data-num="1">
       <div class="sec-head">
-        <div class="eyebrow">Manim-style film · 3 minutes 16 seconds · with sound</div>
+        <div class="eyebrow">Manim-style film · 3 minutes 20 seconds · with sound</div>
         <h2>How AI picks the next word</h2>
         <p class="tldr"><b>In short</b>Text becomes tokens, tokens become numbers, a stack of decoder blocks mixes in context, and softmax turns the last word’s scores into probabilities. Pick one, add it, and go again.</p>
         <p class="lede">A beginner’s walk through a decoder in the black-background look of a maths explainer video. “The cat sat on the” is split into <strong>tokens</strong> with their GPT-2 IDs, each ID looks up <strong>768 numbers</strong>, a <strong>position</strong> pattern is added, and inside a <strong>decoder block</strong> “the” <strong>attends</strong> back to the earlier words (mostly “cat”) without peeking ahead, before a <strong>feed-forward</strong> step refines every word. Twelve blocks later, the last vector scores all <strong>50,257</strong> tokens, <strong>softmax</strong> gives “mat” 52%, and the loop appends one token at a time: “. It slept.”</p>
@@ -2289,7 +2289,7 @@ body.present footer{display:none}
       <p class="note">Design: <a href="https://altafrehmani.netlify.app/" target="_blank" rel="noopener">Altaf Rehmani</a>. Drawn on a canvas in your browser, with synthesized sound. <a href="explainer/next-word.html" target="_blank" rel="noopener">Open it on its own page ↗</a></p>
       <details class="notes"><summary>Presenter notes</summary><ul>
         <li>Made for a beginner audience: play it straight through as an opener, then scrub back to the step you want to discuss in the decoder tab.</li>
-        <li>0:00 the question · 0:04 tokens · 0:13 embeddings · 0:21 meaning map · 0:33 positions · 0:41 attention in the block · 0:49 how attention works · 1:05 masked attention · 1:16 many heads · 1:26 feed-forward · 1:30 MLP up close · 1:46 add &amp; norm · 1:56 12 blocks · 2:04 logits · 2:09 where scores come from · 2:23 softmax · 2:30 sampling and temperature · 2:45 the loop · 2:56 training · 3:10 takeaway.</li>
+        <li>0:00 title · 0:04 the question · 0:08 tokens · 0:17 embeddings · 0:25 meaning map · 0:37 positions · 0:45 attention in the block · 0:52 how attention works · 1:08 masked attention · 1:19 many heads · 1:30 feed-forward · 1:34 MLP up close · 1:50 add &amp; norm · 2:00 12 blocks · 2:08 logits · 2:12 where scores come from · 2:27 softmax · 2:34 sampling and temperature · 2:49 the loop · 3:00 training · 3:14 takeaway.</li>
         <li>Illustrative on purpose: the embedding values, attention weights, scores, neuron labels and probabilities are made up but consistent (the scores and percentages agree with softmax). Positions are drawn as sine waves; GPT-2 learns its own. The scaling by √d inside attention is left out.</li>
       </ul></details>
     </section>
